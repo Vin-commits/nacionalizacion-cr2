@@ -315,39 +315,39 @@
             document.getElementById('comparador').classList.add('hidden');
         }
 
-        function exportar() {
-    const d = window.datosActuales;
+        function exportData() {
+    const d = window.currentData;
 
-    // Calcular gran total (impuestos + gastos varios)
-    const granTotal = d.totalColones + d.dekra + d.declaracion + d.almacenamiento + 250 * d.tc;
+    // Calculate grand total (taxes + extra expenses)
+    const grandTotal = d.totalCRC + d.dekra + d.declaration + d.storage + 250 * d.exchangeRate;
 
-    // Armar el texto con los nuevos títulos y formato
-    const contenido = 
+    // Build the export content (Spanish titles)
+    const content = 
 `CÁLCULO DE IMPUESTOS - COSTA RICA
 Fecha: ${new Date().toLocaleString('es-CR')}
 
-Año: ${d.ano}
-Valor del vehículo: ${formatUSD(d.valor)}
-Costo del flete: ${formatUSD(d.flete)}
+Año: ${d.year}
+Valor del vehículo: ${formatUSD(d.value)}
+Costo del flete: ${formatUSD(d.freight)}
 
-TOTAL DE IMPUESTOS: ${formatCRC(d.totalColones)}
+TOTAL DE IMPUESTOS: ${formatCRC(d.totalCRC)}
 
 GASTOS VARIOS:
-- Papeleo USA: ${formatUSD(250)}
+- Papeleo (USA): ${formatUSD(250)}
 - Declaración y papeleo: ${formatCRC(106000)}
 - Dekra: ${formatCRC(45000)}
 - Almacenamiento: ${formatCRC(65000)}
 
 --------------------------------
-GRAN TOTAL: ${formatCRC(granTotal)}
-Tipo de cambio: ₡${d.tc}`;
+GRAN TOTAL: ${formatCRC(grandTotal)}
+Tipo de cambio: ₡${d.exchangeRate}`;
 
-    // Crear y descargar el archivo de texto
-    const blob = new Blob([contenido], { type: 'text/plain' });
+    // Create and trigger file download
+    const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `CalculoImpuestos-${d.ano}.txt`;
+    a.download = `Calculo-Impuestos-${d.year}.txt`;
     a.click();
     URL.revokeObjectURL(url);
 }
