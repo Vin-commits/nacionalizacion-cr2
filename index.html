@@ -6,17 +6,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
-    <meta name="theme-color" content="#2563eb">
     <title>Nacionalización CR</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
-        .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
         .header-title h1 { font-size: 18px; font-weight: bold; }
         .header-title p { font-size: 12px; opacity: 0.9; }
         .header-buttons { display: flex; gap: 8px; }
-        button { border: none; border-radius: 8px; padding: 8px 12px; font-size: 12px; cursor: pointer; font-weight: 600; background: #e5e7eb; color: #374151; }
+        button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
         .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-icon:active { background: rgba(255,255,255,0.3); }
         .btn-icon.active { background: #fbbf24; color: #1f2937; }
@@ -32,17 +31,17 @@
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
         .btn-secondary:active { background: #d1d5db; }
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
-        .btn-primary:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
-        .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; }
-        .result-amount { font-size: 28px; font-weight: bold; margin-bottom: 12px; }
+        .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
+        .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
+        .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
         .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 10px; font-size: 12px; }
+        .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
         .btn-result:active { background: rgba(255,255,255,0.3); }
-        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
         .detail-label { color: #6b7280; }
         .detail-value { font-weight: 600; color: #1f2937; }
-        .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
-        .detail-row.highlight { background: white; padding: 12px; border-radius: 4px; font-weight: bold; }
+        .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
+        .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
         .hidden { display: none !important; }
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
@@ -58,62 +57,59 @@
             </div>
         </div>
         <div class="header-buttons">
-            <button class="btn-icon" id="btnComparar" onclick="toggleComparacion()">⚖️</button>
-            <button class="btn-icon" id="btnHistorial" onclick="toggleHistorial()">⏱️</button>
+            <button class="btn-icon" id="btnComparar" onclick="toggleComparacion()" style="background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px;">Compare</button>
+            <button class="btn-icon" id="btnHistorial" onclick="toggleHistorial()">⏱</button>
         </div>
     </div>
 
     <div class="container">
         <div id="comparador" class="card hidden">
-            <div class="card-title">⚖️ Comparación</div>
+            <div class="card-title">Comparar Vehículos</div>
             <div id="comparacionContent"></div>
         </div>
 
         <div id="historialCard" class="card hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <div class="card-title" style="margin: 0;">Historial</div>
-                <button onclick="limpiarHistorial()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px;">🗑️</button>
+                <button onclick="limpiarHistorial()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px;">Limpiar</button>
             </div>
             <div id="historialContent"></div>
         </div>
 
         <div class="card">
-            <div class="card-title">📋 Datos del Vehículo</div>
+            <div class="card-title">Datos del Vehículo</div>
             
             <div class="form-group">
                 <label>Año del Vehículo</label>
-                <input type="number" id="ano" placeholder="Ej: 2022" min="1980" max="2026">
+                <input type="number" id="ano" placeholder="2022" min="1980" max="2026">
                 <div class="help-text" id="ayudaAno"></div>
             </div>
 
             <div class="form-group">
-                <label>Valor (USD) 💵</label>
+                <label>Valor (USD)</label>
                 <input type="number" id="valor" placeholder="25000">
             </div>
 
             <div class="form-group">
-                <label>Flete (USD) 🚢</label>
+                <label>Flete (USD)</label>
                 <input type="number" id="flete" placeholder="1500">
             </div>
 
             <div class="form-group">
-                <label>Tipo de Cambio (₡/USD) 💱</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="number" id="tipoCambio" placeholder="520" style="flex: 1;">
-                    <button onclick="actualizarTC()" style="background: #dbeafe; color: #1e40af; padding: 8px 12px; width: 50px;">🔄</button>
-                </div>
-                <div class="help-text">Se actualiza al cargar</div>
+                <label>Tipo de Cambio (₡/USD)</label>
+                <input type="number" id="tipoCambio" placeholder="520">
+                <div class="help-text">Búscalo en Google: "TC colón dólar hoy"</div>
             </div>
 
             <div class="button-group">
-                <button class="btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+                <button class="btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
                 <button class="btn-primary" onclick="calcular()">Calcular</button>
             </div>
         </div>
 
         <div id="resultado" class="hidden">
             <div class="result-card">
-                <div style="font-size: 12px; opacity: 0.9;">💰 COSTO TOTAL</div>
+                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
                 <div class="result-amount" id="resultadoTotal"></div>
                 <div class="result-buttons">
                     <button class="btn-result" onclick="mostrarDetalle()">Ver Detalle</button>
@@ -122,17 +118,17 @@
             </div>
 
             <div id="detalle" class="card hidden">
-                <div class="card-title">📊 Desglose</div>
+                <div class="card-title">Desglose</div>
                 <div id="detalleContent"></div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
-                    <button onclick="exportar()" style="background: #dbeafe; color: #1e40af; padding: 10px;">📥 Exportar</button>
-                    <button onclick="compartirWA()" style="background: #dcfce7; color: #15803d; padding: 10px;">💬 WhatsApp</button>
+                <div class="button-group" style="margin-top: 16px;">
+                    <button onclick="descargarPDF()" style="background: #dbeafe; color: #1e40af; padding: 12px; border-radius: 8px;">Exportar</button>
+                    <button onclick="enviarWhatsApp()" style="background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px;">WhatsApp</button>
                 </div>
             </div>
         </div>
 
         <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
-            <p>TC: ₡<span id="tcFooter">520</span> | 2025</p>
+            <p>TC: <span id="tcFooter">520</span></p>
         </div>
     </div>
 
@@ -150,31 +146,15 @@
             return '₡' + Math.round(num).toLocaleString('es-CR');
         }
 
-        async function actualizarTC() {
-            try {
-                const response = await fetch('https://api.hacienda.go.cr/indicadores/tc/dolar');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.length > 0) {
-                        const tc = parseFloat(data[0].venta).toFixed(2);
-                        document.getElementById('tipoCambio').value = tc;
-                        document.getElementById('tcFooter').textContent = tc;
-                    }
-                }
-            } catch (e) {
-                console.log('No se pudo obtener TC');
-            }
-        }
-
         document.getElementById('ano').addEventListener('change', function() {
             const ano = parseInt(this.value);
             if (ano < 1980 || ano > anoActual + 1) {
                 this.value = '';
-                document.getElementById('ayudaAno').textContent = 'Inválido';
+                document.getElementById('ayudaAno').textContent = 'Año inválido';
             } else {
                 const antiguedad = anoActual - ano;
                 const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
-                document.getElementById('ayudaAno').textContent = `${antiguedad} años • Impuesto: ${porcentaje}`;
+                document.getElementById('ayudaAno').textContent = antiguedad + ' años | Impuesto: ' + porcentaje;
             }
         });
 
@@ -182,57 +162,97 @@
             const ano = parseInt(document.getElementById('ano').value);
             const valor = parseFloat(document.getElementById('valor').value) || 0;
             const flete = parseFloat(document.getElementById('flete').value) || 0;
-            const tc = parseFloat(document.getElementById('tipoCambio').value) || 520;
+            const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
 
-            if (!ano || !valor || !flete) {
+            if (!ano || !valor || !flete || !tc) {
                 alert('Completa todos los campos');
                 return;
             }
 
             const antiguedad = anoActual - ano;
-            const valorBase = valor + flete;
-            const seguros = valorBase * 0.018;
-            const baseImpuestos = valorBase + seguros;
-            const impuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
-            const impuestos = baseImpuestos * impuesto;
+            const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
+            
+            // Paso 1: Valor + Flete
+            const valorPlusFlete = valor + flete;
+            
+            // Paso 2: Seguros (1.1% + 0.7%)
+            const seguro11 = valorPlusFlete * 0.011;
+            const seguro07 = valorPlusFlete * 0.007;
+            const totalSeguros = seguro11 + seguro07;
+            
+            // Paso 3: Base para impuestos
+            const baseImpuestos = valorPlusFlete + totalSeguros;
+            
+            // Paso 4: Impuestos en USD
+            const impuestosUSD = baseImpuestos * porcentajeImpuesto;
+            
+            // Paso 5: Papeleo USA
             const papeleoUSA = 250;
+            
+            // Paso 6: Convertir a colones
+            const valorPlusFleteColones = valorPlusFlete * tc;
+            const impuestosColones = impuestosUSD * tc;
+            const papeleoColones = papeleoUSA * tc;
+            
+            // Paso 7: Costos fijos en colones
             const declaracion = 106000;
             const dekra = 45000;
             const almacenamiento = 65000;
+            
+            // Paso 8: Total
+            const totalColones = valorPlusFleteColones + impuestosColones + papeleoColones + declaracion + dekra + almacenamiento;
 
-            const totalColones = (valor + flete + seguros + impuestos + papeleoUSA) * tc + declaracion + dekra + almacenamiento;
+            window.datosActuales = {
+                ano: ano,
+                valor: valor,
+                flete: flete,
+                antiguedad: antiguedad,
+                totalSeguros: totalSeguros,
+                impuestosUSD: impuestosUSD,
+                papeleoUSA: papeleoUSA,
+                declaracion: declaracion,
+                dekra: dekra,
+                almacenamiento: almacenamiento,
+                tc: tc,
+                totalColones: totalColones,
+                fecha: new Date().toLocaleString('es-CR')
+            };
 
-            const datos = { id: Date.now(), ano, valor, flete, antiguedad, seguros, baseImpuestos, impuestos, papeleoUSA, declaracion, dekra, almacenamiento, tc, totalColones };
-
-            window.datosActuales = datos;
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('tcFooter').textContent = tc;
         }
 
         function mostrarDetalle() {
             const d = window.datosActuales;
-            const html = `
-                <div class="section-header">💵 VALORES EN DÓLARES</div>
-                <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
-                <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
-                <div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">${formatUSD(d.seguros)}</span></div>
 
-                <div class="section-header" style="margin-top: 12px;">₡ VALORES EN COLONES</div>
-                <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value" style="color: #dc2626;">${formatCRC(d.impuestos * d.tc)}</span></div>
-                <div class="detail-row"><span class="detail-label">Papeleo USA</span><span class="detail-value">${formatCRC(d.papeleoUSA * d.tc)}</span></div>
-                <div class="detail-row"><span class="detail-label">Declaración CR</span><span class="detail-value">${formatCRC(d.declaracion)}</span></div>
-                <div class="detail-row"><span class="detail-label">Dekra</span><span class="detail-value">${formatCRC(d.dekra)}</span></div>
-                <div class="detail-row"><span class="detail-label">Almacenamiento</span><span class="detail-value">${formatCRC(d.almacenamiento)}</span></div>
-                <div class="detail-row highlight" style="background: linear-gradient(to right, #f0fdf4, #dbeafe); margin-top: 12px;"><span>TOTAL FINAL</span><span style="font-size: 16px;">${formatCRC(d.totalColones)}</span></div>
-            `;
+            let html = '';
+            html += '<div class="section-header">VALORES EN DÓLARES</div>';
+            html += '<div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">' + formatUSD(d.valor) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">' + formatUSD(d.flete) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">' + formatUSD(d.totalSeguros) + '</span></div>';
+
+            html += '<div class="section-header">VALORES EN COLONES</div>';
+            html += '<div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">' + formatCRC((d.valor + d.flete) * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">' + formatCRC(d.impuestosUSD * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Papeleo USA</span><span class="detail-value">' + formatCRC(d.papeleoUSA * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Declaración CR</span><span class="detail-value">' + formatCRC(d.declaracion) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Dekra</span><span class="detail-value">' + formatCRC(d.dekra) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Almacenamiento</span><span class="detail-value">' + formatCRC(d.almacenamiento) + '</span></div>';
+
+            html += '<div class="total-row"><span>GRAN TOTAL</span><span>' + formatCRC(d.totalColones) + '</span></div>';
+
             document.getElementById('detalleContent').innerHTML = html;
             document.getElementById('detalle').classList.remove('hidden');
         }
 
         function guardarHistorial() {
             const d = window.datosActuales;
-            historial.unshift({ ...d, fecha: new Date().toLocaleString('es-CR') });
-            alert('✓ Guardado');
+            historial.unshift({
+                id: Date.now(),
+                ...d
+            });
+            alert('Guardado');
             actualizarHistorialUI();
         }
 
@@ -249,7 +269,12 @@
             let html = '';
             historial.forEach(item => {
                 const sel = vehiculosSeleccionados.has(item.id);
-                html += `<div class="comparison-card" style="${sel ? 'border-color: #3b82f6; background: #eff6ff;' : ''}" onclick="seleccionarComparacion(${item.id})"><div>${item.ano} • ${formatUSD(item.valor)}</div><div style="font-size: 12px; color: #6b7280;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${sel ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">✓</div>' : ''}</div>`;
+                html += '<div class="comparison-card" style="' + (sel ? 'border-color: #3b82f6; background: #eff6ff;' : '') + '" onclick="seleccionarComparacion(' + item.id + ')">';
+                html += '<div>' + item.ano + ' | ' + formatUSD(item.valor) + ' + ' + formatUSD(item.flete) + '</div>';
+                html += '<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">' + item.fecha + '</div>';
+                html += '<div style="font-weight: bold; color: #2563eb; margin-top: 4px;">' + formatCRC(item.totalColones) + '</div>';
+                if (sel) html += '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>';
+                html += '</div>';
             });
             content.innerHTML = html;
         }
@@ -275,12 +300,13 @@
             const sel = historial.filter(v => vehiculosSeleccionados.has(v.id));
             let html = '';
             sel.forEach((v, idx) => {
-                html += `<div class="comparison-card"><div style="font-weight: bold; color: #1e40af;">Vehículo ${idx + 1}</div><div style="font-size: 12px; margin-top: 4px;">Año: ${v.ano}</div><div style="font-size: 12px;">Valor: ${formatUSD(v.valor)}</div><div style="font-size: 12px;">Flete: ${formatUSD(v.flete)}</div><div style="background: #eff6ff; padding: 8px; border-radius: 4px; margin-top: 8px; font-weight: bold; display: flex; justify-content: space-between;"><span>TOTAL:</span><span>${formatCRC(v.totalColones)}</span></div></div>`;
+                html += '<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ' + (idx + 1) + '</div>';
+                html += '<div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ' + v.ano + '<br>Valor: ' + formatUSD(v.valor) + '<br>Flete: ' + formatUSD(v.flete) + '<br><br><strong>' + formatCRC(v.totalColones) + '</strong></div></div>';
             });
             
             if (sel.length === 2) {
                 const diff = Math.abs(sel[0].totalColones - sel[1].totalColones);
-                html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`;
+                html += '<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ' + formatCRC(diff) + '</div>';
             }
             
             document.getElementById('comparacionContent').innerHTML = html;
@@ -289,7 +315,14 @@
 
         function toggleComparacion() {
             modoComparacion = !modoComparacion;
-            document.getElementById('btnComparar').classList.toggle('active');
+            const btn = document.getElementById('btnComparar');
+            if (modoComparacion) {
+                btn.style.background = '#fbbf24';
+                btn.style.color = '#1f2937';
+            } else {
+                btn.style.background = 'rgba(255,255,255,0.2)';
+                btn.style.color = 'white';
+            }
             vehiculosSeleccionados.clear();
             if (!modoComparacion) document.getElementById('comparador').classList.add('hidden');
             actualizarHistorialUI();
@@ -312,52 +345,71 @@
             historial = [];
             vehiculosSeleccionados.clear();
             document.getElementById('historialCard').classList.add('hidden');
-            document.getElementById('comparador').classList.add('hidden');
         }
 
-        function exportData() {
-    const d = window.currentData;
-
-    // Calculate grand total (taxes + extra expenses)
-    const grandTotal = d.totalCRC + d.dekra + d.declaration + d.storage + 250 * d.exchangeRate;
-
-    // Build the export content (Spanish titles)
-    const content = 
-`CÁLCULO DE IMPUESTOS - COSTA RICA
-Fecha: ${new Date().toLocaleString('es-CR')}
-
-Año: ${d.year}
-Valor del vehículo: ${formatUSD(d.value)}
-Costo del flete: ${formatUSD(d.freight)}
-
-TOTAL DE IMPUESTOS: ${formatCRC(d.totalCRC)}
-
-GASTOS VARIOS:
-- Papeleo (USA): ${formatUSD(250)}
-- Declaración y papeleo: ${formatCRC(106000)}
-- Dekra: ${formatCRC(45000)}
-- Almacenamiento: ${formatCRC(65000)}
-
---------------------------------
-GRAN TOTAL: ${formatCRC(grandTotal)}
-Tipo de cambio: ₡${d.exchangeRate}`;
-
-    // Create and trigger file download
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Calculo-Impuestos-${d.year}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-}
-        function compartirWA() {
+        function descargarPDF() {
             const d = window.datosActuales;
-            const msg = `🚗 NACIONALIZACIÓN%0AAño: ${d.ano}%0AValor: ${formatUSD(d.valor)}%0AFlete: ${formatUSD(d.flete)}%0A%0ATOTAL: ${formatCRC(d.totalColones)}%0ATC: ₡${d.tc}`;
-            window.open(`https://wa.me/?text=${msg}`, '_blank');
+            if (!d) {
+                alert('Primero calcula un vehículo');
+                return;
+            }
+            
+            let contenido = 'CÁLCULO DE IMPUESTOS CR\n';
+            contenido += '=====================================\n\n';
+            contenido += 'Año: ' + d.ano + '\n';
+            contenido += 'Valor: ' + formatUSD(d.valor) + '\n';
+            contenido += 'Flete: ' + formatUSD(d.flete) + '\n';
+            contenido += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
+            contenido += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
+            contenido += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
+            contenido += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
+            contenido += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
+            contenido += 'Dekra: ' + formatCRC(d.dekra) + '\n';
+            contenido += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
+            contenido += '=====================================\n';
+            contenido += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
+            contenido += '=====================================\n\n';
+            contenido += 'TC: ' + d.tc + '\n';
+            contenido += 'Fecha: ' + d.fecha;
+            
+            const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Nacionalizacion-' + d.ano + '.txt');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
-        actualizarTC();
+        function enviarWhatsApp() {
+            const d = window.datosActuales;
+            if (!d) {
+                alert('Primero calcula un vehículo');
+                return;
+            }
+            
+            let mensaje = 'CÁLCULO DE IMPUESTOS CR\n\n';
+            mensaje += 'Año: ' + d.ano + '\n';
+            mensaje += 'Valor: ' + formatUSD(d.valor) + '\n';
+            mensaje += 'Flete: ' + formatUSD(d.flete) + '\n';
+            mensaje += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
+            mensaje += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
+            mensaje += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
+            mensaje += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
+            mensaje += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
+            mensaje += 'Dekra: ' + formatCRC(d.dekra) + '\n';
+            mensaje += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
+            mensaje += '=========================\n';
+            mensaje += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
+            mensaje += '=========================\n\n';
+            mensaje += 'TC: ' + d.tc;
+            
+            const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
+            window.open(whatsappURL, '_blank');
+        }
     </script>
 </body>
 </html>
