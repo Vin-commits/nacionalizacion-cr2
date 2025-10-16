@@ -316,17 +316,41 @@
         }
 
         function exportar() {
-            const d = window.datosActuales;
-            const contenido = `NACIONALIZACIÓN - CR\nFecha: ${new Date().toLocaleString('es-CR')}\n\nAño: ${d.ano}\nValor: ${formatUSD(d.valor)}\nFlete: ${formatUSD(d.flete)}\n\nTOTAL: ${formatCRC(d.totalColones)}\nTC: ₡${d.tc}`;
-            const blob = new Blob([contenido], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Nacionalizacion-${d.ano}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+    const d = window.datosActuales;
 
+    // Calcular gran total (impuestos + gastos varios)
+    const granTotal = d.totalColones + d.dekra + d.declaracion + d.almacenamiento + 250 * d.tc;
+
+    // Armar el texto con los nuevos títulos y formato
+    const contenido = 
+`CÁLCULO DE IMPUESTOS - COSTA RICA
+Fecha: ${new Date().toLocaleString('es-CR')}
+
+Año: ${d.ano}
+Valor del vehículo: ${formatUSD(d.valor)}
+Costo del flete: ${formatUSD(d.flete)}
+
+TOTAL DE IMPUESTOS: ${formatCRC(d.totalColones)}
+
+GASTOS VARIOS:
+- Papeleo USA: ${formatUSD(250)}
+- Declaración y papeleo: ${formatCRC(106000)}
+- Dekra: ${formatCRC(45000)}
+- Almacenamiento: ${formatCRC(65000)}
+
+--------------------------------
+GRAN TOTAL: ${formatCRC(granTotal)}
+Tipo de cambio: ₡${d.tc}`;
+
+    // Crear y descargar el archivo de texto
+    const blob = new Blob([contenido], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CalculoImpuestos-${d.ano}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
         function compartirWA() {
             const d = window.datosActuales;
             const msg = `🚗 NACIONALIZACIÓN%0AAño: ${d.ano}%0AValor: ${formatUSD(d.valor)}%0AFlete: ${formatUSD(d.flete)}%0A%0ATOTAL: ${formatCRC(d.totalColones)}%0ATC: ₡${d.tc}`;
