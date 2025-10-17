@@ -80,6 +80,13 @@
             <div class="card-title">Ingrese datos del Vehículo</div>
             
             <div class="form-group">
+                <label>VIN Number (Opcional)</label>
+                <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17">
+                <div class="help-text" id="vinStatus"></div>
+                <button onclick="limpiarVIN()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-top: 4px; width: 100%;">Limpiar VIN</button>
+            </div>
+            
+            <div class="form-group">
                 <label>Año del Vehículo</label>
                 <input type="number" id="ano" placeholder="2022" min="1980" max="2026">
                 <div class="help-text" id="ayudaAno"></div>
@@ -98,7 +105,7 @@
             <div class="form-group">
                 <label>Tipo de Cambio (₡/USD)</label>
                 <input type="number" id="tipoCambio" placeholder="520">
-                <div class="help-text">Digita el tipo de cambio de hoy"</div>
+                <div class="help-text">Digite el tipo de cambio de hoy</div>
             </div>
 
             <div class="button-group">
@@ -409,6 +416,48 @@
             
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
+        }
+
+        // Decodificador de VIN
+        const vinYearMap = {
+            'Y': 2000, '1': 2001, '2': 2002, '3': 2003, '4': 2004, '5': 2005, '6': 2006, '7': 2007, '8': 2008, '9': 2009,
+            'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014, 'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
+            'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024, 'S': 2025, 'T': 2026, 'V': 2027, 'W': 2028, 'X': 2029, 'Z': 2029
+        };
+
+        document.getElementById('vin').addEventListener('input', function() {
+            const vin = this.value.toUpperCase().trim();
+            
+            if (vin.length === 0) {
+                document.getElementById('vinStatus').textContent = '';
+                return;
+            }
+            
+            if (vin.length < 10) {
+                document.getElementById('vinStatus').textContent = 'VIN debe tener al menos 10 caracteres';
+                document.getElementById('vinStatus').style.color = '#dc2626';
+                return;
+            }
+            
+            const yearChar = vin.charAt(9);
+            const year = vinYearMap[yearChar];
+            
+            if (year) {
+                document.getElementById('ano').value = year;
+                document.getElementById('vinStatus').textContent = 'Año detectado: ' + year;
+                document.getElementById('vinStatus').style.color = '#059669';
+                
+                // Trigger el evento de cambio
+                document.getElementById('ano').dispatchEvent(new Event('change'));
+            } else {
+                document.getElementById('vinStatus').textContent = 'Carácter inválido en posición 10';
+                document.getElementById('vinStatus').style.color = '#dc2626';
+            }
+        });
+
+        function limpiarVIN() {
+            document.getElementById('vin').value = '';
+            document.getElementById('vinStatus').textContent = '';
         }
     </script>
 </body>
