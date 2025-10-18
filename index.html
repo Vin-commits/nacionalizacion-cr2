@@ -1,896 +1,464 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Nacionalización CR" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
     <title>Cálculo de Impuestos</title>
     <style>
-        /* (Tu CSS original aquí, sin cambios) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff);
-        }
-        /* Resto de estilos como en tu código actual */
-        .header {
-            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-            color: white;
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .header-title h1 {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .header-title p {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        .header-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        button {
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        .btn-icon:active {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .btn-icon.active {
-            background: #fbbf24;
-            color: #1f2937;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-        .card-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: #1f2937;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #374151;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-        }
-        input:focus {
-            outline: none;
-            border-color: #2563eb;
-            background: #f0f9ff;
-        }
-        .help-text {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .btn-secondary {
-            background: #e5e7eb;
-            color: #374151;
-            padding: 12px;
-        }
-        .btn-secondary:active {
-            background: #d1d5db;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-            color: white;
-            grid-column: 1 / -1;
-            padding: 12px;
-        }
-        .btn-primary:disabled {
-            background: #d1d5db;
-            cursor: not-allowed;
-        }
-        .result-card {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            margin-bottom: 16px;
-            padding: 16px;
-            border-radius: 12px;
-        }
-        .result-amount {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 16px;
-        }
-        .result-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-        .btn-result {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .btn-result:active {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            font-size: 13px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .detail-label {
-            color: #6b7280;
-        }
-        .detail-value {
-            font-weight: 600;
-            color: #1f2937;
-        }
-        .section-header {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 12px;
-            margin-bottom: 8px;
-        }
-        .total-row {
-            background: #f0fdf4;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 12px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .comparison-card {
-            background: white;
-            border: 2px solid #93c5fd;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-        .comparison-card:active {
-            background: #eff6ff;
-            border-color: #3b82f6;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
+        .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header-title { display: flex; align-items: center; gap: 8px; }
+        .header-title h1 { font-size: 18px; font-weight: bold; }
+        .header-title p { font-size: 12px; opacity: 0.9; }
+        .header-buttons { display: flex; gap: 8px; }
+        button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .btn-icon:active { background: rgba(255,255,255,0.3); }
+        .btn-icon.active { background: #fbbf24; color: #1f2937; }
+        .container { max-width: 500px; margin: 0 auto; padding: 16px; }
+        .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #374151; }
+        input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-family: inherit; }
+        input:focus { outline: none; border-color: #2563eb; background: #f0f9ff; }
+        .help-text { font-size: 11px; color: #6b7280; margin-top: 4px; }
+        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
+        .btn-secondary:active { background: #d1d5db; }
+        .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
+        .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
+        .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
+        .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
+        .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
+        .btn-result:active { background: rgba(255,255,255,0.3); }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
+        .detail-label { color: #6b7280; }
+        .detail-value { font-weight: 600; color: #1f2937; }
+        .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
+        .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
+        .hidden { display: none !important; }
+        .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
+        .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
     </style>
 </head>
 <body>
-<div class="header">
-    <div class="header-title">
-        <div style="font-size: 20px;">🚗</div>
-        <div>
-            <h1>Cálculo de Impuestos</h1>
-            <p>Importación de Vehículos</p>
-        </div>
-    </div>
-    <div class="header-buttons">
-        <button class="btn-icon" id="btnComparar" onclick="toggleComparacion()" style="background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px;">Compare</button>
-        <button class="btn-icon" id="btnHistorial" onclick="toggleHistorial()">⏱</button>
-    </div>
-</div>
-
-<div class="container">
-    <div id="comparador" class="card hidden">
-        <div class="card-title">Comparar Vehículos</div>
-        <div id="comparacionContent"></div>
-    </div>
-
-    <div id="historialCard" class="card hidden">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div class="card-title" style="margin: 0;">Historial</div>
-            <button onclick="limpiarHistorial()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px;">Limpiar</button>
-        </div>
-        <div id="historialContent"></div>
-    </div>
-
-    <div class="card">
-        <div class="card-title">Ingrese datos del Vehículo</div>
-
-        <div class="form-group">
-            <label>VIN Number (Opcional)</label>
-            <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocomplete="off" />
-            <div class="help-text" id="vinStatus"></div>
-            <button onclick="limpiarVIN()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-top: 4px; width: 100%;">Limpiar VIN</button>
-        </div>
-
-        <div class="form-group">
-            <label>Año del Vehículo</label>
-            <input type="number" id="ano" placeholder="2022" min="1980" max="2026" />
-            <div class="help-text" id="ayudaAno"></div>
-        </div>
-
-        <div id="vinInfo" class="hidden" style="background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-            <div style="font-size: 12px; font-weight: bold; color: #1e40af; margin-bottom: 8px;">📋 Información del VIN</div>
-            <div style="font-size: 12px; color: #374151;">
-                <div style="margin-bottom: 4px;"><strong>Marca:</strong> <span id="vinMarca">-</span></div>
-                <div style="margin-bottom: 4px;"><strong>Modelo:</strong> <span id="vinModelo">-</span></div>
-                <div style="margin-bottom: 4px;"><strong>Trim:</strong> <span id="vinTrim">-</span></div>
-                <div style="margin-bottom: 4px;"><strong>Motor:</strong> <span id="vinMotor">-</span></div>
-                <div style="margin-bottom: 8px;"><strong>Extra:</strong> <span id="vinExtra">-</span></div>
+    <div class="header">
+        <div class="header-title">
+            <div style="font-size: 20px;">🚗</div>
+            <div>
+                <h1>Cálculo de Impuestos</h1>
+                <p>Importación de Vehículos</p>
             </div>
-            <button id="btnBusquedaManual" onclick="abrirBusquedaManual()" class="hidden" style="background: #fbbf24; color: #1f2937; padding: 8px 12px; font-size: 11px; border-radius: 6px; width: 100%; font-weight: bold;">
-                🔍 Buscar Manual en Otras Páginas
-            </button>
         </div>
-
-        <div class="form-group">
-            <label>Valor (USD)</label>
-            <input type="number" id="valor" placeholder="25000" />
-        </div>
-
-        <div class="form-group">
-            <label>Flete (USD)</label>
-            <input type="number" id="flete" placeholder="1500" />
-        </div>
-
-        <div class="form-group">
-            <label>Tipo de Cambio (₡/USD)</label>
-            <input type="number" id="tipoCambio" placeholder="520" />
-            <div class="help-text">Digite el tipo de cambio de hoy</div>
-        </div>
-
-        <div class="button-group">
-            <button class="btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
-            <button class="btn-primary" onclick="calcular()">Calcular</button>
+        <div class="header-buttons">
+            <button class="btn-icon" id="btnComparar" onclick="toggleComparacion()" style="background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px;">Compare</button>
+            <button class="btn-icon" id="btnHistorial" onclick="toggleHistorial()">⏱</button>
         </div>
     </div>
 
-    <div id="resultado" class="hidden">
-        <div class="result-card">
-            <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
-            <div class="result-amount" id="resultadoTotal"></div>
-            <div class="result-buttons">
-                <button class="btn-result" onclick="mostrarDetalle()">Ver Detalle</button>
-                <button class="btn-result" onclick="guardarHistorial()">Guardar</button>
+    <div class="container">
+        <div id="comparador" class="card hidden">
+            <div class="card-title">Comparar Vehículos</div>
+            <div id="comparacionContent"></div>
+        </div>
+
+        <div id="historialCard" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div class="card-title" style="margin: 0;">Historial</div>
+                <button onclick="limpiarHistorial()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px;">Limpiar</button>
+            </div>
+            <div id="historialContent"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Ingrese datos del Vehículo</div>
+            
+            <div class="form-group">
+                <label>VIN Number (Opcional)</label>
+                <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17">
+                <div class="help-text" id="vinStatus"></div>
+                <button onclick="limpiarVIN()" style="background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px; margin-top: 4px; width: 100%;">Limpiar VIN</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Año del Vehículo</label>
+                <input type="number" id="ano" placeholder="2022" min="1980" max="2026">
+                <div class="help-text" id="ayudaAno"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Valor (USD)</label>
+                <input type="number" id="valor" placeholder="25000">
+            </div>
+
+            <div class="form-group">
+                <label>Flete (USD)</label>
+                <input type="number" id="flete" placeholder="1500">
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Cambio (₡/USD)</label>
+                <input type="number" id="tipoCambio" placeholder="520">
+                <div class="help-text">Digite el tipo de cambio de hoy</div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
+                <button class="btn-primary" onclick="calcular()">Calcular</button>
             </div>
         </div>
 
-        <div id="detalle" class="card hidden">
-            <div class="card-title">Desglose</div>
-            <div id="detalleContent"></div>
-            <div class="button-group" style="margin-top: 16px;">
-                <button onclick="descargarPDF()" style="background: #dbeafe; color: #1e40af; padding: 12px; border-radius: 8px;">Exportar</button>
-                <button onclick="enviarWhatsApp()" style="background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px;">WhatsApp</button>
+        <div id="resultado" class="hidden">
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
+                <div class="result-amount" id="resultadoTotal"></div>
+                <div class="result-buttons">
+                    <button class="btn-result" onclick="mostrarDetalle()">Ver Detalle</button>
+                    <button class="btn-result" onclick="guardarHistorial()">Guardar</button>
+                </div>
             </div>
+
+            <div id="detalle" class="card hidden">
+                <div class="card-title">Desglose</div>
+                <div id="detalleContent"></div>
+                <div class="button-group" style="margin-top: 16px;">
+                    <button onclick="descargarPDF()" style="background: #dbeafe; color: #1e40af; padding: 12px; border-radius: 8px;">Exportar</button>
+                    <button onclick="enviarWhatsApp()" style="background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px;">WhatsApp</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
+            <p>TC: <span id="tcFooter">520</span></p>
         </div>
     </div>
 
-    <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
-        <p>TC: <span id="tcFooter">520</span></p>
-    </div>
-</div>
+    <script>
+        let historial = [];
+        let modoComparacion = false;
+        let vehiculosSeleccionados = new Set();
+        const anoActual = new Date().getFullYear();
 
-<script>
-    let historial = [];
-    let modoComparacion = false;
-    let vehiculosSeleccionados = new Set();
-    const anoActual = new Date().getFullYear();
+        function formatUSD(num) {
+            return '$' + Math.round(num).toLocaleString('en-US');
+        }
 
-    function formatUSD(num) {
-        return '$' + Math.round(num).toLocaleString('en-US');
-    }
+        function formatCRC(num) {
+            return '₡' + Math.round(num).toLocaleString('es-CR');
+        }
 
-    function formatCRC(num) {
-        return '₡' + Math.round(num).toLocaleString('es-CR');
-    }
+        document.getElementById('ano').addEventListener('change', function() {
+            const ano = parseInt(this.value);
+            if (ano < 1980 || ano > anoActual + 1) {
+                this.value = '';
+                document.getElementById('ayudaAno').textContent = 'Año inválido';
+            } else {
+                const antiguedad = anoActual - ano;
+                const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
+                document.getElementById('ayudaAno').textContent = antiguedad + ' años | Impuesto: ' + porcentaje;
+            }
+        });
 
-    document.getElementById('ano').addEventListener('change', function () {
-        const ano = parseInt(this.value);
-        if (ano < 1980 || ano > anoActual + 1) {
-            this.value = '';
-            document.getElementById('ayudaAno').textContent = 'Año inválido';
-        } else {
+        function calcular() {
+            const ano = parseInt(document.getElementById('ano').value);
+            const valor = parseFloat(document.getElementById('valor').value) || 0;
+            const flete = parseFloat(document.getElementById('flete').value) || 0;
+            const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
+
+            if (!ano || !valor || !flete || !tc) {
+                alert('Completa todos los campos');
+                return;
+            }
+
             const antiguedad = anoActual - ano;
-            const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
-            document.getElementById('ayudaAno').textContent = antiguedad + ' años | Impuesto: ' + porcentaje;
+            const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
+            
+            // Paso 1: Valor + Flete
+            const valorPlusFlete = valor + flete;
+            
+            // Paso 2: Seguros (1.1% + 0.7%)
+            const seguro11 = valorPlusFlete * 0.011;
+            const seguro07 = valorPlusFlete * 0.007;
+            const totalSeguros = seguro11 + seguro07;
+            
+            // Paso 3: Base para impuestos
+            const baseImpuestos = valorPlusFlete + totalSeguros;
+            
+            // Paso 4: Impuestos en USD
+            const impuestosUSD = baseImpuestos * porcentajeImpuesto;
+            
+            // Paso 5: Papeleo USA
+            const papeleoUSA = 250;
+            
+            // Paso 6: Convertir a colones
+            const valorPlusFleteColones = valorPlusFlete * tc;
+            const impuestosColones = impuestosUSD * tc;
+            const papeleoColones = papeleoUSA * tc;
+            
+            // Paso 7: Costos fijos en colones
+            const declaracion = 106000;
+            const dekra = 45000;
+            const almacenamiento = 65000;
+            
+            // Paso 8: Total
+            const totalColones = valorPlusFleteColones + impuestosColones + papeleoColones + declaracion + dekra + almacenamiento;
+
+            window.datosActuales = {
+                ano: ano,
+                valor: valor,
+                flete: flete,
+                antiguedad: antiguedad,
+                totalSeguros: totalSeguros,
+                impuestosUSD: impuestosUSD,
+                papeleoUSA: papeleoUSA,
+                declaracion: declaracion,
+                dekra: dekra,
+                almacenamiento: almacenamiento,
+                tc: tc,
+                totalColones: totalColones,
+                fecha: new Date().toLocaleString('es-CR')
+            };
+
+            document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
+            document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('tcFooter').textContent = tc;
         }
-    });
 
-    function calcular() {
-        const ano = parseInt(document.getElementById('ano').value);
-        const valor = parseFloat(document.getElementById('valor').value) || 0;
-        const flete = parseFloat(document.getElementById('flete').value) || 0;
-        const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
+        function mostrarDetalle() {
+            const d = window.datosActuales;
 
-        if (!ano || !valor || !flete || !tc) {
-            alert('Completa todos los campos');
-            return;
+            let html = '';
+            html += '<div class="section-header">VALORES EN DÓLARES</div>';
+            html += '<div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">' + formatUSD(d.valor) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">' + formatUSD(d.flete) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">' + formatUSD(d.totalSeguros) + '</span></div>';
+
+            html += '<div class="section-header">VALORES EN COLONES</div>';
+            html += '<div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">' + formatCRC((d.valor + d.flete) * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">' + formatCRC(d.impuestosUSD * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Papeleo USA</span><span class="detail-value">' + formatCRC(d.papeleoUSA * d.tc) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Declaración CR</span><span class="detail-value">' + formatCRC(d.declaracion) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Dekra</span><span class="detail-value">' + formatCRC(d.dekra) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Almacenamiento</span><span class="detail-value">' + formatCRC(d.almacenamiento) + '</span></div>';
+
+            html += '<div class="total-row"><span>GRAN TOTAL</span><span>' + formatCRC(d.totalColones) + '</span></div>';
+
+            document.getElementById('detalleContent').innerHTML = html;
+            document.getElementById('detalle').classList.remove('hidden');
         }
 
-        const antiguedad = anoActual - ano;
-        const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
+        function guardarHistorial() {
+            const d = window.datosActuales;
+            historial.unshift({
+                id: Date.now(),
+                ...d
+            });
+            alert('Guardado');
+            actualizarHistorialUI();
+        }
 
-        const valorPlusFlete = valor + flete;
-        const seguro11 = valorPlusFlete * 0.011;
-        const seguro07 = valorPlusFlete * 0.007;
-        const totalSeguros = seguro11 + seguro07;
-        const baseImpuestos = valorPlusFlete + totalSeguros;
-        const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-        const papeleoUSA = 250;
+        function actualizarHistorialUI() {
+            const card = document.getElementById('historialCard');
+            const content = document.getElementById('historialContent');
+            
+            if (historial.length === 0) {
+                card.classList.add('hidden');
+                return;
+            }
 
-        const valorPlusFleteColones = valorPlusFlete * tc;
-        const impuestosColones = impuestosUSD * tc;
-        const papeleoColones = papeleoUSA * tc;
+            card.classList.remove('hidden');
+            let html = '';
+            historial.forEach(item => {
+                const sel = vehiculosSeleccionados.has(item.id);
+                html += '<div class="comparison-card" style="' + (sel ? 'border-color: #3b82f6; background: #eff6ff;' : '') + '" onclick="seleccionarComparacion(' + item.id + ')">';
+                html += '<div>' + item.ano + ' | ' + formatUSD(item.valor) + ' + ' + formatUSD(item.flete) + '</div>';
+                html += '<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">' + item.fecha + '</div>';
+                html += '<div style="font-weight: bold; color: #2563eb; margin-top: 4px;">' + formatCRC(item.totalColones) + '</div>';
+                if (sel) html += '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>';
+                html += '</div>';
+            });
+            content.innerHTML = html;
+        }
 
-        const declaracion = 106000;
-        const dekra = 45000;
-        const almacenamiento = 65000;
+        function seleccionarComparacion(id) {
+            if (!modoComparacion) return;
+            if (vehiculosSeleccionados.has(id)) {
+                vehiculosSeleccionados.delete(id);
+            } else if (vehiculosSeleccionados.size < 2) {
+                vehiculosSeleccionados.add(id);
+            }
+            actualizarHistorialUI();
+            mostrarComparacion();
+        }
 
-        const totalColones = valorPlusFleteColones + impuestosColones + papeleoColones + declaracion + dekra + almacenamiento;
+        function mostrarComparacion() {
+            const comp = document.getElementById('comparador');
+            if (vehiculosSeleccionados.size < 2) {
+                comp.classList.add('hidden');
+                return;
+            }
+            
+            const sel = historial.filter(v => vehiculosSeleccionados.has(v.id));
+            let html = '';
+            sel.forEach((v, idx) => {
+                html += '<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ' + (idx + 1) + '</div>';
+                html += '<div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ' + v.ano + '<br>Valor: ' + formatUSD(v.valor) + '<br>Flete: ' + formatUSD(v.flete) + '<br><br><strong>' + formatCRC(v.totalColones) + '</strong></div></div>';
+            });
+            
+            if (sel.length === 2) {
+                const diff = Math.abs(sel[0].totalColones - sel[1].totalColones);
+                html += '<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ' + formatCRC(diff) + '</div>';
+            }
+            
+            document.getElementById('comparacionContent').innerHTML = html;
+            comp.classList.remove('hidden');
+        }
 
-        window.datosActuales = {
-            ano,
-            valor,
-            flete,
-            antiguedad,
-            totalSeguros,
-            impuestosUSD,
-            papeleoUSA,
-            declaracion,
-            dekra,
-            almacenamiento,
-            tc,
-            totalColones,
-            fecha: new Date().toLocaleString('es-CR'),
+        function toggleComparacion() {
+            modoComparacion = !modoComparacion;
+            const btn = document.getElementById('btnComparar');
+            if (modoComparacion) {
+                btn.style.background = '#fbbf24';
+                btn.style.color = '#1f2937';
+            } else {
+                btn.style.background = 'rgba(255,255,255,0.2)';
+                btn.style.color = 'white';
+            }
+            vehiculosSeleccionados.clear();
+            if (!modoComparacion) document.getElementById('comparador').classList.add('hidden');
+            actualizarHistorialUI();
+        }
+
+        function toggleHistorial() {
+            document.getElementById('historialCard').classList.toggle('hidden');
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('ano').value = '';
+            document.getElementById('valor').value = '';
+            document.getElementById('flete').value = '';
+            document.getElementById('resultado').classList.add('hidden');
+            document.getElementById('detalle').classList.add('hidden');
+            document.getElementById('ayudaAno').textContent = '';
+        }
+
+        function limpiarHistorial() {
+            historial = [];
+            vehiculosSeleccionados.clear();
+            document.getElementById('historialCard').classList.add('hidden');
+        }
+
+        function descargarPDF() {
+            const d = window.datosActuales;
+            if (!d) {
+                alert('Primero calcula un vehículo');
+                return;
+            }
+            
+            let contenido = 'CÁLCULO DE IMPUESTOS CR\n';
+            contenido += '=====================================\n\n';
+            contenido += 'Año: ' + d.ano + '\n';
+            contenido += 'Valor: ' + formatUSD(d.valor) + '\n';
+            contenido += 'Flete: ' + formatUSD(d.flete) + '\n';
+            contenido += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
+            contenido += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
+            contenido += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
+            contenido += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
+            contenido += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
+            contenido += 'Dekra: ' + formatCRC(d.dekra) + '\n';
+            contenido += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
+            contenido += '=====================================\n';
+            contenido += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
+            contenido += '=====================================\n\n';
+            contenido += 'TC: ' + d.tc + '\n';
+            contenido += 'Fecha: ' + d.fecha;
+            
+            const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'Nacionalizacion-' + d.ano + '.txt');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function enviarWhatsApp() {
+            const d = window.datosActuales;
+            if (!d) {
+                alert('Primero calcula un vehículo');
+                return;
+            }
+            
+            let mensaje = 'CÁLCULO DE IMPUESTOS CR\n\n';
+            mensaje += 'Año: ' + d.ano + '\n';
+            mensaje += 'Valor: ' + formatUSD(d.valor) + '\n';
+            mensaje += 'Flete: ' + formatUSD(d.flete) + '\n';
+            mensaje += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
+            mensaje += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
+            mensaje += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
+            mensaje += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
+            mensaje += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
+            mensaje += 'Dekra: ' + formatCRC(d.dekra) + '\n';
+            mensaje += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
+            mensaje += '=========================\n';
+            mensaje += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
+            mensaje += '=========================\n\n';
+            mensaje += 'TC: ' + d.tc;
+            
+            const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
+            window.open(whatsappURL, '_blank');
+        }
+
+        // Decodificador de VIN
+        const vinYearMap = {
+            'Y': 2000, '1': 2001, '2': 2002, '3': 2003, '4': 2004, '5': 2005, '6': 2006, '7': 2007, '8': 2008, '9': 2009,
+            'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014, 'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
+            'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024, 'S': 2025, 'T': 2026, 'V': 2027, 'W': 2028, 'X': 2029, 'Z': 2029
         };
 
-        document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
-        document.getElementById('resultado').classList.remove('hidden');
-        document.getElementById('tcFooter').textContent = tc;
-    }
-
-    function mostrarDetalle() {
-        const d = window.datosActuales;
-
-        let html = '';
-        html += '<div class="section-header">VALORES EN DÓLARES</div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">' +
-            formatUSD(d.valor) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">' +
-            formatUSD(d.flete) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">' +
-            formatUSD(d.totalSeguros) +
-            '</span></div>';
-
-        html += '<div class="section-header">VALORES EN COLONES</div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">' +
-            formatCRC((d.valor + d.flete) * d.tc) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">' +
-            formatCRC(d.impuestosUSD * d.tc) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Papeleo USA</span><span class="detail-value">' +
-            formatCRC(d.papeleoUSA * d.tc) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Declaración CR</span><span class="detail-value">' +
-            formatCRC(d.declaracion) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Dekra</span><span class="detail-value">' +
-            formatCRC(d.dekra) +
-            '</span></div>';
-        html +=
-            '<div class="detail-row"><span class="detail-label">Almacenamiento</span><span class="detail-value">' +
-            formatCRC(d.almacenamiento) +
-            '</span></div>';
-
-        html +=
-            '<div class="total-row"><span>GRAN TOTAL</span><span>' +
-            formatCRC(d.totalColones) +
-            '</span></div>';
-
-        document.getElementById('detalleContent').innerHTML = html;
-        document.getElementById('detalle').classList.remove('hidden');
-    }
-
-    function guardarHistorial() {
-        const d = window.datosActuales;
-        historial.unshift({
-            id: Date.now(),
-            ...d,
-        });
-        alert('Guardado');
-        actualizarHistorialUI();
-    }
-
-    function actualizarHistorialUI() {
-        const card = document.getElementById('historialCard');
-        const content = document.getElementById('historialContent');
-
-        if (historial.length === 0) {
-            card.classList.add('hidden');
-            return;
-        }
-
-        card.classList.remove('hidden');
-        let html = '';
-        historial.forEach((item) => {
-            const sel = vehiculosSeleccionados.has(item.id);
-            html +=
-                '<div class="comparison-card" style="' +
-                (sel ? 'border-color: #3b82f6; background: #eff6ff;' : '') +
-                '" onclick="seleccionarComparacion(' +
-                item.id +
-                ')">';
-            html += '<div>' + item.ano + ' | ' + formatUSD(item.valor) + ' + ' + formatUSD(item.flete) + '</div>';
-            html += '<div style="font-size: 12px; color: #6b7280; margin-top: 4px;">' + item.fecha + '</div>';
-            html += '<div style="font-weight: bold; color: #2563eb; margin-top: 4px;">' + formatCRC(item.totalColones) + '</div>';
-            if (sel) html += '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>';
-            html += '</div>';
-        });
-        content.innerHTML = html;
-    }
-
-    function seleccionarComparacion(id) {
-        if (!modoComparacion) return;
-        if (vehiculosSeleccionados.has(id)) {
-            vehiculosSeleccionados.delete(id);
-        } else if (vehiculosSeleccionados.size < 2) {
-            vehiculosSeleccionados.add(id);
-        }
-        actualizarHistorialUI();
-        mostrarComparacion();
-    }
-
-    function mostrarComparacion() {
-        const comp = document.getElementById('comparador');
-        if (vehiculosSeleccionados.size < 2) {
-            comp.classList.add('hidden');
-            return;
-        }
-
-        const sel = historial.filter((v) => vehiculosSeleccionados.has(v.id));
-        let html = '';
-        sel.forEach((v, idx) => {
-            html +=
-                '<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ' +
-                (idx + 1) +
-                '</div>';
-            html +=
-                '<div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ' +
-                v.ano +
-                '<br>Valor: ' +
-                formatUSD(v.valor) +
-                '<br>Flete: ' +
-                formatUSD(v.flete) +
-                '<br><br><strong>' +
-                formatCRC(v.totalColones) +
-                '</strong></div></div>';
+        document.getElementById('vin').addEventListener('input', function() {
+            const vin = this.value.toUpperCase().trim();
+            
+            if (vin.length === 0) {
+                document.getElementById('vinStatus').textContent = '';
+                return;
+            }
+            
+            if (vin.length < 10) {
+                document.getElementById('vinStatus').textContent = 'VIN debe tener al menos 10 caracteres';
+                document.getElementById('vinStatus').style.color = '#dc2626';
+                return;
+            }
+            
+            const yearChar = vin.charAt(9);
+            const year = vinYearMap[yearChar];
+            
+            if (year) {
+                document.getElementById('ano').value = year;
+                document.getElementById('vinStatus').textContent = 'Año detectado: ' + year;
+                document.getElementById('vinStatus').style.color = '#059669';
+                
+                // Trigger el evento de cambio
+                document.getElementById('ano').dispatchEvent(new Event('change'));
+            } else {
+                document.getElementById('vinStatus').textContent = 'Carácter inválido en posición 10';
+                document.getElementById('vinStatus').style.color = '#dc2626';
+            }
         });
 
-        if (sel.length === 2) {
-            const diff = Math.abs(sel[0].totalColones - sel[1].totalColones);
-            html +=
-                '<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ' +
-                formatCRC(diff) +
-                '</div>';
+        function limpiarVIN() {
+            document.getElementById('vin').value = '';
+            document.getElementById('vinStatus').textContent = '';
         }
-
-        document.getElementById('comparacionContent').innerHTML = html;
-        comp.classList.remove('hidden');
-    }
-
-    function toggleComparacion() {
-        modoComparacion = !modoComparacion;
-        const btn = document.getElementById('btnComparar');
-        if (modoComparacion) {
-            btn.style.background = '#fbbf24';
-            btn.style.color = '#1f2937';
-        } else {
-            btn.style.background = 'rgba(255,255,255,0.2)';
-            btn.style.color = 'white';
-        }
-        vehiculosSeleccionados.clear();
-        if (!modoComparacion) document.getElementById('comparador').classList.add('hidden');
-        actualizarHistorialUI();
-    }
-
-    function toggleHistorial() {
-        document.getElementById('historialCard').classList.toggle('hidden');
-    }
-
-    function limpiarFormulario() {
-        document.getElementById('ano').value = '';
-        document.getElementById('valor').value = '';
-        document.getElementById('flete').value = '';
-        document.getElementById('resultado').classList.add('hidden');
-        document.getElementById('detalle').classList.add('hidden');
-        document.getElementById('ayudaAno').textContent = '';
-    }
-
-    function limpiarHistorial() {
-        historial = [];
-        vehiculosSeleccionados.clear();
-        document.getElementById('historialCard').classList.add('hidden');
-    }
-
-    function descargarPDF() {
-        const d = window.datosActuales;
-        if (!d) {
-            alert('Primero calcula un vehículo');
-            return;
-        }
-
-        let contenido = 'CÁLCULO DE IMPUESTOS CR\n';
-        contenido += '=====================================\n\n';
-        contenido += 'Año: ' + d.ano + '\n';
-        contenido += 'Valor: ' + formatUSD(d.valor) + '\n';
-        contenido += 'Flete: ' + formatUSD(d.flete) + '\n';
-        contenido += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
-        contenido += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
-        contenido += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
-        contenido += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
-        contenido += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
-        contenido += 'Dekra: ' + formatCRC(d.dekra) + '\n';
-        contenido += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
-        contenido += '=====================================\n';
-        contenido += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
-        contenido += '=====================================\n\n';
-        contenido += 'TC: ' + d.tc + '\n';
-        contenido += 'Fecha: ' + d.fecha;
-
-        const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'Nacionalizacion-' + d.ano + '.txt');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-
-    function enviarWhatsApp() {
-        const d = window.datosActuales;
-        if (!d) {
-            alert('Primero calcula un vehículo');
-            return;
-        }
-
-        let mensaje = 'CÁLCULO DE IMPUESTOS CR\n\n';
-        mensaje += 'Año: ' + d.ano + '\n';
-        mensaje += 'Valor: ' + formatUSD(d.valor) + '\n';
-        mensaje += 'Flete: ' + formatUSD(d.flete) + '\n';
-        mensaje += 'Seguros: ' + formatUSD(d.totalSeguros) + '\n\n';
-        mensaje += 'Montos del Vehículo: ' + formatCRC((d.valor + d.flete) * d.tc) + '\n';
-        mensaje += 'Impuestos: ' + formatCRC(d.impuestosUSD * d.tc) + '\n';
-        mensaje += 'Papeleo USA: ' + formatCRC(d.papeleoUSA * d.tc) + '\n';
-        mensaje += 'Declaración CR: ' + formatCRC(d.declaracion) + '\n';
-        mensaje += 'Dekra: ' + formatCRC(d.dekra) + '\n';
-        mensaje += 'Almacenamiento: ' + formatCRC(d.almacenamiento) + '\n\n';
-        mensaje += '=========================\n';
-        mensaje += 'GRAN TOTAL: ' + formatCRC(d.totalColones) + '\n';
-        mensaje += '=========================\n\n';
-        mensaje += 'TC: ' + d.tc;
-
-        const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
-        window.open(whatsappURL, '_blank');
-    }
-
-    const vinYearMap = {
-        Y: 2000,
-        1: 2001,
-        2: 2002,
-        3: 2003,
-        4: 2004,
-        5: 2005,
-        6: 2006,
-        7: 2007,
-        8: 2008,
-        9: 2009,
-        A: 2010,
-        B: 2011,
-        C: 2012,
-        D: 2013,
-        E: 2014,
-        F: 2015,
-        G: 2016,
-        H: 2017,
-        J: 2018,
-        K: 2019,
-        L: 2020,
-        M: 2021,
-        N: 2022,
-        P: 2023,
-        R: 2024,
-        S: 2025,
-        T: 2026,
-        V: 2027,
-        W: 2028,
-        X: 2029,
-        Z: 2029,
-    };
-
-    const wmiDatabase = {
-        '2T1': 'Toyota',
-        '2T2': 'Toyota',
-        '2T3': 'Toyota',
-        '4T1': 'Toyota',
-        '4T3': 'Toyota',
-        '5TD': 'Toyota',
-        '5TE': 'Toyota',
-        '5TF': 'Toyota',
-        JT2: 'Toyota',
-        JTD: 'Toyota',
-        JTE: 'Toyota',
-        JTG: 'Toyota',
-        JTH: 'Toyota',
-        JTJ: 'Toyota',
-        JTK: 'Toyota',
-        JTM: 'Toyota',
-        JTN: 'Toyota',
-        '1HG': 'Honda',
-        '2HG': 'Honda',
-        '3HG': 'Honda',
-        '5FN': 'Honda',
-        '5J6': 'Honda',
-        '7FA': 'Honda',
-        JHM: 'Honda',
-        SHH: 'Honda',
-        '1N4': 'Nissan',
-        '1N6': 'Nissan',
-        '3N1': 'Nissan',
-        '3N6': 'Nissan',
-        JN1: 'Nissan',
-        JN3: 'Nissan',
-        JN6: 'Nissan',
-        JN8: 'Nissan',
-        '5NP': 'Hyundai',
-        KM8: 'Hyundai',
-        KMH: 'Hyundai',
-        KNA: 'Kia',
-        KND: 'Kia',
-        '5XX': 'Kia',
-        '1YV': 'Mazda',
-        '4F2': 'Mazda',
-        '4F4': 'Mazda',
-        JM1: 'Mazda',
-        JM3: 'Mazda',
-        '1FA': 'Ford',
-        '1FB': 'Ford',
-        '1FC': 'Ford',
-        '1FD': 'Ford',
-        '1FM': 'Ford',
-        '1FT': 'Ford',
-        '2FA': 'Ford',
-        '2FM': 'Ford',
-        '2FT': 'Ford',
-        '3FA': 'Ford',
-        WF0: 'Ford',
-        '1G1': 'Chevrolet',
-        '1GC': 'Chevrolet',
-        '2G1': 'Chevrolet',
-        '3G1': 'Chevrolet',
-        '3GC': 'Chevrolet',
-        '3GN': 'Chevrolet',
-        KL1: 'Chevrolet',
-        WBA: 'BMW',
-        WBS: 'BMW',
-        '4US': 'BMW',
-        '5UX': 'BMW',
-        WDB: 'Mercedes-Benz',
-        WDD: 'Mercedes-Benz',
-        '4JG': 'Mercedes-Benz',
-        '1VW': 'Volkswagen',
-        '3VW': 'Volkswagen',
-        WVW: 'Volkswagen',
-        'JF1': 'Subaru',
-        'JF2': 'Subaru',
-        '4S3': 'Subaru',
-        '4S4': 'Subaru',
-        JA3: 'Mitsubishi',
-        JA4: 'Mitsubishi',
-        '6MM': 'Mitsubishi',
-        '5YJ': 'Tesla',
-        '7SA': 'Tesla',
-        '1J4': 'Jeep',
-        '1C4': 'Jeep',
-        '1B3': 'Dodge',
-        '1D3': 'Dodge',
-        '2B3': 'Dodge',
-        '1C6': 'Ram',
-        '3C6': 'Ram',
-        '1GT': 'GMC',
-        '1GK': 'GMC',
-        '1G6': 'Cadillac',
-        '1GY': 'Cadillac',
-        JH4: 'Acura',
-        '19U': 'Acura',
-        JTH: 'Lexus',
-        JTE: 'Lexus',
-        '2T2': 'Lexus',
-        JNK: 'Infiniti',
-        JN1: 'Infiniti',
-        WAU: 'Audi',
-        TRU: 'Audi',
-        WP0: 'Porsche',
-        WP1: 'Porsche',
-        SAL: 'Land Rover',
-        SAH: 'Land Rover',
-        SAJ: 'Jaguar',
-        YV1: 'Volvo',
-        YV4: 'Volvo',
-    };
-
-    <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Decodificación VIN Funcional</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 2rem; background: #f7f9fc; }
-  input, button { font-size: 1rem; padding: 0.5em; margin:0.25em 0; }
-  #vinInfo { padding: 1em; margin-top: 1em; border: 1px solid #3178c6; border-radius: 5px; background: #e7f0ff; }
-  #vinInfo div { margin-bottom: 0.5em; font-weight: bold; }
-  .hidden { display: none; }
-  #vinStatus { margin:5px 0; }
-</style>
-</head>
-<body>
-
-<h2>Ingrese VIN para Decodificar</h2>
-<label for="vinInput">VIN:</label><br>
-<input type="text" id="vinInput" maxlength="17" style="width: 300px;" placeholder="Ej. KM8JM12B16U258408" autocomplete="off"><br>
-<button id="decodeBtn">Decodificar VIN</button>
-<div id="vinStatus"></div>
-
-<div id="vinInfo" class="hidden">
-  <div id="marca">Marca: -</div>
-  <div id="modelo">Modelo: -</div>
-  <div id="trim">Trim: -</div>
-  <div id="motor">Motor: -</div>
-  <div id="extra">Extra: -</div>
-</div>
-
-<script>
-const apiBaseURL = 'https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/';
-
-function getValueFromResults(results, variable) {
-  const obj = results.find(r => r.Variable === variable);
-  if(obj && obj.Value && obj.Value !== 'Not Applicable') return obj.Value;
-  return '-';
-}
-
-async function decodeVIN(vin) {
-  const statusElem = document.getElementById('vinStatus');
-  const infoElem = document.getElementById('vinInfo');
-  try {
-    statusElem.textContent = 'Consultando API...';
-    statusElem.style.color = 'black';
-
-    const url = `${apiBaseURL}${vin}?format=json`;
-    const response = await fetch(url);
-    if(!response.ok) throw new Error('Respuesta inválida de API');
-    const json = await response.json();
-
-    if(!json || !json.Results || json.Results.length === 0) throw new Error('No se recibieron datos');
-
-    const results = json.Results;
-
-    const marca = getValueFromResults(results, 'Make');
-    const modelo = getValueFromResults(results, 'Model');
-    const trim = getValueFromResults(results, 'Trim');
-    const motor = [
-      getValueFromResults(results, 'Engine Number of Cylinders'),
-      getValueFromResults(results, 'Displacement (L)'),
-      getValueFromResults(results, 'Engine Configuration')
-    ].filter(v => v !== '-').join(', ') || '-';
-    const extra = getValueFromResults(results, 'Plant City');
-
-    document.getElementById('marca').textContent = 'Marca: ' + marca;
-    document.getElementById('modelo').textContent = 'Modelo: ' + modelo;
-    document.getElementById('trim').textContent = 'Trim: ' + trim;
-    document.getElementById('motor').textContent = 'Motor: ' + motor;
-    document.getElementById('extra').textContent = 'Extra: ' + extra;
-
-    infoElem.classList.remove('hidden');
-    statusElem.textContent = '✓ VIN decodificado correctamente';
-    statusElem.style.color = 'green';
-
-  } catch (error) {
-    statusElem.textContent = 'Error al decodificar VIN: ' + error.message;
-    statusElem.style.color = 'red';
-    infoElem.classList.add('hidden');
-  }
-}
-
-document.getElementById('decodeBtn').addEventListener('click', () => {
-  const vinInput = document.getElementById('vinInput');
-  const vin = vinInput.value.trim().toUpperCase();
-
-  if(!vin || vin.length !== 17) {
-    document.getElementById('vinStatus').textContent = 'Por favor ingrese un VIN válido de 17 caracteres';
-    document.getElementById('vinStatus').style.color = 'red';
-    document.getElementById('vinInfo').classList.add('hidden');
-    return;
-  }
-  if(/[IOQ]/.test(vin)) {
-    document.getElementById('vinStatus').textContent = 'VIN no puede contener los caracteres I, O o Q';
-    document.getElementById('vinStatus').style.color = 'red';
-    document.getElementById('vinInfo').classList.add('hidden');
-    return;
-  }
-  decodeVIN(vin);
-});
-</script>
-
+    </script>
 </body>
 </html>
-
