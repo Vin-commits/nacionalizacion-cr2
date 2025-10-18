@@ -789,133 +789,86 @@
     };
 
     async function decodificarVIN(vin) {
-        try {
-            document.getElementById('vinStatus').textContent = '🔍 Decodificando VIN...';
-            document.getElementById('vinStatus').style.color = '#2563eb';
+  const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
+  try {
+    const resp = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' }});
+    if (!resp.ok) throw new Error('Error en consulta API');
+    const data = await resp.json();
+    if (!data || !data.Results || data.Results.length === 0) throw new Error('Respuesta vacía');
 
-            const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
-            const proxies = [
-                'https://corsproxy.io/?',
-                'https://api.codetabs.com/v1/proxy?quest='
-            ];
+    const getValue = (variable) => {
+      const found = data.Results.find(item => item.Variable === variable);
+      return (found && found.Value && found.Value !== 'Not Applicable') ? found.Value : '-';
+    };
 
-            let data = null;
-            for (const proxy of proxies) {
-                try {
-                    const response = await fetch(proxy + encodeURIComponent(apiUrl), {
-                        method: 'GET',
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    });
-                    if (response.ok) {
-                        data = await response.json();
-                        if (data && data.Results && data.Results.length > 0) break;
-                    }
-                } catch (e) {
-                    continue;
-                }
-            }
+    const marca = getValue('Make');
+    const modelo = getValue('Model');
+    const trim = getValue('Trim');
+    const cilindros = getValue('Engine Number of Cylinders');
+    const displacement = getValue('Displacement (L)');
+    const motorConf = getValue('Engine Configuration');
 
-            if (!data) {
-                throw new Error('No se recibió datos válidos de la API');
-            }
+    let motor = '';
+    if (cilindros !== '-') motor += cilindros + ' cil';
+    if (displacement !== '-') motor += (motor ? ', ' : '') + displacement + 'L';
+    if (motorConf !== '-') motor += (motor ? ', ' : '') + motorConf;
+    if (motor === '') motor = '-';
 
-            const results = data.Results;
+    return { marca, modelo, trim, motor };
+  } catch(e) {
+    console.error('Error decodificando VIN:', e);
+    return { marca: 'Desconocida', modelo: 'No disponible', trim: '-', motor: '-' };
+  }
+}
 
-            const getValueByVariable = (variableName) => {
-                const item = results.find((r) => r.Variable === variableName);
-                return item && item.Value && item.Value !== 'Not Applicable' ? item.Value : '-';
-            };
+let vinTimeout;
+document.getElementById('vin').addEventListener('input', () => {
+  const vinInput = document.getElementById('vin').value.toUpperCase().trim();
+  clearTimeout(vinTimeout);
+  if (vinInput.length === 0) {
+    document.getElementById('vinStatus').textContent = '';
+    document.getElementById('vinInfo').classList.add('hidden');
+    return;
+  }
+  if (vinInput.length < 17) {
+    document.getElementById('vinStatus').textContent = 'VIN debe tener 17 caracteres';
+    document.getElementById('vinStatus').style.color = '#dc2626';
+    document.getElementById('vinInfo').classList.add('hidden');
+    return;
+  }
+  if (/[IOQ]/.test(vinInput)) {
+    document.getElementById('vinStatus').textContent = 'VIN inválido (no debe contener I, O, Q)';
+    document.getElementById('vinStatus').style.color = '#dc2626';
+    document.getElementById('vinInfo').classList.add('hidden');
+    return;
+  }
+  const anoChar = vinInput.charAt(9);
+  const ano = vinYearMap[anoChar];
+  if (!ano) {
+    document.getElementById('vinStatus').textContent = 'Año inválido en posición 10';
+    document.getElementById('vinStatus').style.color = '#dc2626';
+    document.getElementById('vinInfo').classList.add('hidden');
+    return;
+  }
+  vinTimeout = setTimeout(async () => {
+    document.getElementById('ano').value = ano;
+    const info = await decodificarVIN(vinInput);
+    document.getElementById('vinStatus').textContent = '✓ VIN decodificado correctamente';
+    document.getElementById('vinStatus').style.color = '#059669';
+    document.getElementById('vinMarca').textContent = info.marca;
+    document.getElementById('vinModelo').textContent = info.modelo;
+    document.getElementById('vinTrim').textContent = info.trim;
+    document.getElementById('vinMotor').textContent = info.motor;
+    document.getElementById('vinInfo').classList.remove('hidden');
+    document.getElementById('ano').dispatchEvent(new Event('change'));
+  }, 1000);
+});
 
-            const marca = getValueByVariable('Make');
-            const modelo = getValueByVariable('Model');
-            const trim = getValueByVariable('Trim');
-            const motorConfig = getValueByVariable('Engine Configuration');
-            const displacement = getValueByVariable('Displacement (L)');
-            const cylinders = getValueByVariable('Engine Number of Cylinders');
-
-            let motor = '';
-            if (cylinders !== '-') motor += cylinders + ' cil';
-            if (displacement !== '-') motor += (motor ? ', ' : '') + displacement + 'L';
-            if (motorConfig !== '-') motor += (motor ? ', ' : '') + motorConfig;
-            if (motor === '') motor = '-';
-
-            return { marca, modelo, trim, motor };
-        } catch (error) {
-            console.error('Error decodificando VIN:', error);
-
-            const wmi = vin.substring(0, 3);
-            const marca = wmiDatabase[wmi] || 'Desconocida';
-
-            return {
-                marca: marca,
-                modelo: 'Use API externa para más info',
-                trim: '-',
-                motor: '-',
-            };
-        }
-    }
-
-    let vinTimeout;
-    document.getElementById('vin').addEventListener('input', function () {
-        const vin = this.value.toUpperCase().trim();
-
-        clearTimeout(vinTimeout);
-
-        if (vin.length === 0) {
-            document.getElementById('vinStatus').textContent = '';
-            document.getElementById('vinInfo').classList.add('hidden');
-            return;
-        }
-
-        if (vin.length < 17) {
-            document.getElementById('vinStatus').textContent = 'VIN debe tener 17 caracteres';
-            document.getElementById('vinStatus').style.color = '#dc2626';
-            document.getElementById('vinInfo').classList.add('hidden');
-            return;
-        }
-
-        if (/[IOQ]/.test(vin)) {
-            document.getElementById('vinStatus').textContent = 'VIN inválido (no puede contener I, O, Q)';
-            document.getElementById('vinStatus').style.color = '#dc2626';
-            document.getElementById('vinInfo').classList.add('hidden');
-            return;
-        }
-
-        const yearChar = vin.charAt(9);
-        const year = vinYearMap[yearChar];
-
-        if (!year) {
-            document.getElementById('vinStatus').textContent = 'Año inválido en posición 10';
-            document.getElementById('vinStatus').style.color = '#dc2626';
-            document.getElementById('vinInfo').classList.add('hidden');
-            return;
-        }
-
-        vinTimeout = setTimeout(async () => {
-            document.getElementById('ano').value = year;
-
-            const info = await decodificarVIN(vin);
-
-            document.getElementById('vinStatus').textContent = '✓ VIN decodificado correctamente';
-            document.getElementById('vinStatus').style.color = '#059669';
-
-            document.getElementById('vinMarca').textContent = info.marca;
-            document.getElementById('vinModelo').textContent = info.modelo;
-            document.getElementById('vinTrim').textContent = info.trim;
-            document.getElementById('vinMotor').textContent = info.motor;
-            document.getElementById('vinInfo').classList.remove('hidden');
-
-            document.getElementById('ano').dispatchEvent(new Event('change'));
-        }, 1000);
-    });
-
-    function limpiarVIN() {
-        document.getElementById('vin').value = '';
-        document.getElementById('vinStatus').textContent = '';
-        document.getElementById('vinInfo').classList.add('hidden');
-    }
+function limpiarVIN() {
+  document.getElementById('vin').value = '';
+  document.getElementById('vinStatus').textContent = '';
+  document.getElementById('vinInfo').classList.add('hidden');
+}
 </script>
 </body>
 </html>
