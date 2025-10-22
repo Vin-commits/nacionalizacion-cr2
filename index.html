@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
     <title>Cálculo de Impuestos con VIN</title>
-    <!-- Librería para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -103,7 +102,6 @@
 <body>
     <div class="header">
         <div class="header-title">
-            <!-- LOGO CORREGIDO: SVG en línea para mejor calidad y visibilidad -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="white" class="header-logo">
                 <path d="M136.1,234.4c-15,0-27.2,12.2-27.2,27.2s12.2,27.2,27.2,27.2s27.2-12.2,27.2-27.2S151.1,234.4,136.1,234.4z M375.9,234.4
                 c-15,0-27.2,12.2-27.2,27.2s12.2,27.2,27.2,27.2s27.2-12.2,27.2-27.2S390.9,234.4,375.9,234.4z M464,176H48c-23.2,0-41,14.3-46.8,34.4
@@ -159,7 +157,6 @@
                 <div class="help-text" id="ayudaAno"></div>
             </div>
 
-            <!-- FICHA INFORMATIVA DEL VEHÍCULO -->
             <div id="vinInfoCard" class="card info-card hidden">
                 <div class="card-title info-card-title">Información del Vehículo</div>
                 <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
@@ -194,6 +191,28 @@
             </div>
         </div>
 
+        <div class="card">
+            <div class="card-title">Conversor de Millaje</div>
+            <div class="form-group">
+                <label for="millaje">Millaje / Kilometraje</label>
+                <input type="number" id="millaje" placeholder="30000">
+                <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
+            </div>
+            <div class="button-group">
+                <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
+                <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
+            </div>
+            <div id="resultadoMillaje" style="margin-top: 12px; font-weight: bold; font-size: 16px; text-align: center;"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Cálculo de Traspaso</div>
+            <div class="form-group">
+                <label for="valorFiscal">Valor Fiscal (₡)</label>
+                <input type="number" id="valorFiscal" placeholder="10000000">
+            </div>
+            <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+            <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+        </div>
         <div id="resultado" class="hidden">
             <div class="result-card">
                 <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
@@ -234,6 +253,14 @@
             DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
         };
 
+        // --- CONSTANTES NUEVAS ---
+        const MILLAS_POR_KM = 0.621371;
+        const KM_POR_MILLA = 1.60934;
+        const PROMEDIO_MILLAS_ANO = 15000;
+        const PROMEDIO_KMS_ANO = 17000;
+        const PORCENTAJE_TIMBRES = 0.035;
+        const HONORARIOS_TRASPASO = 65000;
+
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
@@ -249,6 +276,11 @@
             document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
             document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
             document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
+
+            // --- LISTENERS NUEVOS ---
+            document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
+            document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
+            document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
 
             document.getElementById('ano').max = anoActual + 1;
             actualizarHistorialUI();
@@ -322,6 +354,67 @@
                 <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
             document.getElementById('detalleContent').innerHTML = html;
             document.getElementById('detalle').classList.remove('hidden');
+        }
+
+        // --- NUEVAS FUNCIONES (HERRAMIENTAS) ---
+        
+        function convertirMillaje(event) {
+            const valorInput = parseFloat(document.getElementById('millaje').value);
+            const ano = parseInt(document.getElementById('ano').value);
+            const resultadoEl = document.getElementById('resultadoMillaje');
+            
+            if (!valorInput || valorInput < 0) {
+                resultadoEl.textContent = 'Ingrese un valor de millaje válido';
+                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                return;
+            }
+            if (!ano || ano < 1980 || ano > anoActual + 1) {
+                resultadoEl.textContent = 'Ingrese un año de vehículo válido';
+                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                return;
+            }
+            
+            // Antiguedad, asegurando al menos 1 año para el cálculo
+            const antiguedad = Math.max(1, anoActual - ano);
+            
+            let resultadoNum, promedio, esSobrePromedio, resultadoTexto;
+            
+            if (event.target.id === 'btnMillasAKm') {
+                // El input es Millas
+                resultadoNum = valorInput * KM_POR_MILLA;
+                promedio = PROMEDIO_MILLAS_ANO * antiguedad;
+                esSobrePromedio = valorInput > promedio;
+                resultadoTexto = `${valorInput.toLocaleString('en-US')} millas son ${Math.round(resultadoNum).toLocaleString('es-CR')} kms`;
+            } else {
+                // El input es Kms
+                resultadoNum = valorInput * MILLAS_POR_KM;
+                promedio = PROMEDIO_KMS_ANO * antiguedad;
+                esSobrePromedio = valorInput > promedio;
+                resultadoTexto = `${valorInput.toLocaleString('es-CR')} kms son ${Math.round(resultadoNum).toLocaleString('en-US')} millas`;
+            }
+            
+            resultadoEl.textContent = resultadoTexto;
+            resultadoEl.style.color = esSobrePromedio ? '#dc2626' : '#15803d'; // Rojo o Verde
+        }
+
+        function calcularTraspaso() {
+            const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
+            const resultadoEl = document.getElementById('resultadoTraspaso');
+            
+            if (!valorFiscal || valorFiscal <= 0) {
+                resultadoEl.textContent = 'Ingrese un valor fiscal válido';
+                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                return;
+            }
+            
+            const timbres = valorFiscal * PORCENTAJE_TIMBRES;
+            const total = timbres + HONORARIOS_TRASPASO;
+            
+            resultadoEl.style.color = '#1f2937'; // Reset color a default
+            resultadoEl.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
+                <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
+                <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
         }
         
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
@@ -502,4 +595,3 @@ TC: ${d.tc} | Fecha: ${d.fecha}
     </script>
 </body>
 </html>
-
