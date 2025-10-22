@@ -168,7 +168,7 @@
 
             <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
             
-            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Herramienta: Conversor de Millaje</div>
+            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Convertidor de Distancia</div>
             <div class="form-group">
                 <label for="millaje">Millaje / Kilometraje</label>
                 <input type="number" id="millaje" placeholder="30000">
@@ -178,7 +178,19 @@
                 <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
                 <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
             </div>
-            <div id="resultadoMillaje" style="margin-top: 12px; font-weight: bold; font-size: 16px; text-align: center;"></div>
+            
+            <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
+                <div class="card-title info-card-title">Resultado de Conversión</div>
+                <div class="detail-row">
+                    <span class="detail-label" id="millajeResultadoLabel"></span>
+                    <span class="detail-value" id="millajeResultadoValor"></span>
+                </div>
+                <div class="detail-row" style="border-bottom: none;">
+                    <span class="detail-label" id="millajePromedioLabel"></span>
+                    <span class="detail-value" id="millajePromedioValor"></span>
+                </div>
+                <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
+            </div>
 
             <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
 
@@ -350,7 +362,7 @@
                 <div class="detail-row subtotal"><span class="detail-label">Sub-total (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
                 
                 <div class="section-header">VALORES EN COLONES</div>
-                <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC(d.baseImpuestos * d.tc)}</span></div>
+                <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
                 
@@ -359,45 +371,80 @@
             document.getElementById('detalle').classList.remove('hidden');
         }
 
-        // --- NUEVAS FUNCIONES (HERRAMIENTAS) ---
-        
+        // --- *** CAMBIO 2: Lógica de millaje actualizada *** ---
         function convertirMillaje(event) {
             const valorInput = parseFloat(document.getElementById('millaje').value);
             const ano = parseInt(document.getElementById('ano').value);
-            const resultadoEl = document.getElementById('resultadoMillaje');
             
+            // Referencias a la nueva tarjeta de resultados
+            const resultadoCard = document.getElementById('millajeInfoCard');
+            const resultadoLabel = document.getElementById('millajeResultadoLabel');
+            const resultadoValor = document.getElementById('millajeResultadoValor');
+            const promedioLabel = document.getElementById('millajePromedioLabel');
+            const promedioValor = document.getElementById('millajePromedioValor');
+            const promedioStatus = document.getElementById('millajePromedioStatus');
+            
+            // Función interna para mostrar errores en la tarjeta
+            function mostrarError(mensaje) {
+                resultadoCard.classList.remove('hidden');
+                resultadoLabel.textContent = 'Error';
+                resultadoValor.textContent = '-';
+                promedioLabel.textContent = 'Error';
+                promedioValor.textContent = '-';
+                promedioStatus.textContent = mensaje;
+                promedioStatus.style.color = '#dc2626';
+            }
+
             if (!valorInput || valorInput < 0) {
-                resultadoEl.textContent = 'Ingrese un valor de millaje válido';
-                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                mostrarError('Ingrese un valor de millaje válido');
                 return;
             }
             if (!ano || ano < 1980 || ano > anoActual + 1) {
-                resultadoEl.textContent = 'Ingrese un año de vehículo válido';
-                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                mostrarError('Ingrese un año de vehículo válido');
                 return;
             }
             
             // Antiguedad, asegurando al menos 1 año para el cálculo
             const antiguedad = Math.max(1, anoActual - ano);
             
-            let resultadoNum, promedio, esSobrePromedio, resultadoTexto;
+            let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
             
             if (event.target.id === 'btnMillasAKm') {
                 // El input es Millas
-                resultadoNum = valorInput * KM_POR_MILLA;
+                resultadoNum = valorInput * KM_POR_MILLA; // Total KMs
                 promedio = PROMEDIO_MILLAS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
-                resultadoTexto = `${valorInput.toLocaleString('en-US')} millas son ${Math.round(resultadoNum).toLocaleString('es-CR')} kms`;
+                promedioPorAno = valorInput / antiguedad; // Millas por año
+
+                resultadoLabel.textContent = "Total KMs";
+                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
+                promedioLabel.textContent = "Promedio (Millas/Año)";
+                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
+
             } else {
                 // El input es Kms
-                resultadoNum = valorInput * MILLAS_POR_KM;
+                resultadoNum = valorInput * MILLAS_POR_KM; // Total Millas
                 promedio = PROMEDIO_KMS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
-                resultadoTexto = `${valorInput.toLocaleString('es-CR')} kms son ${Math.round(resultadoNum).toLocaleString('en-US')} millas`;
+                promedioPorAno = valorInput / antiguedad; // KMs por año
+
+                resultadoLabel.textContent = "Total Millas";
+                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
+                promedioLabel.textContent = "Promedio (KMs/Año)";
+                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
             }
             
-            resultadoEl.textContent = resultadoTexto;
-            resultadoEl.style.color = esSobrePromedio ? '#dc2626' : '#15803d'; // Rojo o Verde
+            // Actualizar el status (color y texto)
+            if (esSobrePromedio) {
+                promedioStatus.textContent = 'Sobre el promedio';
+                promedioStatus.style.color = '#dc2626'; // Rojo
+            } else {
+                promedioStatus.textContent = 'Debajo del promedio';
+                promedioStatus.style.color = '#15803d'; // Verde
+            }
+            
+            // Mostrar la tarjeta de resultados
+            resultadoCard.classList.remove('hidden');
         }
 
         function calcularTraspaso() {
@@ -536,7 +583,7 @@ ${b}Sub-total (USD): ${formatUSD(d.baseImpuestos)}${b}
 
 ${b}VALORES EN COLONES${b}
 ${line}
-Montos del Vehículo: ${formatCRC(d.baseImpuestos * d.tc)}
+Montos del Vehículo: ${formatCRC((d.valor + d.flete) * d.tc)}
 Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
 Gastos Administrativos: ${formatCRC(gastosAdminColones)}
 ${doubleLine}
@@ -588,6 +635,13 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             document.getElementById('resultado').classList.add('hidden');
             document.getElementById('detalle').classList.add('hidden');
             document.getElementById('ayudaAno').textContent = '';
+            
+            // Ocultar también la tarjeta de millaje si se limpia el formulario
+            document.getElementById('millajeInfoCard').classList.add('hidden');
+            document.getElementById('resultadoTraspaso').innerHTML = '';
+            document.getElementById('millaje').value = '';
+            document.getElementById('valorFiscal').value = '';
+
             limpiarVIN();
         }
         function limpiarVIN() {
