@@ -273,7 +273,7 @@
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
         let vinDecodeTimeout; 
-        let codeReader = null; // *** NUEVA VARIABLE GLOBAL PARA SCANNER ***
+        let codeReader = null; // *** VARIABLE GLOBAL PARA SCANNER ***
         
         const anoActual = new Date().getFullYear();
 
@@ -311,7 +311,7 @@
             document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
             document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
             
-            // --- *** NUEVOS LISTENERS SCANNER *** ---
+            // --- LISTENERS SCANNER ---
             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
@@ -691,39 +691,44 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: NUEVO CÓDIGO DEL SCANNER *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN MEJORADA CON "HINTS") *** ---
         
         async function iniciarScanner() {
-            // Inicializar el lector de códigos
-            codeReader = new ZXingBrowser.BrowserCodeReader();
+            // --- PISTAS PARA EL LECTOR ---
+            // Le decimos que se enfoque en los formatos comunes de VIN
+            const hints = new Map();
+            const formats = [
+                ZXingBrowser.BarcodeFormat.CODE_39,
+                ZXingBrowser.BarcodeFormat.CODE_128,
+                ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                ZXingBrowser.BarcodeFormat.QR_CODE // Lo dejamos para las pruebas
+            ];
+            hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+            
+            // Inicializamos el lector CON las pistas
+            codeReader = new ZXingBrowser.BrowserCodeReader(hints);
+            // --- FIN DE PISTAS ---
+
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             
             try {
-                // Mostrar el contenedor del scanner
                 scannerContainer.classList.remove('hidden');
                 
                 // Pedir permiso y empezar a decodificar desde la cámara
-                // 'undefined' permite al usuario elegir la cámara (frontal/trasera en móvil)
                 codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
                     if (result) {
                         // ¡Resultado encontrado!
                         console.log(result);
-                        
-                        // Poner el VIN en el campo de texto
                         document.getElementById('vin').value = result.text;
-                        
-                        // Detener el scanner
                         detenerScanner();
-                        
                         // Disparar el evento 'input' para que tu lógica de 'handleVinInput' se ejecute
                         document.getElementById('vin').dispatchEvent(new Event('input'));
                     }
                     if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
                         // Hubo un error que no fue "no se encontró código"
+                        // No mostramos alerta aquí para no molestar al usuario en cada cuadro
                         console.error(err);
-                        alert(`Error al escanear: ${err}`);
-                        detenerScanner();
                     }
                 });
 
@@ -741,7 +746,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             }
             document.getElementById('scanner-container').classList.add('hidden');
         }
-        // --- *** FIN: NUEVO CÓDIGO DEL SCANNER *** ---
+        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
 </body>
