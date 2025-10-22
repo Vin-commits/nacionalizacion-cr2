@@ -7,7 +7,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
     <title>Cálculo de Impuestos con VIN</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
@@ -127,6 +131,11 @@
         </div>
     </div>
 
+    <div id="scanner-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <video id="videoElement" style="width: 90%; max-width: 400px; height: auto; border: 2px solid white;"></video>
+        <button id="btnStopScan" class="btn-danger-light" style="margin-top: 16px; padding: 12px 20px; font-size: 14px;">Cancelar</button>
+    </div>
+
     <div class="container">
         <div id="comparador" class="card hidden">
             <div class="card-title">Comparar Vehículos</div>
@@ -148,7 +157,11 @@
                 <label for="vin">VIN Number</label>
                 <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
                 <div class="help-text" id="vinStatus"></div>
-                <button id="btnLimpiarVIN" class="btn-danger-light" style="margin-top: 4px; width: 100%;">Limpiar VIN</button>
+                
+                <div class="button-group" style="margin-top: 8px;">
+                    <button id="btnScanVIN" class="btn-secondary">📸 Escanear VIN</button>
+                    <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
+                </div>
             </div>
             
             <div class="form-group">
@@ -260,6 +273,7 @@
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
         let vinDecodeTimeout; 
+        let codeReader = null; // *** NUEVA VARIABLE GLOBAL PARA SCANNER ***
         
         const anoActual = new Date().getFullYear();
 
@@ -292,10 +306,14 @@
             document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
             document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
 
-            // --- LISTENERS NUEVOS ---
+            // --- LISTENERS HERRAMIENTAS ---
             document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
             document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
             document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
+            
+            // --- *** NUEVOS LISTENERS SCANNER *** ---
+            document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
+            document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
             document.getElementById('ano').max = anoActual + 1;
             actualizarHistorialUI();
@@ -322,7 +340,7 @@
             }
         }
 
-        // --- **** FUNCIÓN CALCULAR CORREGIDA **** ---
+        // --- FUNCIÓN CALCULAR (CORREGIDA) ---
         function calcular() {
             const ano = parseInt(document.getElementById('ano').value);
             const valor = parseFloat(document.getElementById('valor').value) || 0;
@@ -350,8 +368,7 @@
             // 3. Sumar Gastos Fijos en Colones
             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
             
-            // 4. Calcular Gran Total en Colones (según tu lógica)
-            // (Subtotal Vehículo) + (Impuestos) + (Papeleo USA) + (Gastos Fijos)
+            // 4. Calcular Gran Total en Colones
             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
 
             // 5. Guardar el cálculo
@@ -374,8 +391,6 @@
             if (!calculoActual) return;
             const d = calculoActual;
             
-            // Esta función ya estaba bien estructurada para el desglose.
-            // Calcula el total de gastos admin SÓLO para la línea de desglose
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
 
             let html = `
@@ -395,7 +410,7 @@
             document.getElementById('detalle').classList.remove('hidden');
         }
 
-        // --- NUEVAS FUNCIONES (HERRAMIENTAS) ---
+        // --- FUNCIONES (HERRAMIENTAS) ---
         
         function convertirMillaje(event) {
             const valorInput = parseFloat(document.getElementById('millaje').value);
@@ -675,6 +690,59 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             document.getElementById('vinStatus').innerHTML = '';
             limpiarFichaVIN();
         }
+
+        // --- *** INICIO: NUEVO CÓDIGO DEL SCANNER *** ---
+        
+        async function iniciarScanner() {
+            // Inicializar el lector de códigos
+            codeReader = new ZXingBrowser.BrowserCodeReader();
+            const videoElement = document.getElementById('videoElement');
+            const scannerContainer = document.getElementById('scanner-container');
+            
+            try {
+                // Mostrar el contenedor del scanner
+                scannerContainer.classList.remove('hidden');
+                
+                // Pedir permiso y empezar a decodificar desde la cámara
+                // 'undefined' permite al usuario elegir la cámara (frontal/trasera en móvil)
+                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
+                    if (result) {
+                        // ¡Resultado encontrado!
+                        console.log(result);
+                        
+                        // Poner el VIN en el campo de texto
+                        document.getElementById('vin').value = result.text;
+                        
+                        // Detener el scanner
+                        detenerScanner();
+                        
+                        // Disparar el evento 'input' para que tu lógica de 'handleVinInput' se ejecute
+                        document.getElementById('vin').dispatchEvent(new Event('input'));
+                    }
+                    if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+                        // Hubo un error que no fue "no se encontró código"
+                        console.error(err);
+                        alert(`Error al escanear: ${err}`);
+                        detenerScanner();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error al iniciar la cámara: ", error);
+                alert(`Error al iniciar la cámara: ${error}. Asegúrate de estar en un servidor (localhost o https).`);
+                detenerScanner();
+            }
+        }
+
+        function detenerScanner() {
+            if (codeReader) {
+                codeReader.reset(); // Apaga la cámara y libera recursos
+                codeReader = null;
+            }
+            document.getElementById('scanner-container').classList.add('hidden');
+        }
+        // --- *** FIN: NUEVO CÓDIGO DEL SCANNER *** ---
+
     </script>
 </body>
 </html>
