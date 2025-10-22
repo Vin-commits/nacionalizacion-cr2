@@ -322,6 +322,7 @@
             }
         }
 
+        // --- **** FUNCIÓN CALCULAR CORREGIDA **** ---
         function calcular() {
             const ano = parseInt(document.getElementById('ano').value);
             const valor = parseFloat(document.getElementById('valor').value) || 0;
@@ -333,15 +334,36 @@
                 return;
             }
 
+            // 1. Cálculos en USD
             const antiguedad = anoActual - ano;
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
             const valorPlusFlete = valor + flete;
             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
             const baseImpuestos = valorPlusFlete + totalSeguros;
             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-            const totalColones = (baseImpuestos + impuestosUSD + COSTOS_FIJOS.PAPELEO_USA) * tc + COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
 
-            calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR') };
+            // 2. Convertir componentes a Colones por separado
+            const subtotalVehiculoCRC = valorPlusFlete * tc; // (Valor + Flete) * TC
+            const impuestosCRC = impuestosUSD * tc; // (Impuestos) * TC
+            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc; // (Papeleo USA) * TC
+            
+            // 3. Sumar Gastos Fijos en Colones
+            const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
+            
+            // 4. Calcular Gran Total en Colones (según tu lógica)
+            // (Subtotal Vehículo) + (Impuestos) + (Papeleo USA) + (Gastos Fijos)
+            const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
+
+            // 5. Guardar el cálculo
+            calculoActual = { 
+                ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, 
+                papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
+                declaracion: COSTOS_FIJOS.DECLARACION_CR, 
+                dekra: COSTOS_FIJOS.DEKRA, 
+                almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
+                tc, totalColones, 
+                fecha: new Date().toLocaleString('es-CR') 
+            };
             
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
@@ -352,6 +374,8 @@
             if (!calculoActual) return;
             const d = calculoActual;
             
+            // Esta función ya estaba bien estructurada para el desglose.
+            // Calcula el total de gastos admin SÓLO para la línea de desglose
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
 
             let html = `
@@ -359,7 +383,7 @@
                 <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
                 <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
                 <div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">${formatUSD(d.totalSeguros)}</span></div>
-                <div class="detail-row subtotal"><span class="detail-label">Sub-total (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
+                <div class="detail-row subtotal"><span class="detail-label">Base Impuestos (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
                 
                 <div class="section-header">VALORES EN COLONES</div>
                 <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
@@ -371,7 +395,8 @@
             document.getElementById('detalle').classList.remove('hidden');
         }
 
-        // --- *** CAMBIO 2: Lógica de millaje actualizada *** ---
+        // --- NUEVAS FUNCIONES (HERRAMIENTAS) ---
+        
         function convertirMillaje(event) {
             const valorInput = parseFloat(document.getElementById('millaje').value);
             const ano = parseInt(document.getElementById('ano').value);
@@ -563,6 +588,7 @@
         function generarTextoDesglose(esParaWhatsapp = false) {
             if (!calculoActual) return "";
             const d = calculoActual;
+            // Cálculo de gastos admin (solo para el texto)
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
             const b = esParaWhatsapp ? '*' : ''; // Bold para WhatsApp
 
@@ -579,7 +605,7 @@ ${line}
 Valor vehículo: ${formatUSD(d.valor)}
 Flete: ${formatUSD(d.flete)}
 Seguros: ${formatUSD(d.totalSeguros)}
-${b}Sub-total (USD): ${formatUSD(d.baseImpuestos)}${b}
+${b}Base Impuestos (USD): ${formatUSD(d.baseImpuestos)}${b}
 
 ${b}VALORES EN COLONES${b}
 ${line}
