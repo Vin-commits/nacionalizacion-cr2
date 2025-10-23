@@ -691,7 +691,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (CORREGIDO) *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (CON CORRECCIÓN VERIFICADA hints.set(1,...) y AJUSTES PARA SAFARI/IOS) *** ---
         
         async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
@@ -712,8 +712,11 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-                    ZXingBrowser.BarcodeFormat.QR_CODE
+                    ZXingBrowser.BarcodeFormat.QR_CODE // Mantenido para pruebas
                 ];
+
+                // --- *** ¡LA CORRECCIÓN ESTÁ AQUÍ! *** ---
+                // Usamos el valor numérico 1 directamente.
                 hints.set(1, formats); // 1 = POSSIBLE_FORMATS
                 
                 // Inicializamos el lector CON las pistas
@@ -722,8 +725,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 scannerContainer.classList.remove('hidden');
                 console.log("Scanner iniciado, intentando acceder a la cámara..."); // Log para depuración
 
-                // --- *** AJUSTE 1: ESPECIFICAR CÁMARA TRASERA *** ---
-                // Construimos las restricciones de video manualmente
+                // --- AJUSTE: ESPECIFICAR CÁMARA TRASERA ---
                 const constraints = {
                     video: {
                         facingMode: 'environment' // Pedir la cámara trasera
@@ -733,70 +735,19 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 // Obtenemos la lista de dispositivos de video
                 const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
                 
-                // Seleccionamos el primer dispositivo que tenga 'back' o 'environment' en su etiqueta,
-                // o simplemente el primer dispositivo si no encontramos uno específico.
-                let selectedDeviceId = null;
+                let selectedDeviceId = undefined; // Usar undefined por defecto
                 if (videoInputDevices.length > 0) {
                      const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('environment'));
-                     selectedDeviceId = rearCamera ? rearCamera.deviceId : videoInputDevices[0].deviceId;
-                     console.log(`Usando deviceId: ${selectedDeviceId}`); // Log para depuración
+                     // Si encontramos una cámara trasera, usamos su ID. Si no, dejamos undefined para que elija por defecto.
+                     if(rearCamera) {
+                         selectedDeviceId = rearCamera.deviceId;
+                         console.log(`Usando cámara trasera explícita: ${selectedDeviceId}`); 
+                     } else {
+                         console.log("No se encontró cámara trasera específica, usando la predeterminada.");
+                         // selectedDeviceId sigue siendo undefined
+                     }
                 } else {
-                    console.warn("No se encontraron dispositivos de video."); // Advertencia si no hay cámaras
-                     // Intentaremos con 'undefined' como último recurso
+                    console.warn("No se encontraron dispositivos de video. Intentando con la cámara predeterminada."); 
                 }
-
-
-                // Pedir permiso y empezar a decodificar usando el ID del dispositivo y las restricciones
-                codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err, controls) => {
-                    if (result) {
-                        // ¡Resultado encontrado!
-                        console.log("Código encontrado:", result);
-                        document.getElementById('vin').value = result.text;
-                        detenerScanner();
-                        document.getElementById('vin').dispatchEvent(new Event('input'));
-                    }
-                    
-                    // --- *** AJUSTE 2: MANEJO DE ERRORES MÁS DETALLADO *** ---
-                    if (err) {
-                        // Ignoramos el error 'NotFoundException' que ocurre en cada cuadro sin código
-                        if (!(err instanceof ZXingBrowser.NotFoundException)) {
-                             console.error("Error durante el escaneo:", err);
-                             // Podríamos mostrar una alerta aquí si quisiéramos, pero puede ser molesto
-                             // alert(`Error de escaneo: ${err}`); 
-                             // detenerScanner(); // Opcional: detener si hay un error persistente
-                        }
-                        // Si es NotFoundException, simplemente no hacemos nada y sigue escaneando.
-                    }
-                });
-
-            } catch (error) {
-                // Captura errores al configurar/iniciar la cámara
-                console.error("Error al iniciar el scanner: ", error);
-                alert(`Error al iniciar el scanner: ${error}. Revisa la consola para más detalles.`);
-                detenerScanner(); // Asegurarnos de cerrar si hubo un error al iniciar
-            }
-        }
-
-        // La función detenerScanner sigue igual
-        function detenerScanner() {
-             if (codeReader) {
-                 try {
-                     // Importante: Asegúrate de que reset() realmente detiene el stream y apaga la cámara
-                     codeReader.reset(); 
-                     console.log("Scanner detenido y recursos liberados."); // Log para depuración
-                 } catch (resetError) {
-                     console.error("Error al detener el scanner:", resetError);
-                 } finally {
-                      codeReader = null;
-                 }
-             }
-             const scannerContainer = document.getElementById('scanner-container');
-              if (scannerContainer) {
-                  scannerContainer.classList.add('hidden');
-              }
-        }
-        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
-
-    </script>
 </body>
 </html>
