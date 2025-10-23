@@ -691,54 +691,33 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (CORREGIDO) *** ---
-        
-        async function iniciarScanner() {
+    async function iniciarScanner() {
     const videoElement = document.getElementById('videoElement');
     const scannerContainer = document.getElementById('scanner-container');
     
     try {
-        if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
-            throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado correctamente.');
+        if (typeof ZXingBrowser === 'undefined') {
+            throw new Error('Librería ZXingBrowser no cargada');
         }
         
-        if (typeof ZXingBrowser.BarcodeFormat === 'undefined') {
-            throw new Error('Los formatos de código de barras (BarcodeFormat) no están disponibles en ZXingBrowser.');
-        }
-
-        const formats = [
-            ZXingBrowser.BarcodeFormat.CODE_39,
-            ZXingBrowser.BarcodeFormat.CODE_128,
-            ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-            ZXingBrowser.BarcodeFormat.QR_CODE
-        ];
-
-        // SOLUCIÓN: Usar el constructor con null y configurar después
-        const hints = new Map();
-        hints.set(2, formats); // 2 = POSSIBLE_FORMATS (valor numérico directo)
-        
-        codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+        // Crear lector SIN hints (escaneará todos los formatos)
+        codeReader = new ZXingBrowser.BrowserMultiFormatReader();
         
         scannerContainer.classList.remove('hidden');
         
         await codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
             if (result) {
-                console.log("Código encontrado:", result);
                 document.getElementById('vin').value = result.text;
                 detenerScanner();
                 document.getElementById('vin').dispatchEvent(new Event('input'));
             }
-            if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
-                console.error("Error durante el escaneo:", err);
-            }
         });
 
     } catch (error) {
-        console.error("Error al iniciar el scanner: ", error);
-        alert(`Error al iniciar el scanner: ${error.message}`);
+        console.error("Error:", error);
+        alert(`Error al iniciar scanner: ${error.message}`);
         detenerScanner();
     }
 }
-        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 </body>
 </html>
