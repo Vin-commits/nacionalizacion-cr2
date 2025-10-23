@@ -705,143 +705,115 @@ TC: ${d.tc} | Fecha: ${d.fecha}
         // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN CORREGIDA Y ROBUSTA) *** ---
 
         async function iniciarScanner() {
-            const videoElement = document.getElementById('videoElement');
-            const scannerContainer = document.getElementById('scanner-container');
+            const videoElement = document.getElementById('videoElement');
+            const scannerContainer = document.getElementById('scanner-container');
 
-            // 1. Asegurarse de detener cualquier instancia anterior
-            detenerScanner(); 
+            // 1. Asegurarse de detener cualquier instancia anterior
+            detenerScanner(); 
 
-            try {
-                // --- *** INICIO CORRECCIÓN JS: Bloquear Orientación *** ---
-                // Solo intentamos bloquear en dispositivos que lo soporten
-                if (typeof screen.orientation.lock === 'function') {
-                    try {
-                        await screen.orientation.lock('landscape');
-                        console.log("Orientación bloqueada a horizontal.");
-                    } catch (e) {
-                        console.warn("No se pudo bloquear la orientación:", e);
-                    }
-                }
-                // --- *** FIN CORRECCIÓN JS *** ---
+            try {
+                // --- Bloquear Orientación (esto está bien) ---
+                if (typeof screen.orientation.lock === 'function') {
+                    try {
+                        await screen.orientation.lock('landscape');
+                        console.log("Orientación bloqueada a horizontal.");
+                    } catch (e) {
+                        console.warn("No se pudo bloquear la orientación:", e);
+                    }
+                }
+                
+                // 2. Validar que la librería esté cargada (esto está bien)
+                if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
+                    throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
+                }
 
-                // 2. Validar que la librería esté cargada
-                if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
-                    throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
-                }
+                // 3. Configurar las pistas (esto está bien)
+                const hints = new Map();
+                const formats = [
+                    ZXingBrowser.BarcodeFormat.CODE_39,
+                    ZXingBrowser.BarcodeFormat.CODE_128,
+                ];
+                hints.set(1, formats); // 1 = POSSIBLE_FORMATS
+                
+                // 4. Inicializar el lector
+                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+                
+                // 5. Mostrar el contenedor del scanner
+                scannerContainer.classList.remove('hidden');
+                console.log("Scanner iniciado, solicitando permiso de cámara...");
 
-                // 3. Configurar las pistas (hints) para el lector
-                const hints = new Map();
-                // --- *** INICIO CORRECCIÓN JS: Optimizar Formatos *** ---
-                // Enfocarnos solo en los formatos 1D más comunes para VIN
-                const formats = [
-                    ZXingBrowser.BarcodeFormat.CODE_39,
-                    ZXingBrowser.BarcodeFormat.CODE_128,
-                ];
-                // --- *** FIN CORRECCIÓN JS *** ---
-                
-                hints.set(1, formats); // 1 = POSSIBLE_FORMATS
-                
-                // 4. Inicializar el lector con las pistas
-                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                
-                // 5. Mostrar el contenedor del scanner
-                scannerContainer.classList.remove('hidden');
-                console.log("Scanner iniciado, solicitando permiso de cámara...");
+                // 6. Obtener el stream
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        aspectRatio: { ideal: 1.77777Ambos } // 16:9
+                    }
+                };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-                // 6. --- MANEJO MANUAL DEL STREAM ---
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        aspectRatio: { ideal: 1.7777777778 } // 16:9
-                    }
-                };
+                // 7. Asignar el stream al video
+                videoElement.srcObject = stream;
+  Alemán   
+                // --- *** INICIO DE LA CORRECCIÓN CRÍTICA *** ---
+                // Creamos una Promise que se resolverá SÓLO cuando el video esté reproduciéndose
+                const decodePromise = new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = () => {
+                        console.log("Metadatos cargados, intentando reproducir...");
+                        // Intentamos reproducir el video
+                        videoElement.play().then(() => {
+                            console.log("Video reproduciendo. Llamando a decodeOnce...");
+                            // AHORA que el video está reproduciendo, llamamos a decodeOnce
+                            codeReader.decodeOnceFromVideoElement(videoElement)
+Alemán                               .then(resolve) // Resuelve la Promise principal con el resultado
+                              .catch(reject); // Rechaza si decodeOnce falla
+                        }).catch(reject); // Rechaza si play() falla
+                    };
+                    
+                    // Manejar error si el video no carga
+                    videoElement.onerror = () => {
+                        reject(new Error("No se pudo cargar el stream de video."));
+                    };
+                });
 
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                // 8. Esperar el resultado de la decodificación
+                // Esta línea ahora esperará a que el video se reproduzca Y a que decodeOnce termine
+                const result = await decodePromise;
+                // --- *** FIN DE LA CORRECCIÓN CRÍTICA *** ---
 
-                // 7. Asignar el stream al video y REPRODUCIRLO
-                videoElement.srcObject = stream;
-                
-                videoElement.onloadedmetadata = () => {
-                    videoElement.play().catch(e => console.error("Error al reproducir video:", e));
-                };
+                // 9. Procesar el resultado
+                if (result) {
+                    console.log("Código encontrado:", result.text);
+                    document.getElementById('vin').value = result.text;
+                    // Disparamos el 'input' para que se ejecute la decodificación del VIN
+                    document.getElementById('vin').dispatchEvent(new Event('input')); 
+                }
+                
+                // 10. Detener el scanner (siempre se ejecuta después de un éxito)
+                detenerScanner();
 
-                console.log("Stream de cámara obtenido, iniciando decodificación desde elemento de video...");
+            } catch (error) {
+                // 11. Manejo de errores mejorado
+                console.error("Error al iniciar el scanner: ", error);
+                let errorMsg = `Error al iniciar el scanner: ${error.message}`;
 
-                // 8. Usar 'decodeOnceFromVideoElement'
-                const result = await codeReader.decodeOnceFromVideoElement(videoElement);
-
-                // 9. Procesar el resultado
-                if (result) {
-                    console.log("Código encontrado:", result.text);
-                    document.getElementById('vin').value = result.text;
-                    detenerScanner(); // Detener al encontrar resultado
-                    document.getElementById('vin').dispatchEvent(new Event('input')); // Disparar el evento de input
-                }
-
-            } catch (error) {
-                // 10. Manejo de errores mejorado
-                console.error("Error al iniciar el scanner: ", error);
-                let errorMsg = `Error al iniciar el scanner: ${error.message}`;
-
-                // Si el error es 'NotFoundException', significa que estuvo escaneando pero no encontró nada
-                // (esto puede pasar si el usuario cancela antes de que 'decodeOnce' termine)
-                if (error.name === 'NotFoundException') {
-                    errorMsg = 'Escaneo cancelado o no se encontró código.';
-                } else if (error.name === 'NotAllowedError') {
-                    errorMsg = "Debes dar permiso a la cámara para escanear.";
-                } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-                    errorMsg = "No se pudo encontrar una cámara trasera. Intenta en un dispositivo móvil.";
-                }
-                
-                // Solo mostramos alerta si no fue un 'NotFoundException' (cancelación)
-                if (error.name !== 'NotFoundException') {
-                    alert(errorMsg);
-                }
-                
-                detenerScanner(); // Asegurarnos de cerrar si hubo un error
-            }
-        }
-
-        function detenerScanner() {
-            if (codeReader) {
-                try {
-                    codeReader.reset();
-                    console.log("Scanner reseteado.");
-                } catch (resetError) {
-                    console.error("Error al resetear el scanner:", resetError);
-                }
-            }
-
-            const videoElement = document.getElementById('videoElement');
-            if (videoElement && videoElement.srcObject) {
-                try {
-                    const tracks = videoElement.srcObject.getTracks();
-                    tracks.forEach(track => track.stop());
-                    console.log("Tracks de video detenidos.");
-                } catch (e) {
-                    console.error("Error al detener tracks:", e);
-                }
-                videoElement.srcObject = null;
-            }
-            
-            codeReader = null;
-
-            const scannerContainer = document.getElementById('scanner-container');
-            if (scannerContainer) {
-                scannerContainer.classList.add('hidden');
-            }
-
-            // --- *** INICIO CORRECCIÓN JS: Desbloquear Orientación *** ---
-            if (typeof screen.orientation.unlock === 'function') {
-                try {
-                    screen.orientation.unlock();
-                    console.log("Orientación desbloqueada.");
-                } catch (e) {
-                    console.warn("No se pudo desbloquear la orientación:", e);
-                }
-            }
-            // --- *** FIN CORRECCIÓN JS *** ---
-        }
+                if (error.name === 'NotFoundException') {
+                    errorMsg = 'Escaneo cancelado o no se encontró código.';
+                    console.log(errorMsg); // No es necesario alertar al usuario por esto
+                } else if (error.name === 'NotAllowedError') {
+                    errorMsg = "Debes dar permiso a la cámara para escanear.";
+                    alert(errorMsg);
+                } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
+                    errorMsg = "No se pudo encontrar una cámara trasera. Intenta en un dispositivo móvil.";
+                    alert(errorMsg);
+                } else {
+                    // Otro tipo de error
+                    alert(errorMsg);
+                }
+                
+                // Asegurarnos de cerrar si hubo un error
+                detenerScanner();
+            }
+        }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
