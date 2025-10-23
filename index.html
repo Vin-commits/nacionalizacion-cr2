@@ -708,7 +708,7 @@
             limpiarFichaVIN();
         }
 
-       // --- *** INICIO: CÓDIGO DEL SCANNER - CORREGIDO *** ---
+       // --- *** INICIO: CÓDIGO DEL SCANNER - MEJORAS DE DETECCIÓN *** ---
 
         async function iniciarScanner() {
             console.log("Iniciando scanner...");
@@ -731,13 +731,36 @@
                     throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // Configurar hints
+                // Configurar hints: AÑADIENDO MÁS FORMATOS POSIBLES
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.QR_CODE, // A veces se usan QR para VIN o info adicional
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX, // Otro formato 2D común
+                    ZXingBrowser.BarcodeFormat.EAN_13, // Aunque más para productos, no hace daño tenerlo
+                    ZXingBrowser.BarcodeFormat.UPC_A,
+                    ZXingBrowser.BarcodeFormat.ITF, // Interleaved 2 of 5, común en logística
+                    ZXingBrowser.BarcodeFormat.AZTEC,
+                    ZXingBrowser.BarcodeFormat.PDF_417 // Posiblemente usado en algunos documentos de vehículos
                 ];
                 hints.set(1, formats); // Usar número 1 para POSSIBLE_FORMATS
+
+                // Intentar forzar el auto-enfoque si la cámara lo soporta
+                const constraints = {
+                    video: {
+                        facingMode: 'environment', // Siempre intentar la cámara trasera
+                        width: { ideal: 1280 },    // Resolución ideal
+                        height: { ideal: 720 },
+                        // Intenta habilitar auto-enfoque y/o zoom si es compatible
+                        focusMode: 'continuous',
+                        zoom: true, // Esto no es un estándar, puede no funcionar en todos los navegadores
+                        advanced: [
+                            { focusMode: 'continuous' },
+                            { torch: true } // Para encender la linterna si es necesario
+                        ]
+                    }
+                };
 
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
                 console.log("CodeReader inicializado con hints numéricos.");
@@ -756,7 +779,7 @@
                 scannerContainer.classList.remove('hidden');
                 console.log("Contenedor del scanner visible.");
 
-                // Iniciar escaneo continuo
+                // Iniciar escaneo continuo con las constraints actualizadas
                 console.log("Iniciando decodeFromVideoDevice...");
                 codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
                     if (result) {
@@ -766,16 +789,28 @@
                         document.getElementById('vin').dispatchEvent(new Event('input'));
                         detenerScanner(); // Detener al encontrar
                     }
-                    // --- *** CORRECCIÓN AQUÍ *** ---
-                    // Verificar el error usando err.name en lugar de instanceof
                     if (err && err.name !== 'NotFoundException') {
-                        console.error("Error durante escaneo continuo:", err);
+                        // console.error("Error durante escaneo continuo:", err); // Descomentar para depurar
                     }
-                }).catch(err => {
+                }, constraints.video).catch(err => { // PASAR LAS CONSTRAINTS AQUÍ
                     console.error("Error al INICIAR decodeFromVideoDevice:", err);
                     handleScannerError(err);
                     detenerScanner();
                 });
+
+                // Intentar encender la linterna después de iniciar la cámara
+                // Esto es una característica avanzada y puede no estar soportada en todos los navegadores/dispositivos
+                videoElement.addEventListener('loadedmetadata', () => {
+                    if (videoElement.srcObject) {
+                        const track = videoElement.srcObject.getVideoTracks()[0];
+                        if (track && 'torch' in track.getCapabilities()) {
+                            track.applyConstraints({ advanced: [{ torch: true }] })
+                                .then(() => console.log("Linterna encendida."))
+                                .catch(e => console.warn("No se pudo encender la linterna:", e));
+                        }
+                    }
+                });
+
 
             } catch (error) {
                 console.error("Error general en iniciarScanner:", error);
@@ -784,7 +819,6 @@
             }
         }
 
-        // Función para mostrar errores al usuario
         function handleScannerError(error) {
             let errorMsg = `Error con el scanner: ${error.message}`;
             if (error.name === 'NotAllowedError') {
@@ -815,9 +849,21 @@
 
             const videoElement = document.getElementById('videoElement');
             if (videoElement && videoElement.srcObject) {
-                 try { videoElement.srcObject.getTracks().forEach(track => track.stop()); console.log("Tracks detenidos."); }
-                 catch (e) { console.warn("Error menor al detener tracks:", e); }
-                 videoElement.srcObject = null;
+                try {
+                    const tracks = videoElement.srcObject.getVideoTracks();
+                    tracks.forEach(track => {
+                        // Intentar apagar la linterna si estaba encendida
+                        if (track && 'torch' in track.getCapabilities() && track.getSettings().torch) {
+                            track.applyConstraints({ advanced: [{ torch: false }] })
+                                .then(() => console.log("Linterna apagada."))
+                                .catch(e => console.warn("No se pudo apagar la linterna:", e));
+                        }
+                        track.stop();
+                    });
+                    console.log("Tracks detenidos.");
+                }
+                catch (e) { console.warn("Error menor al detener tracks:", e); }
+                videoElement.srcObject = null;
             }
              if (videoElement) videoElement.load();
 
