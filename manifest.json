@@ -1,0 +1,21 @@
+{
+  "name": "Nacionalización CR",
+  "short_name": "Nacio CR",
+  "description": "Calculadora de impuestos de importación de vehículos.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e0f2fe",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
