@@ -518,42 +518,64 @@
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         function handleVinInput() {
+            console.log("handleVinInput triggered!"); // Log para verificar ejecución
             clearTimeout(vinDecodeTimeout); 
             const vin = this.value.toUpperCase().trim();
             const vinStatus = document.getElementById('vinStatus');
             limpiarFichaVIN(); 
 
-            if (vin.length === 0) { vinStatus.innerHTML = ''; return; }
-            if (vin.length < 17) { vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`; return; }
+            if (vin.length === 0) { 
+                vinStatus.innerHTML = ''; 
+                return; 
+            }
+            if (vin.length < 17) { 
+                vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`; 
+                return; 
+            }
             
             if (vin.length === 17) {
+                console.log("VIN tiene 17 caracteres, iniciando decodificación..."); // Log
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
-                vinDecodeTimeout = setTimeout(() => fetchVinData(vin), 500);
+                vinDecodeTimeout = setTimeout(() => {
+                    console.log("setTimeout ejecutando fetchVinData..."); // Log
+                    fetchVinData(vin);
+                }, 500); // 500ms de espera
             }
         }
 
         async function fetchVinData(vin) {
+            console.log(`fetchVinData llamado con VIN: ${vin}`); // Log
             const vinStatus = document.getElementById('vinStatus');
             try {
-                const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`);
-                if (!response.ok) throw new Error('Respuesta de red no fue OK');
+                const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
+                console.log(`Consultando API: ${apiUrl}`); // Log
+                const response = await fetch(apiUrl);
+                console.log(`Respuesta recibida, status: ${response.status}`); // Log
+                if (!response.ok) {
+                    throw new Error(`Respuesta de red no fue OK (${response.status})`);
+                }
                 const data = await response.json();
+                console.log("Datos recibidos de la API:", data); // Log
                 
-                if (data?.Results?.[0]?.ErrorCode === "0") {
-                    const vehicleInfo = data.Results[0];
-                    vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
-                    displayVinData(vehicleInfo);
-                    if (vehicleInfo.ModelYear) {
-                         document.getElementById('ano').value = vehicleInfo.ModelYear;
-                         document.getElementById('ano').dispatchEvent(new Event('change'));
+                if (data && data.Results && data.Results[0]) {
+                    if (data.Results[0].ErrorCode === "0") {
+                        const vehicleInfo = data.Results[0];
+                        vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
+                        displayVinData(vehicleInfo);
+                        if (vehicleInfo.ModelYear) {
+                            document.getElementById('ano').value = vehicleInfo.ModelYear;
+                            document.getElementById('ano').dispatchEvent(new Event('change'));
+                        }
+                    } else {
+                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado"}</span>`;
+                        limpiarFichaVIN();
                     }
                 } else {
-                    vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0]?.ErrorText || "VIN no encontrado"}</span>`;
-                    limpiarFichaVIN();
+                     throw new Error("Formato de respuesta inesperado de la API.");
                 }
             } catch (error) {
                 console.error('Error fetching VIN data:', error);
-                vinStatus.innerHTML = '<span style="color: #dc2626;">No se pudo decodificar. Revisa tu conexión.</span>';
+                vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión.</span>`;
                 limpiarFichaVIN();
             }
         }
@@ -691,33 +713,87 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-    async function iniciarScanner() {
-    const videoElement = document.getElementById('videoElement');
-    const scannerContainer = document.getElementById('scanner-container');
-    
-    try {
-        if (typeof ZXingBrowser === 'undefined') {
-            throw new Error('Librería ZXingBrowser no cargada');
-        }
+        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SIMPLIFICADA PARA SAFARI - SIN await, usando undefined) *** ---
         
-        // Crear lector SIN hints (escaneará todos los formatos)
-        codeReader = new ZXingBrowser.BrowserMultiFormatReader();
-        
-        scannerContainer.classList.remove('hidden');
-        
-        await codeReader.decodeFromVideoDevice(null, videoElement, (result, err) => {
-            if (result) {
-                document.getElementById('vin').value = result.text;
-                detenerScanner();
-                document.getElementById('vin').dispatchEvent(new Event('input'));
-            }
-        });
+        async function iniciarScanner() { // Mantenemos async por si usamos await adentro para listVideoInputDevices
+            const videoElement = document.getElementById('videoElement');
+            const scannerContainer = document.getElementById('scanner-container');
+            
+            // Asegurarse de detener cualquier instancia anterior
+            detenerScanner(); 
 
-    } catch (error) {
-        console.error("Error:", error);
-        alert(`Error al iniciar scanner: ${error.message}`);
-        detenerScanner();
-    }
-}
-</body>
-</html>
+            try {
+                // Asegurarnos que ZXingBrowser esté cargado
+                if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
+                    throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado correctamente.');
+                }
+                
+                // --- PISTAS PARA EL LECTOR ---
+                const hints = new Map();
+                if (typeof ZXingBrowser.BarcodeFormat === 'undefined') {
+                     throw new Error('Los formatos de código de barras (BarcodeFormat) no están disponibles en ZXingBrowser.');
+                }
+                const formats = [
+                    ZXingBrowser.BarcodeFormat.CODE_39,
+                    ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.QR_CODE // Mantenido para pruebas
+                ];
+                hints.set(1, formats); // 1 = POSSIBLE_FORMATS
+                
+                // Inicializamos el lector CON las pistas
+                codeReader = new ZXingBrowser.BrowserCodeReader(hints);
+                
+                scannerContainer.classList.remove('hidden');
+                console.log("Scanner iniciado, intentando acceder a la cámara predeterminada..."); 
+
+                // --- Usamos 'undefined' para que elija la cámara automáticamente ---
+                
+                // NO usamos await aquí, decodeFromVideoDevice usa un callback
+                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err, controls) => {
+                    if (result) {
+                        console.log("Código encontrado:", result);
+                        document.getElementById('vin').value = result.text;
+                        detenerScanner(); 
+                        document.getElementById('vin').dispatchEvent(new Event('input'));
+                    }
+                    if (err) {
+                        if (!(err instanceof ZXingBrowser.NotFoundException)) {
+                             console.error("Error durante el escaneo:", err);
+                             // Considerar si mostrar un mensaje o detener si el error persiste
+                             // alert(`Error de escaneo: ${err}`);
+                             // detenerScanner(); 
+                        }
+                        // Si es NotFoundException, no hacemos nada, sigue escaneando.
+                    }
+                });
+
+            } catch (error) {
+                // Captura errores al configurar/iniciar la cámara
+                console.error("Error al iniciar el scanner: ", error);
+                alert(`Error al iniciar el scanner: ${error}. Revisa la consola para más detalles.`);
+                detenerScanner(); 
+            }
+        }
+
+        function detenerScanner() {
+             if (codeReader) {
+                 try {
+                     codeReader.reset(); 
+                     console.log("Scanner detenido y recursos liberados."); 
+                 } catch (resetError) {
+                     console.error("Error al detener el scanner:", resetError);
+                 } finally {
+                      codeReader = null;
+                 }
+             }
+             const scannerContainer = document.getElementById('scanner-container');
+              if (scannerContainer) {
+                  scannerContainer.classList.add('hidden');
+              }
+        }
+        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
+
+    </script>
+    
+</body> </html>
