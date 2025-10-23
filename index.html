@@ -506,7 +506,7 @@
                         limpiarFichaVIN();
                     }
                 } else {
-                     throw new Error("Formato de respuesta inesperado de la API.");
+                    throw new Error("Formato de respuesta inesperado de la API.");
                 }
             } catch (error) {
                 console.error('Error fetching VIN data:', error);
@@ -644,9 +644,12 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.CODE_128,
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX
                 ];
-                // Usamos el enum oficial 'DecodeHintType.POSSIBLE_FORMATS'
-                // Si esto diera error, puedes volver a usar hints.set(1, formats);
-                hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+                
+                // --- *** INICIO DE LA CORRECCIÓN *** ---
+                // Usamos el valor numérico 1 (que equivale a DecodeHintType.POSSIBLE_FORMATS)
+                // La versión UMD cargada no parece exponer el enum 'DecodeHintType' directamente.
+                hints.set(1, formats);
+                // --- *** FIN DE LA CORRECCIÓN *** ---
                 
                 // 4. Inicializar el lector con las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
@@ -714,7 +717,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 }
             }
 
-            // --- AÑADIDO: Detener manualmente el stream de video ---
+            // --- AÑADIDO: Detener manually el stream de video ---
             const videoElement = document.getElementById('videoElement');
             if (videoElement && videoElement.srcObject) {
                 try {
