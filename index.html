@@ -691,13 +691,18 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SÚPER CORREGIDA) *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (CORREGIDO) *** ---
         
         async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             
             try {
+                // Primero, nos aseguramos que ZXingBrowser esté cargado
+                if (typeof ZXingBrowser === 'undefined') {
+                    throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
+                }
+                
                 // --- PISTAS PARA EL LECTOR (MOVIDAS DENTRO DEL TRY) ---
                 const hints = new Map();
                 const formats = [
@@ -706,9 +711,13 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
                     ZXingBrowser.BarcodeFormat.QR_CODE
                 ];
-                hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+
+                // --- *** ¡AQUÍ ESTÁ LA CORRECCIÓN! *** ---
+                // El enum 'DecodeHintType' no está en el build de navegador.
+                // Usamos su valor numérico directo, que es 1.
+                hints.set(1, formats); // 1 es el valor para 'POSSIBLE_FORMATS'
                 
-                // Inicializamos el lector CON las pistas (MOVIDO DENTRO DEL TRY)
+                // Inicializamos el lector CON las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
                 // --- FIN DE PISTAS ---
 
@@ -731,7 +740,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 });
 
             } catch (error) {
-                // Este catch ahora sí capturará CUALQUIER error (incluyendo si ZXingBrowser no cargó)
+                // Este catch ahora sí capturará CUALQUIER error
                 console.error("Error al iniciar la cámara: ", error);
                 alert(`Error al iniciar la cámara: ${error}. Revisa la consola para más detalles.`);
                 detenerScanner();
