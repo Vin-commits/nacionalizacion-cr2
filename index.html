@@ -645,11 +645,8 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX
                 ];
                 
-                // --- *** INICIO DE LA CORRECCIÓN *** ---
                 // Usamos el valor numérico 1 (que equivale a DecodeHintType.POSSIBLE_FORMATS)
-                // La versión UMD cargada no parece exponer el enum 'DecodeHintType' directamente.
                 hints.set(1, formats);
-                // --- *** FIN DE LA CORRECCIÓN *** ---
                 
                 // 4. Inicializar el lector con las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
@@ -658,7 +655,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 scannerContainer.classList.remove('hidden');
                 console.log("Scanner iniciado, solicitando permiso de cámara...");
 
-                // 6. --- CAMBIO PRINCIPAL: MANEJO MANUAL DEL STREAM ---
+                // 6. --- MANEJO MANUAL DEL STREAM ---
                 // Pedimos la cámara trasera ('environment') primero, ideal para escanear
                 const constraints = {
                     video: {
@@ -671,16 +668,18 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 // 7. Asignar el stream al video y REPRODUCIRLO
                 videoElement.srcObject = stream;
                 
-                // Esperamos a que los metadatos del video se carguen para reproducir
+                // Esperamos a que los metadata del video se carguen para reproducir
                 videoElement.onloadedmetadata = () => {
                     videoElement.play().catch(e => console.error("Error al reproducir video:", e));
                 };
 
                 console.log("Stream de cámara obtenido, iniciando decodificación desde elemento de video...");
 
-                // 8. Usar 'decodeFromVideoElement' (escanea un video ya existente)
-                // Esto devuelve una promesa que se resuelve cuando encuentra un código
-                const result = await codeReader.decodeFromVideoElement(videoElement);
+                // 8. --- *** INICIO DE LA CORRECCIÓN *** ---
+                // Usar 'decodeOnceFromVideoElement' (escanea UN video y devuelve una promesa)
+                // El error anterior fue por usar 'decodeFromVideoElement', que es continuo y requiere un callback.
+                const result = await codeReader.decodeOnceFromVideoElement(videoElement);
+                // --- *** FIN DE LA CORRECCIÓN *** ---
 
                 // 9. Procesar el resultado
                 if (result) {
@@ -717,7 +716,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 }
             }
 
-            // --- AÑADIDO: Detener manually el stream de video ---
+            // --- AÑADIDO: Detener manualmente el stream de video ---
             const videoElement = document.getElementById('videoElement');
             if (videoElement && videoElement.srcObject) {
                 try {
