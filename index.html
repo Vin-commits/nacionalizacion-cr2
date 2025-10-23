@@ -700,12 +700,20 @@ Fecha cálculo: ${d.fecha}
                 if (element) element.classList.add('hidden');
             });
             calculoActual = null;
+            
+            // Asegurarnos de que el estado del VIN también se limpie
+            const vinInput = document.getElementById('vin');
+            if (vinInput) handleVinInput.call(vinInput);
+
             fetchTipoDeCambio();
         }
+        
+        // *** CORRECCIÓN 2 ***
         function limpiarVIN() {
-            document.getElementById('vin').value = '';
-            document.getElementById('vinStatus').innerHTML = '';
-            limpiarFichaVIN();
+            const vinInput = document.getElementById('vin');
+            vinInput.value = '';
+            // Llamar al manejador de input para que limpie el estado (spinner, status, etc.)
+            handleVinInput.call(vinInput);
         }
 
        // --- *** INICIO: CÓDIGO DEL SCANNER - CORREGIDO Y MEJORADO *** ---
@@ -731,7 +739,7 @@ Fecha cálculo: ${d.fecha}
                     throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // 2. Configurar hints (Cumpliendo Hint 1: TRY_HARDER)
+                // 2. Configurar hints
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
@@ -744,23 +752,16 @@ Fecha cálculo: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.PDF_417
                 ];
                 
-                // Usar la enumeración de la librería, es más seguro
                 if (ZXingBrowser.DecodeHintType) {
                     hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-                    
-                    // [INDICACIÓN 1: TRY_HARDER]
-                    // Añadir TRY_HARDER como solicitó el usuario
                     hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
                     console.log("Hints configurados con POSSIBLE_FORMATS y TRY_HARDER.");
                 } else {
-                    // Fallback por si DecodeHintType no estuviera definido
                     hints.set(1, formats); 
                     console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
                 }
 
-                // 3. Configurar constraints (Cumpliendo Hint 2: Simplificadas)
-                // [INDICACIÓN 2: CONSTRAINTS SIMPLIFICADAS]
-                // Usando constraints de video simplificadas como solicitó el usuario.
+                // 3. Configurar constraints
                 const constraints = {
                     video: {
                         facingMode: 'environment',
@@ -778,20 +779,24 @@ Fecha cálculo: ${d.fecha}
                 scannerContainer.classList.remove('hidden');
                 console.log("Contenedor del scanner visible.");
 
-                // 5. Iniciar escaneo usando decodeFromConstraints (LA CORRECCIÓN PRINCIPAL)
-                // Se usa decodeFromConstraints para poder aplicar las constraints de video solicitadas.
+                // 5. Iniciar escaneo usando decodeFromConstraints
                 console.log("Iniciando decodeFromConstraints...");
                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
                         console.log("Código detectado:", result.text);
                         if (navigator.vibrate) { navigator.vibrate(100); }
-                        document.getElementById('vin').value = result.text;
-                        document.getElementById('vin').dispatchEvent(new Event('input'));
+                        
+                        const vinInput = document.getElementById('vin');
+                        vinInput.value = result.text;
+                        
+                        // *** CORRECCIÓN 1 ***
+                        // Llamar a handleVinInput directamente con el contexto (this) correcto
+                        // para que se dispare la lógica de decodificación de la API.
+                        handleVinInput.call(vinInput);
+                        
                         detenerScanner(); // Detener al encontrar
                     }
                     
-                    // [INDICACIÓN 3: LOG DE ERRORES]
-                    // Log de errores de escaneo (no-bloqueantes) activado
                     if (err && err.name !== 'NotFoundException') {
                          console.error("Error durante escaneo continuo:", err); 
                     }
@@ -802,9 +807,7 @@ Fecha cálculo: ${d.fecha}
                     detenerScanner();
                 });
 
-                // 6. Manejo de Linterna (Cumpliendo Hint 4: Mantener)
-                // [INDICACIÓN 4: MANEJO DE LINTERNA]
-                // Se mantiene la lógica de la linterna.
+                // 6. Manejo de Linterna
                 videoElement.addEventListener('loadedmetadata', () => {
                     if (videoElement.srcObject) {
                         const track = videoElement.srcObject.getVideoTracks()[0];
@@ -856,7 +859,6 @@ Fecha cálculo: ${d.fecha}
                 try {
                     const tracks = videoElement.srcObject.getVideoTracks();
                     tracks.forEach(track => {
-                        // [INDICACIÓN 4: APAGAR LINTERNA]
                         // Intentar apagar la linterna si estaba encendida
                         if (track && 'torch' in track.getCapabilities() && track.getSettings().torch) {
                             track.applyConstraints({ advanced: [{ torch: false }] })
