@@ -101,6 +101,80 @@
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
 
         .hidden { display: none !important; }
+
+        /* --- *** INICIO CORRECCIÓN CSS SCANNER *** --- */
+        #scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000; /* Fondo negro sólido */
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #videoElement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Llena la pantalla, mantiene aspecto */
+            transform: translate(-50%, -50%);
+            z-index: 201;
+        }
+        #scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 202; /* Sobre el video */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #scanner-viewfinder {
+            width: 90%; /* Ancho, para códigos de barras horizontales */
+            max-width: 600px;
+            height: 100px; /* Alargado */
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            /* El truco del "recorte" (dimmer) */
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); 
+        }
+        .scanner-red-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #dc2626;
+            box-shadow: 0 0 8px #dc2626;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .scanner-text {
+            color: white;
+            font-weight: 600;
+            margin-top: 24px;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        #btnStopScan {
+            margin-top: 24px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        #btnStopScan:active {
+            background: rgba(255,255,255,0.3);
+        }
+        /* --- *** FIN CORRECCIÓN CSS SCANNER *** --- */
     </style>
 </head>
 <body>
@@ -131,16 +205,16 @@
         </div>
     </div>
 
-    <div id="scanner-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+    <div id="scanner-container" class="hidden">
+        <video id="videoElement" playsinline></video>
         
-        <div style="position: relative; width: 95%; max-width: 600px;">
-            <video id="videoElement" playsinline style="width: 100%; height: auto; border: 2px solid white; background: #333; display: block;"></video>
-            <div style="position: absolute; width: 80%; height: 2px; background: #dc2626; box-shadow: 0 0 8px #dc2626; top: 50%; left: 10%; transform: translateY(-50%); z-index: 1;"></div>
+        <div id="scanner-overlay">
+            <div id="scanner-viewfinder">
+                <div class="scanner-red-line"></div>
+            </div>
+            <div class="scanner-text">Centre el código de barras en la línea roja</div>
+            <button id="btnStopScan">Cancelar</button>
         </div>
-        
-        <div style="color: white; margin-top: 10px; font-size: 14px; text-align: center; padding: 0 10px;">Centre el código de barras en la línea roja</div>
-        
-        <button id="btnStopScan" class="btn-danger-light" style="margin-top: 16px; padding: 12px 20px; font-size: 14px;">Cancelar</button>
     </div>
     <div class="container">
         <div id="comparador" class="card hidden">
@@ -638,6 +712,18 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             detenerScanner(); 
 
             try {
+                // --- *** INICIO CORRECCIÓN JS: Bloquear Orientación *** ---
+                // Solo intentamos bloquear en dispositivos que lo soporten
+                if (typeof screen.orientation.lock === 'function') {
+                    try {
+                        await screen.orientation.lock('landscape');
+                        console.log("Orientación bloqueada a horizontal.");
+                    } catch (e) {
+                        console.warn("No se pudo bloquear la orientación:", e);
+                    }
+                }
+                // --- *** FIN CORRECCIÓN JS *** ---
+
                 // 2. Validar que la librería esté cargada
                 if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
                     throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
@@ -645,18 +731,17 @@ TC: ${d.tc} | Fecha: ${d.fecha}
 
                 // 3. Configurar las pistas (hints) para el lector
                 const hints = new Map();
+                // --- *** INICIO CORRECCIÓN JS: Optimizar Formatos *** ---
+                // Enfocarnos solo en los formatos 1D más comunes para VIN
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
-                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-                    ZXingBrowser.BarcodeFormat.QR_CODE // Agregado para pruebas
                 ];
+                // --- *** FIN CORRECCIÓN JS *** ---
                 
-                // Usamos el valor numérico 1 (que equivale a DecodeHintType.POSSIBLE_FORMATS)
-                hints.set(1, formats);
+                hints.set(1, formats); // 1 = POSSIBLE_FORMATS
                 
                 // 4. Inicializar el lector con las pistas
-                // Se usa 'BrowserMultiFormatReader'
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
                 
                 // 5. Mostrar el contenedor del scanner
@@ -664,29 +749,25 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 console.log("Scanner iniciado, solicitando permiso de cámara...");
 
                 // 6. --- MANEJO MANUAL DEL STREAM ---
-                // --- *** INICIO DE LA CORRECCIÓN (JS) *** ---
-                // Pedimos la cámara trasera ('environment') y un aspect ratio de paisaje
                 const constraints = {
                     video: {
                         facingMode: 'environment',
                         aspectRatio: { ideal: 1.7777777778 } // 16:9
                     }
                 };
-                // --- *** FIN DE LA CORRECCIÓN (JS) *** ---
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
                 // 7. Asignar el stream al video y REPRODUCIRLO
                 videoElement.srcObject = stream;
                 
-                // Esperamos a que los metadata del video se carguen para reproducir
                 videoElement.onloadedmetadata = () => {
                     videoElement.play().catch(e => console.error("Error al reproducir video:", e));
                 };
 
                 console.log("Stream de cámara obtenido, iniciando decodificación desde elemento de video...");
 
-                // 8. Usar 'decodeOnceFromVideoElement' (escanea UN video y devuelve una promesa)
+                // 8. Usar 'decodeOnceFromVideoElement'
                 const result = await codeReader.decodeOnceFromVideoElement(videoElement);
 
                 // 9. Procesar el resultado
@@ -702,13 +783,21 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 console.error("Error al iniciar el scanner: ", error);
                 let errorMsg = `Error al iniciar el scanner: ${error.message}`;
 
-                if (error.name === 'NotAllowedError') {
+                // Si el error es 'NotFoundException', significa que estuvo escaneando pero no encontró nada
+                // (esto puede pasar si el usuario cancela antes de que 'decodeOnce' termine)
+                if (error.name === 'NotFoundException') {
+                    errorMsg = 'Escaneo cancelado o no se encontró código.';
+                } else if (error.name === 'NotAllowedError') {
                     errorMsg = "Debes dar permiso a la cámara para escanear.";
                 } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
                     errorMsg = "No se pudo encontrar una cámara trasera. Intenta en un dispositivo móvil.";
                 }
                 
-                alert(errorMsg);
+                // Solo mostramos alerta si no fue un 'NotFoundException' (cancelación)
+                if (error.name !== 'NotFoundException') {
+                    alert(errorMsg);
+                }
+                
                 detenerScanner(); // Asegurarnos de cerrar si hubo un error
             }
         }
@@ -716,7 +805,6 @@ TC: ${d.tc} | Fecha: ${d.fecha}
         function detenerScanner() {
             if (codeReader) {
                 try {
-                    // Resetea el lector (detiene el bucle de escaneo)
                     codeReader.reset();
                     console.log("Scanner reseteado.");
                 } catch (resetError) {
@@ -724,26 +812,35 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 }
             }
 
-            // --- AÑADIDO: Detener manualmente el stream de video ---
             const videoElement = document.getElementById('videoElement');
             if (videoElement && videoElement.srcObject) {
                 try {
-                    // Obtenemos todos los 'tracks' (la cámara) y los detenemos
                     const tracks = videoElement.srcObject.getTracks();
                     tracks.forEach(track => track.stop());
                     console.log("Tracks de video detenidos.");
                 } catch (e) {
                     console.error("Error al detener tracks:", e);
                 }
-                videoElement.srcObject = null; // Limpiamos la fuente
+                videoElement.srcObject = null;
             }
             
-            codeReader = null; // Limpiamos la referencia del lector
+            codeReader = null;
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) {
-                scannerContainer.classList.add('hidden'); // Ocultar el contenedor
+                scannerContainer.classList.add('hidden');
             }
+
+            // --- *** INICIO CORRECCIÓN JS: Desbloquear Orientación *** ---
+            if (typeof screen.orientation.unlock === 'function') {
+                try {
+                    screen.orientation.unlock();
+                    console.log("Orientación desbloqueada.");
+                } catch (e) {
+                    console.warn("No se pudo desbloquear la orientación:", e);
+                }
+            }
+            // --- *** FIN CORRECCIÓN JS *** ---
         }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
