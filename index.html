@@ -7,44 +7,44 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
     <title>Cálculo de Impuestos con VIN</title>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js"></script>
-    
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
         .header-logo { width: 36px; height: 36px; }
-        .header-title h1 { 
-            font-size: 18px; 
-            font-weight: bold; 
+        .header-title h1 {
+            font-size: 18px;
+            font-weight: bold;
             color: white; /* Título en blanco para máximo contraste */
             text-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
-        .header-title p { 
-            font-size: 12px; 
+        .header-title p {
+            font-size: 12px;
             color: #fecdd3; /* Tono rojo-rosado profesional */
             opacity: 1;
         }
         .header-buttons { display: flex; gap: 8px; }
         button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-        
+
         /* Estilos de Botones */
         .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-icon:active { background: rgba(255,255,255,0.3); }
-        
+
         .btn-header { background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px; }
         .btn-header.active { background: #fbbf24; color: #1f2937; }
-        
+
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
         .btn-secondary:active { background: #d1d5db; }
-        
+
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
-        
+
         .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
         .btn-result:active { background: rgba(255,255,255,0.3); }
 
@@ -58,7 +58,7 @@
         .container { max-width: 500px; margin: 0 auto; padding: 16px; }
         .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
-        
+
         /* Formulario */
         .form-group { margin-bottom: 12px; }
         .form-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -87,14 +87,14 @@
         .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
         .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
         .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        
+
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
         .detail-row.subtotal { font-weight: bold; color: #1e40af; }
         .detail-label { color: #6b7280; }
         .detail-value { font-weight: 600; color: #1f2937; }
         .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
         .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
-        
+
         /* Historial y Comparador */
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
@@ -133,13 +133,139 @@
 
     <div id="scanner-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <video id="videoElement" playsinline style="width: 90%; max-width: 400px; height: auto; border: 2px solid white;"></video>
-    ```
+        <button id="btnStopScan" class="btn-danger-light" style="margin-top: 16px; padding: 12px 20px; font-size: 14px;">Cancelar</button>
+    </div>
 
-### 2. Ajuste en el JavaScript (Bloque `<script>`)
+    <div class="container">
+        <div id="comparador" class="card hidden">
+            <div class="card-title">Comparar Vehículos</div>
+            <div id="comparacionContent"></div>
+        </div>
 
-Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con esta versión. Incluye el código anterior (que ya estaba mayormente correcto) pero refina ligeramente el manejo de errores dentro del callback del escáner para ser extra cuidadoso en iOS:
+        <div id="historialCard" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div class="card-title" style="margin: 0;">Historial</div>
+                <button id="btnLimpiarHistorial" class="btn-danger-light">Limpiar</button>
+            </div>
+            <div id="historialContent"></div>
+        </div>
 
-```html
+        <div class="card">
+            <div class="card-title">Ingrese datos del Vehículo</div>
+
+            <div class="form-group">
+                <label for="vin">VIN Number</label>
+                <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
+                <div class="help-text" id="vinStatus"></div>
+
+                <div class="button-group" style="margin-top: 8px;">
+                    <button id="btnScanVIN" class="btn-secondary">📸 Escanear VIN</button>
+                    <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="ano">Año del Vehículo</label>
+                <input type="number" id="ano" placeholder="2022" min="1980">
+                <div class="help-text" id="ayudaAno"></div>
+            </div>
+
+            <div id="vinInfoCard" class="card info-card hidden">
+                <div class="card-title info-card-title">Información del Vehículo</div>
+                <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
+                <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value" id="vinModel"></span></div>
+                <div class="detail-row"><span class="detail-label">Versión</span><span class="detail-value" id="vinTrim"></span></div>
+                <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
+                <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
+            </div>
+
+            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+
+            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Convertidor de Distancia</div>
+            <div class="form-group">
+                <label for="millaje">Millaje / Kilometraje</label>
+                <input type="number" id="millaje" placeholder="30000">
+                <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
+            </div>
+            <div class="button-group">
+                <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
+                <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
+            </div>
+
+            <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
+                <div class="card-title info-card-title">Resultado de Conversión</div>
+                <div class="detail-row">
+                    <span class="detail-label" id="millajeResultadoLabel"></span>
+                    <span class="detail-value" id="millajeResultadoValor"></span>
+                </div>
+                <div class="detail-row" style="border-bottom: none;">
+                    <span class="detail-label" id="millajePromedioLabel"></span>
+                    <span class="detail-value" id="millajePromedioValor"></span>
+                </div>
+                <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
+            </div>
+
+            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+
+            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Herramienta: Cálculo de Traspaso</div>
+            <div class="form-group">
+                <label for="valorFiscal">Valor Fiscal (₡)</label>
+                <input type="number" id="valorFiscal" placeholder="10000000">
+            </div>
+            <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+            <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+
+            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            <div class="form-group">
+                <label for="valor">Valor (USD)</label>
+                <input type="number" id="valor" placeholder="25000">
+            </div>
+
+            <div class="form-group">
+                <label for="flete">Flete (USD)</label>
+                <input type="number" id="flete" placeholder="1500">
+            </div>
+
+            <div class="form-group">
+                <div class="form-group-header">
+                    <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
+                    <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
+                </div>
+                <input type="number" id="tipoCambio" placeholder="520">
+                <div class="help-text" id="tipoCambioHelp"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button>
+                <button class="btn-primary" id="btnCalcular">Calcular</button>
+            </div>
+        </div>
+
+        <div id="resultado" class="hidden">
+            <div class="result-card">
+                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
+                <div class="result-amount" id="resultadoTotal"></div>
+                <div class="result-buttons">
+                    <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
+                    <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
+                </div>
+            </div>
+
+            <div id="detalle" class="card hidden">
+                <div class="card-title">Desglose</div>
+                <div id="detalleContent"></div>
+                <div class="button-group" style="margin-top: 16px;">
+                    <button id="btnDescargar" class="btn-info-light">Exportar (PDF)</button>
+                    <button id="btnWhatsApp" class="btn-success-light">WhatsApp</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
+            <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
+        </div>
+    </div>
+
     <script>
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
@@ -166,7 +292,6 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
 
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
-            // ... (listeners existentes para VIN, calcular, limpiar, historial, etc.) ...
             document.getElementById('ano').addEventListener('change', validarAno);
             document.getElementById('vin').addEventListener('input', handleVinInput);
             document.getElementById('btnCalcular').addEventListener('click', calcular);
@@ -264,7 +389,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
             const promedioLabel = document.getElementById('millajePromedioLabel');
             const promedioValor = document.getElementById('millajePromedioValor');
             const promedioStatus = document.getElementById('millajePromedioStatus');
-            function mostrarError(mensaje) { /* ... (código de mostrarError sin cambios) ... */
+            function mostrarError(mensaje) {
                 resultadoCard.classList.remove('hidden');
                 resultadoLabel.textContent = 'Error';
                 resultadoValor.textContent = '-';
@@ -277,7 +402,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
             if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
-            if (event.target.id === 'btnMillasAKm') { /* ... (lógica millas a km sin cambios) ... */
+            if (event.target.id === 'btnMillasAKm') {
                 resultadoNum = valorInput * KM_POR_MILLA;
                 promedio = PROMEDIO_MILLAS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
@@ -286,7 +411,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
                 promedioLabel.textContent = "Promedio (Millas/Año)";
                 promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
-            } else { /* ... (lógica kms a millas sin cambios) ... */
+            } else {
                 resultadoNum = valorInput * MILLAS_POR_KM;
                 promedio = PROMEDIO_KMS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
@@ -301,7 +426,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
             resultadoCard.classList.remove('hidden');
         }
 
-        function calcularTraspaso() { /* ... (código calcularTraspaso sin cambios) ... */
+        function calcularTraspaso() {
             const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
             const resultadoEl = document.getElementById('resultadoTraspaso');
             if (!valorFiscal || valorFiscal <= 0) {
@@ -319,31 +444,31 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
         }
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { /* ... (sin cambios) ... */ if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
-        function actualizarHistorialUI() { /* ... (sin cambios) ... */ const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
-        function seleccionarComparacion(id) { /* ... (sin cambios) ... */ if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
-        function mostrarComparacion() { /* ... (sin cambios) ... */ const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
-        function toggleComparacion() { /* ... (sin cambios) ... */ modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
-        function toggleHistorial() { /* ... (sin cambios) ... */ document.getElementById('historialCard').classList.toggle('hidden'); }
-        function limpiarHistorial() { /* ... (sin cambios) ... */ if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
+        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
+        function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
+        function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
+        function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
+        function toggleComparacion() { modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
+        function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
+        function limpiarHistorial() { if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
-        function handleVinInput() { /* ... (código handleVinInput sin cambios, incluyendo logs) ... */
+        function handleVinInput() {
              console.log("handleVinInput triggered!"); // Log para verificar ejecución
-            clearTimeout(vinDecodeTimeout); 
+            clearTimeout(vinDecodeTimeout);
             const vin = this.value.toUpperCase().trim();
             const vinStatus = document.getElementById('vinStatus');
-            limpiarFichaVIN(); 
+            limpiarFichaVIN();
 
-            if (vin.length === 0) { 
-                vinStatus.innerHTML = ''; 
-                return; 
+            if (vin.length === 0) {
+                vinStatus.innerHTML = '';
+                return;
             }
-            if (vin.length < 17) { 
-                vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`; 
-                return; 
+            if (vin.length < 17) {
+                vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`;
+                return;
             }
-            
+
             if (vin.length === 17) {
                 console.log("VIN tiene 17 caracteres, iniciando decodificación..."); // Log
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
@@ -353,7 +478,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
                 }, 500); // 500ms de espera
             }
         }
-        async function fetchVinData(vin) { /* ... (código fetchVinData sin cambios, incluyendo logs) ... */
+        async function fetchVinData(vin) {
              console.log(`fetchVinData llamado con VIN: ${vin}`); // Log
             const vinStatus = document.getElementById('vinStatus');
             try {
@@ -366,7 +491,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
                 }
                 const data = await response.json();
                 console.log("Datos recibidos de la API:", data); // Log
-                
+
                 if (data && data.Results && data.Results[0]) {
                     if (data.Results[0].ErrorCode === "0") {
                         const vehicleInfo = data.Results[0];
@@ -389,7 +514,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
                 limpiarFichaVIN();
             }
         }
-        async function fetchTipoDeCambio() { /* ... (código fetchTipoDeCambio sin cambios) ... */
+        async function fetchTipoDeCambio() {
              const tcInput = document.getElementById('tipoCambio');
             const tcHelp = document.getElementById('tipoCambioHelp');
             tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
@@ -411,7 +536,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
                 tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
             }
         }
-        function displayVinData(data) { /* ... (código displayVinData sin cambios) ... */
+        function displayVinData(data) {
              let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
             document.getElementById('vinMake').textContent = data.Make || 'No disponible';
@@ -423,7 +548,7 @@ Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con
          }
 
         // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
-        function generarTextoDesglose(esParaWhatsapp = false) { /* ... (sin cambios) ... */
+        function generarTextoDesglose(esParaWhatsapp = false) {
             if (!calculoActual) return "";
             const d = calculoActual;
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
@@ -454,7 +579,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             `.trim().split('\n').map(line => line.trim()).join('\n');
             return texto;
         }
-        function descargarPDF() { /* ... (sin cambios) ... */
+        function descargarPDF() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
             try {
                 const { jsPDF } = window.jspdf;
@@ -469,7 +594,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 alert("No se pudo generar el PDF. Asegúrate de tener conexión a internet.");
             }
         }
-        function enviarWhatsApp() { /* ... (sin cambios) ... */
+        function enviarWhatsApp() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
             const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
@@ -478,7 +603,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
 
         // --- FUNCIONES DE LIMPIEZA ---
         function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
-        function limpiarFormulario() { /* ... (sin cambios) ... */
+        function limpiarFormulario() {
             document.getElementById('ano').value = '';
             document.getElementById('valor').value = '';
             document.getElementById('flete').value = '';
@@ -491,7 +616,7 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             document.getElementById('valorFiscal').value = '';
             limpiarVIN();
         }
-        function limpiarVIN() { /* ... (sin cambios) ... */
+        function limpiarVIN() {
             document.getElementById('vin').value = '';
             document.getElementById('vinStatus').innerHTML = '';
             limpiarFichaVIN();
@@ -582,4 +707,3 @@ TC: ${d.tc} | Fecha: ${d.fecha}
     </script>
 </body>
 </html>
-        
