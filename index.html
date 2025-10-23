@@ -475,7 +475,7 @@
                 promedioValor.textContent = '-';
                 promedioStatus.textContent = mensaje;
                 promedioStatus.style.color = '#dc2626';
-             }
+            }
             if (!valorInput || valorInput < 0) { mostrarError('Ingrese un valor de millaje válido'); return; }
             if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
@@ -584,80 +584,80 @@
                         limpiarFichaVIN();
                     }
                 } else {
-                     throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
+                    throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
                 }
             } catch (error) {
                 console.error('Error fetching VIN data:', error);
-                 vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
+                vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
                 limpiarFichaVIN();
             }
         }
         async function fetchTipoDeCambio() {
-             const tcInput = document.getElementById('tipoCambio');
-             const tcHelp = document.getElementById('tipoCambioHelp');
-             tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
-             const url = `https://api.hacienda.go.cr/indicadores/tc`;
-             try {
-                 const response = await fetch(url);
-                 if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
-                 const data = await response.json();
-                 const valorVenta = data?.dolar?.venta?.valor;
-                 if (valorVenta) {
-                     tcInput.value = parseFloat(valorVenta).toFixed(2);
-                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
-                     tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
-                     document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2);
-                 } else {
-                     throw new Error('La respuesta de la API no contiene el formato esperado.');
-                 }
-             } catch (error) {
-                 console.error("Error fetching TC:", error);
-                 tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
-                 document.getElementById('tcFooter').textContent = 'Error';
-             }
-         }
+            const tcInput = document.getElementById('tipoCambio');
+            const tcHelp = document.getElementById('tipoCambioHelp');
+            tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
+            const url = `https://api.hacienda.go.cr/indicadores/tc`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
+                const data = await response.json();
+                const valorVenta = data?.dolar?.venta?.valor;
+                if (valorVenta) {
+                    tcInput.value = parseFloat(valorVenta).toFixed(2);
+                    const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
+                    tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
+                    document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2);
+                } else {
+                    throw new Error('La respuesta de la API no contiene el formato esperado.');
+                }
+            } catch (error) {
+                console.error("Error fetching TC:", error);
+                tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
+                document.getElementById('tcFooter').textContent = 'Error';
+            }
+        }
         function displayVinData(data) {
-             let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
-             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
-             document.getElementById('vinMake').textContent = data.Make || 'N/D';
-             document.getElementById('vinModel').textContent = data.Model || 'N/D';
-             document.getElementById('vinTrim').textContent = data.Trim || 'N/D';
-             document.getElementById('vinEngine').textContent = engineInfo.trim() || 'N/D';
-             document.getElementById('vinCountry').textContent = data.PlantCountry || 'N/D';
-             document.getElementById('vinInfoCard').classList.remove('hidden');
-         }
+            let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
+            if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
+            document.getElementById('vinMake').textContent = data.Make || 'N/D';
+            document.getElementById('vinModel').textContent = data.Model || 'N/D';
+            document.getElementById('vinTrim').textContent = data.Trim || 'N/D';
+            document.getElementById('vinEngine').textContent = engineInfo.trim() || 'N/D';
+            document.getElementById('vinCountry').textContent = data.PlantCountry || 'N/D';
+            document.getElementById('vinInfoCard').classList.remove('hidden');
+        }
 
         // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
         function generarTextoDesglose(esParaWhatsapp = false) {
-             if (!calculoActual) return "";
-             const d = calculoActual;
-             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-             const b = esParaWhatsapp ? '*' : '';
-             const line = '---------------------------------';
-             const doubleLine = '=====================';
-             const texto = `
- ${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
- Año: ${d.ano} | TC: ${d.tc}
- ${doubleLine}
+            if (!calculoActual) return "";
+            const d = calculoActual;
+            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
+            const b = esParaWhatsapp ? '*' : '';
+            const line = '---------------------------------';
+            const doubleLine = '=====================';
+            const texto = `
+${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
+Año: ${d.ano} | TC: ${d.tc}
+${doubleLine}
 
- ${b}Base (USD):${b}
- Valor: ${formatUSD(d.valor)}
- Flete: ${formatUSD(d.flete)}
- Seguros: ${formatUSD(d.totalSeguros)}
- *Subtotal USD:* ${formatUSD(d.baseImpuestos)}
- ${line}
+${b}Base (USD):${b}
+Valor: ${formatUSD(d.valor)}
+Flete: ${formatUSD(d.flete)}
+Seguros: ${formatUSD(d.totalSeguros)}
+*Subtotal USD:* ${formatUSD(d.baseImpuestos)}
+${line}
 
- ${b}Costos (CRC):${b}
- Vehículo+Flete: ${formatCRC((d.valor + d.flete) * d.tc)}
- Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
- Gastos Admin.: ${formatCRC(gastosAdminColones)}
- ${doubleLine}
- ${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
- ${doubleLine}
- Fecha cálculo: ${d.fecha}
-             `.trim().split('\n').map(line => line.trim()).join('\n');
-             return texto;
-         }
+${b}Costos (CRC):${b}
+Vehículo+Flete: ${formatCRC((d.valor + d.flete) * d.tc)}
+Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
+Gastos Admin.: ${formatCRC(gastosAdminColones)}
+${doubleLine}
+${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
+${doubleLine}
+Fecha cálculo: ${d.fecha}
+            `.trim().split('\n').map(line => line.trim()).join('\n');
+            return texto;
+        }
         function descargarPDF() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
             try {
@@ -691,16 +691,16 @@
                 if (element) element.value = '';
             });
             ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
-                 const element = document.getElementById(id);
-                 if (element) element.innerHTML = '';
-                 if (id === 'tcFooter') element.textContent = 'N/A';
+                const element = document.getElementById(id);
+                if (element) element.innerHTML = '';
+                if (id === 'tcFooter') element.textContent = 'N/A';
             });
             ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
-                 const element = document.getElementById(id);
-                 if (element) element.classList.add('hidden');
+                const element = document.getElementById(id);
+                if (element) element.classList.add('hidden');
             });
-             calculoActual = null;
-             fetchTipoDeCambio();
+            calculoActual = null;
+            fetchTipoDeCambio();
         }
         function limpiarVIN() {
             document.getElementById('vin').value = '';
@@ -708,7 +708,7 @@
             limpiarFichaVIN();
         }
 
-       // --- *** INICIO: CÓDIGO DEL SCANNER - MEJORAS DE DETECCIÓN *** ---
+       // --- *** INICIO: CÓDIGO DEL SCANNER - CORREGIDO Y MEJORADO *** ---
 
         async function iniciarScanner() {
             console.log("Iniciando scanner...");
@@ -726,62 +726,62 @@
                     } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
                 }
 
-                // Validar librería
+                // 1. Validar librería
                 if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
                     throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // Configurar hints: AÑADIENDO MÁS FORMATOS POSIBLES
+                // 2. Configurar hints (Cumpliendo Hint 1: TRY_HARDER)
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
-                    ZXingBrowser.BarcodeFormat.QR_CODE, // A veces se usan QR para VIN o info adicional
-                    ZXingBrowser.BarcodeFormat.DATA_MATRIX, // Otro formato 2D común
-                    ZXingBrowser.BarcodeFormat.EAN_13, // Aunque más para productos, no hace daño tenerlo
+                    ZXingBrowser.BarcodeFormat.QR_CODE,
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.EAN_13,
                     ZXingBrowser.BarcodeFormat.UPC_A,
-                    ZXingBrowser.BarcodeFormat.ITF, // Interleaved 2 of 5, común en logística
-                    ZXingBrowser.BarcodeFormat.AZTEC,
-                    ZXingBrowser.BarcodeFormat.PDF_417 // Posiblemente usado en algunos documentos de vehículos
+                    ZXingBrowser.BarcodeFormat.ITF,
+                    ZXingBrowser.BarcodeFormat.PDF_417
                 ];
-                hints.set(1, formats); // Usar número 1 para POSSIBLE_FORMATS
+                
+                // Usar la enumeración de la librería, es más seguro
+                if (ZXingBrowser.DecodeHintType) {
+                    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+                    
+                    // [INDICACIÓN 1: TRY_HARDER]
+                    // Añadir TRY_HARDER como solicitó el usuario
+                    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
+                    console.log("Hints configurados con POSSIBLE_FORMATS y TRY_HARDER.");
+                } else {
+                    // Fallback por si DecodeHintType no estuviera definido
+                    hints.set(1, formats); 
+                    console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
+                }
 
-                // Intentar forzar el auto-enfoque si la cámara lo soporta
+                // 3. Configurar constraints (Cumpliendo Hint 2: Simplificadas)
+                // [INDICACIÓN 2: CONSTRAINTS SIMPLIFICADAS]
+                // Usando constraints de video simplificadas como solicitó el usuario.
                 const constraints = {
                     video: {
-                        facingMode: 'environment', // Siempre intentar la cámara trasera
-                        width: { ideal: 1280 },    // Resolución ideal
-                        height: { ideal: 720 },
-                        // Intenta habilitar auto-enfoque y/o zoom si es compatible
-                        focusMode: 'continuous',
-                        zoom: true, // Esto no es un estándar, puede no funcionar en todos los navegadores
-                        advanced: [
-                            { focusMode: 'continuous' },
-                            { torch: true } // Para encender la linterna si es necesario
-                        ]
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
                 };
+                console.log("Constraints de video simplificadas:", constraints);
 
+                // 4. Inicializar codeReader
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                console.log("CodeReader inicializado con hints numéricos.");
-
-                // Listar cámaras
-                const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
-                if (videoInputDevices.length === 0) throw new Error("No se encontraron cámaras.");
-
-                // Seleccionar cámara trasera
-                let selectedDeviceId = videoInputDevices[0].deviceId;
-                const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('trasera') || device.label.toLowerCase().includes('environment'));
-                if (rearCamera) selectedDeviceId = rearCamera.deviceId;
-                console.log(`Usando deviceId: ${selectedDeviceId}`);
+                console.log("CodeReader inicializado.");
 
                 // Mostrar UI
                 scannerContainer.classList.remove('hidden');
                 console.log("Contenedor del scanner visible.");
 
-                // Iniciar escaneo continuo con las constraints actualizadas
-                console.log("Iniciando decodeFromVideoDevice...");
-                codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
+                // 5. Iniciar escaneo usando decodeFromConstraints (LA CORRECCIÓN PRINCIPAL)
+                // Se usa decodeFromConstraints para poder aplicar las constraints de video solicitadas.
+                console.log("Iniciando decodeFromConstraints...");
+                codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
                         console.log("Código detectado:", result.text);
                         if (navigator.vibrate) { navigator.vibrate(100); }
@@ -789,17 +789,22 @@
                         document.getElementById('vin').dispatchEvent(new Event('input'));
                         detenerScanner(); // Detener al encontrar
                     }
+                    
+                    // [INDICACIÓN 3: LOG DE ERRORES]
+                    // Log de errores de escaneo (no-bloqueantes) activado
                     if (err && err.name !== 'NotFoundException') {
-                        // console.error("Error durante escaneo continuo:", err); // Descomentar para depurar
+                         console.error("Error durante escaneo continuo:", err); 
                     }
-                }, constraints.video).catch(err => { // PASAR LAS CONSTRAINTS AQUÍ
-                    console.error("Error al INICIAR decodeFromVideoDevice:", err);
+                }).catch(err => {
+                    // Errores al *iniciar* el stream (ej. permisos denegados)
+                    console.error("Error al INICIAR decodeFromConstraints:", err);
                     handleScannerError(err);
                     detenerScanner();
                 });
 
-                // Intentar encender la linterna después de iniciar la cámara
-                // Esto es una característica avanzada y puede no estar soportada en todos los navegadores/dispositivos
+                // 6. Manejo de Linterna (Cumpliendo Hint 4: Mantener)
+                // [INDICACIÓN 4: MANEJO DE LINTERNA]
+                // Se mantiene la lógica de la linterna.
                 videoElement.addEventListener('loadedmetadata', () => {
                     if (videoElement.srcObject) {
                         const track = videoElement.srcObject.getVideoTracks()[0];
@@ -810,7 +815,6 @@
                         }
                     }
                 });
-
 
             } catch (error) {
                 console.error("Error general en iniciarScanner:", error);
@@ -826,13 +830,13 @@
             } else if (error.name === 'NotFoundError') {
                 errorMsg = "No se encontró una cámara compatible.";
             } else if (error.name === 'NotReadableError') {
-                 errorMsg = "La cámara está en uso o bloqueada.";
+                errorMsg = "La cámara está en uso o bloqueada.";
             } else if (error.message.includes("ZXingBrowser no cargada")) {
-                 errorMsg = "Error al cargar librería de escaneo.";
+                errorMsg = "Error al cargar librería de escaneo.";
             }
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
-                 scannerContainer.classList.add('hidden');
+                scannerContainer.classList.add('hidden');
             }
             alert(errorMsg);
         }
@@ -852,6 +856,7 @@
                 try {
                     const tracks = videoElement.srcObject.getVideoTracks();
                     tracks.forEach(track => {
+                        // [INDICACIÓN 4: APAGAR LINTERNA]
                         // Intentar apagar la linterna si estaba encendida
                         if (track && 'torch' in track.getCapabilities() && track.getSettings().torch) {
                             track.applyConstraints({ advanced: [{ torch: false }] })
@@ -865,7 +870,7 @@
                 catch (e) { console.warn("Error menor al detener tracks:", e); }
                 videoElement.srcObject = null;
             }
-             if (videoElement) videoElement.load();
+            if (videoElement) videoElement.load();
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) scannerContainer.classList.add('hidden');
