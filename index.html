@@ -649,7 +649,11 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 hints.set(1, formats);
                 
                 // 4. Inicializar el lector con las pistas
-                codeReader = new ZXingBrowser.BrowserCodeReader(hints);
+                // --- *** INICIO DE LA CORRECCIÓN *** ---
+                // Pasamos null como primer argumento para usar el MultiFormatReader por defecto,
+                // y los hints como SEGUNDO argumento. Este era el error.
+                codeReader = new ZXingBrowser.BrowserCodeReader(null, hints);
+                // --- *** FIN DE LA CORRECCIÓN *** ---
 
                 // 5. Mostrar el contenedor del scanner
                 scannerContainer.classList.remove('hidden');
@@ -675,11 +679,8 @@ TC: ${d.tc} | Fecha: ${d.fecha}
 
                 console.log("Stream de cámara obtenido, iniciando decodificación desde elemento de video...");
 
-                // 8. --- *** INICIO DE LA CORRECCIÓN *** ---
-                // Usar 'decodeOnceFromVideoElement' (escanea UN video y devuelve una promesa)
-                // El error anterior fue por usar 'decodeFromVideoElement', que es continuo y requiere un callback.
+                // 8. Usar 'decodeOnceFromVideoElement' (escanea UN video y devuelve una promesa)
                 const result = await codeReader.decodeOnceFromVideoElement(videoElement);
-                // --- *** FIN DE LA CORRECCIÓN *** ---
 
                 // 9. Procesar el resultado
                 if (result) {
