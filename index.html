@@ -132,149 +132,23 @@
     </div>
 
     <div id="scanner-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <video id="videoElement" style="width: 90%; max-width: 400px; height: auto; border: 2px solid white;"></video>
-        <button id="btnStopScan" class="btn-danger-light" style="margin-top: 16px; padding: 12px 20px; font-size: 14px;">Cancelar</button>
-    </div>
+        <video id="videoElement" playsinline style="width: 90%; max-width: 400px; height: auto; border: 2px solid white;"></video>
+    ```
 
-    <div class="container">
-        <div id="comparador" class="card hidden">
-            <div class="card-title">Comparar Vehículos</div>
-            <div id="comparacionContent"></div>
-        </div>
+### 2. Ajuste en el JavaScript (Bloque `<script>`)
 
-        <div id="historialCard" class="card hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div class="card-title" style="margin: 0;">Historial</div>
-                <button id="btnLimpiarHistorial" class="btn-danger-light">Limpiar</button>
-            </div>
-            <div id="historialContent"></div>
-        </div>
+Reemplaza **todo tu bloque `<script>`** (desde `<script>` hasta `</script>`) con esta versión. Incluye el código anterior (que ya estaba mayormente correcto) pero refina ligeramente el manejo de errores dentro del callback del escáner para ser extra cuidadoso en iOS:
 
-        <div class="card">
-            <div class="card-title">Ingrese datos del Vehículo</div>
-            
-            <div class="form-group">
-                <label for="vin">VIN Number</label>
-                <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
-                <div class="help-text" id="vinStatus"></div>
-                
-                <div class="button-group" style="margin-top: 8px;">
-                    <button id="btnScanVIN" class="btn-secondary">📸 Escanear VIN</button>
-                    <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="ano">Año del Vehículo</label>
-                <input type="number" id="ano" placeholder="2022" min="1980">
-                <div class="help-text" id="ayudaAno"></div>
-            </div>
-
-            <div id="vinInfoCard" class="card info-card hidden">
-                <div class="card-title info-card-title">Información del Vehículo</div>
-                <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
-                <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value" id="vinModel"></span></div>
-                <div class="detail-row"><span class="detail-label">Versión</span><span class="detail-value" id="vinTrim"></span></div>
-                <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
-                <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
-            </div>
-
-            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-            
-            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Convertidor de Distancia</div>
-            <div class="form-group">
-                <label for="millaje">Millaje / Kilometraje</label>
-                <input type="number" id="millaje" placeholder="30000">
-                <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
-            </div>
-            <div class="button-group">
-                <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
-                <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
-            </div>
-            
-            <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
-                <div class="card-title info-card-title">Resultado de Conversión</div>
-                <div class="detail-row">
-                    <span class="detail-label" id="millajeResultadoLabel"></span>
-                    <span class="detail-value" id="millajeResultadoValor"></span>
-                </div>
-                <div class="detail-row" style="border-bottom: none;">
-                    <span class="detail-label" id="millajePromedioLabel"></span>
-                    <span class="detail-value" id="millajePromedioValor"></span>
-                </div>
-                <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
-            </div>
-
-            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-
-            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Herramienta: Cálculo de Traspaso</div>
-            <div class="form-group">
-                <label for="valorFiscal">Valor Fiscal (₡)</label>
-                <input type="number" id="valorFiscal" placeholder="10000000">
-            </div>
-            <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
-            <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
-
-            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-            <div class="form-group">
-                <label for="valor">Valor (USD)</label>
-                <input type="number" id="valor" placeholder="25000">
-            </div>
-
-            <div class="form-group">
-                <label for="flete">Flete (USD)</label>
-                <input type="number" id="flete" placeholder="1500">
-            </div>
-
-            <div class="form-group">
-                <div class="form-group-header">
-                    <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
-                    <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
-                </div>
-                <input type="number" id="tipoCambio" placeholder="520">
-                <div class="help-text" id="tipoCambioHelp"></div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button>
-                <button class="btn-primary" id="btnCalcular">Calcular</button>
-            </div>
-        </div>
-
-        <div id="resultado" class="hidden">
-            <div class="result-card">
-                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
-                <div class="result-amount" id="resultadoTotal"></div>
-                <div class="result-buttons">
-                    <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
-                    <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
-                </div>
-            </div>
-
-            <div id="detalle" class="card hidden">
-                <div class="card-title">Desglose</div>
-                <div id="detalleContent"></div>
-                <div class="button-group" style="margin-top: 16px;">
-                    <button id="btnDescargar" class="btn-info-light">Exportar (PDF)</button>
-                    <button id="btnWhatsApp" class="btn-success-light">WhatsApp</button>
-                </div>
-            </div>
-        </div>
-
-        <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
-            <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
-        </div>
-    </div>
-
+```html
     <script>
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
-        let vinDecodeTimeout; 
-        let codeReader = null; // *** VARIABLE GLOBAL PARA SCANNER ***
-        
+        let vinDecodeTimeout;
+        let codeReader = null; // Variable global para el scanner
+
         const anoActual = new Date().getFullYear();
 
         const COSTOS_FIJOS = {
@@ -282,7 +156,7 @@
             DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
         };
 
-        // --- CONSTANTES NUEVAS ---
+        // --- CONSTANTES HERRAMIENTAS ---
         const MILLAS_POR_KM = 0.621371;
         const KM_POR_MILLA = 1.60934;
         const PROMEDIO_MILLAS_ANO = 15000;
@@ -292,6 +166,7 @@
 
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
+            // ... (listeners existentes para VIN, calcular, limpiar, historial, etc.) ...
             document.getElementById('ano').addEventListener('change', validarAno);
             document.getElementById('vin').addEventListener('input', handleVinInput);
             document.getElementById('btnCalcular').addEventListener('click', calcular);
@@ -305,19 +180,17 @@
             document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
             document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
             document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
-
-            // --- LISTENERS HERRAMIENTAS ---
             document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
             document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
             document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
-            
+
             // --- LISTENERS SCANNER ---
             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
             document.getElementById('ano').max = anoActual + 1;
             actualizarHistorialUI();
-            fetchTipoDeCambio(); // Cargar TC al iniciar
+            fetchTipoDeCambio();
         });
 
         // --- FUNCIONES DE FORMATO ---
@@ -329,7 +202,6 @@
             const anoInput = document.getElementById('ano');
             const ayudaAno = document.getElementById('ayudaAno');
             const ano = parseInt(anoInput.value);
-
             if (!ano || ano < 1980 || ano > anoActual + 1) {
                 anoInput.value = '';
                 ayudaAno.textContent = 'Año inválido';
@@ -340,48 +212,24 @@
             }
         }
 
-        // --- FUNCIÓN CALCULAR (CORREGIDA) ---
         function calcular() {
             const ano = parseInt(document.getElementById('ano').value);
             const valor = parseFloat(document.getElementById('valor').value) || 0;
             const flete = parseFloat(document.getElementById('flete').value) || 0;
             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
-
-            if (!ano || !valor || !flete || !tc) {
-                alert('Completa todos los campos');
-                return;
-            }
-
-            // 1. Cálculos en USD
+            if (!ano || !valor || !flete || !tc) { alert('Completa todos los campos'); return; }
             const antiguedad = anoActual - ano;
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
             const valorPlusFlete = valor + flete;
             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
             const baseImpuestos = valorPlusFlete + totalSeguros;
             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-
-            // 2. Convertir componentes a Colones por separado
-            const subtotalVehiculoCRC = valorPlusFlete * tc; // (Valor + Flete) * TC
-            const impuestosCRC = impuestosUSD * tc; // (Impuestos) * TC
-            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc; // (Papeleo USA) * TC
-            
-            // 3. Sumar Gastos Fijos en Colones
+            const subtotalVehiculoCRC = valorPlusFlete * tc;
+            const impuestosCRC = impuestosUSD * tc;
+            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
-            
-            // 4. Calcular Gran Total en Colones
             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
-
-            // 5. Guardar el cálculo
-            calculoActual = { 
-                ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, 
-                papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
-                declaracion: COSTOS_FIJOS.DECLARACION_CR, 
-                dekra: COSTOS_FIJOS.DEKRA, 
-                almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
-                tc, totalColones, 
-                fecha: new Date().toLocaleString('es-CR') 
-            };
-            
+            calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR') };
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
             document.getElementById('tcFooter').textContent = tc;
@@ -390,42 +238,33 @@
         function mostrarDetalle() {
             if (!calculoActual) return;
             const d = calculoActual;
-            
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-
             let html = `
                 <div class="section-header">VALORES EN DÓLARES</div>
                 <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
                 <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
                 <div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">${formatUSD(d.totalSeguros)}</span></div>
                 <div class="detail-row subtotal"><span class="detail-label">Base Impuestos (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
-                
                 <div class="section-header">VALORES EN COLONES</div>
                 <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
-                
                 <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
             document.getElementById('detalleContent').innerHTML = html;
             document.getElementById('detalle').classList.remove('hidden');
         }
 
         // --- FUNCIONES (HERRAMIENTAS) ---
-        
         function convertirMillaje(event) {
             const valorInput = parseFloat(document.getElementById('millaje').value);
             const ano = parseInt(document.getElementById('ano').value);
-            
-            // Referencias a la nueva tarjeta de resultados
             const resultadoCard = document.getElementById('millajeInfoCard');
             const resultadoLabel = document.getElementById('millajeResultadoLabel');
             const resultadoValor = document.getElementById('millajeResultadoValor');
             const promedioLabel = document.getElementById('millajePromedioLabel');
             const promedioValor = document.getElementById('millajePromedioValor');
             const promedioStatus = document.getElementById('millajePromedioStatus');
-            
-            // Función interna para mostrar errores en la tarjeta
-            function mostrarError(mensaje) {
+            function mostrarError(mensaje) { /* ... (código de mostrarError sin cambios) ... */
                 resultadoCard.classList.remove('hidden');
                 resultadoLabel.textContent = 'Error';
                 resultadoValor.textContent = '-';
@@ -433,92 +272,64 @@
                 promedioValor.textContent = '-';
                 promedioStatus.textContent = mensaje;
                 promedioStatus.style.color = '#dc2626';
-            }
-
-            if (!valorInput || valorInput < 0) {
-                mostrarError('Ingrese un valor de millaje válido');
-                return;
-            }
-            if (!ano || ano < 1980 || ano > anoActual + 1) {
-                mostrarError('Ingrese un año de vehículo válido');
-                return;
-            }
-            
-            // Antiguedad, asegurando al menos 1 año para el cálculo
+             }
+            if (!valorInput || valorInput < 0) { mostrarError('Ingrese un valor de millaje válido'); return; }
+            if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
-            
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
-            
-            if (event.target.id === 'btnMillasAKm') {
-                // El input es Millas
-                resultadoNum = valorInput * KM_POR_MILLA; // Total KMs
+            if (event.target.id === 'btnMillasAKm') { /* ... (lógica millas a km sin cambios) ... */
+                resultadoNum = valorInput * KM_POR_MILLA;
                 promedio = PROMEDIO_MILLAS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad; // Millas por año
-
+                promedioPorAno = valorInput / antiguedad;
                 resultadoLabel.textContent = "Total KMs";
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
                 promedioLabel.textContent = "Promedio (Millas/Año)";
                 promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
-
-            } else {
-                // El input es Kms
-                resultadoNum = valorInput * MILLAS_POR_KM; // Total Millas
+            } else { /* ... (lógica kms a millas sin cambios) ... */
+                resultadoNum = valorInput * MILLAS_POR_KM;
                 promedio = PROMEDIO_KMS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad; // KMs por año
-
+                promedioPorAno = valorInput / antiguedad;
                 resultadoLabel.textContent = "Total Millas";
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
                 promedioLabel.textContent = "Promedio (KMs/Año)";
                 promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
             }
-            
-            // Actualizar el status (color y texto)
-            if (esSobrePromedio) {
-                promedioStatus.textContent = 'Sobre el promedio';
-                promedioStatus.style.color = '#dc2626'; // Rojo
-            } else {
-                promedioStatus.textContent = 'Debajo del promedio';
-                promedioStatus.style.color = '#15803d'; // Verde
-            }
-            
-            // Mostrar la tarjeta de resultados
+            promedioStatus.textContent = esSobrePromedio ? 'Sobre el promedio' : 'Debajo del promedio';
+            promedioStatus.style.color = esSobrePromedio ? '#dc2626' : '#15803d';
             resultadoCard.classList.remove('hidden');
         }
 
-        function calcularTraspaso() {
+        function calcularTraspaso() { /* ... (código calcularTraspaso sin cambios) ... */
             const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
             const resultadoEl = document.getElementById('resultadoTraspaso');
-            
             if (!valorFiscal || valorFiscal <= 0) {
                 resultadoEl.textContent = 'Ingrese un valor fiscal válido';
-                resultadoEl.style.color = '#dc2626'; // Rojo para error
+                resultadoEl.style.color = '#dc2626';
                 return;
             }
-            
             const timbres = valorFiscal * PORCENTAJE_TIMBRES;
             const total = timbres + HONORARIOS_TRASPASO;
-            
-            resultadoEl.style.color = '#1f2937'; // Reset color a default
+            resultadoEl.style.color = '#1f2937';
             resultadoEl.innerHTML = `
                 <div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
                 <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
                 <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
         }
-        
+
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
-        function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
-        function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
-        function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
-        function toggleComparacion() { modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
-        function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
-        function limpiarHistorial() { if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
+        function guardarHistorial() { /* ... (sin cambios) ... */ if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
+        function actualizarHistorialUI() { /* ... (sin cambios) ... */ const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
+        function seleccionarComparacion(id) { /* ... (sin cambios) ... */ if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
+        function mostrarComparacion() { /* ... (sin cambios) ... */ const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
+        function toggleComparacion() { /* ... (sin cambios) ... */ modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
+        function toggleHistorial() { /* ... (sin cambios) ... */ document.getElementById('historialCard').classList.toggle('hidden'); }
+        function limpiarHistorial() { /* ... (sin cambios) ... */ if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
-        function handleVinInput() {
-            console.log("handleVinInput triggered!"); // Log para verificar ejecución
+        function handleVinInput() { /* ... (código handleVinInput sin cambios, incluyendo logs) ... */
+             console.log("handleVinInput triggered!"); // Log para verificar ejecución
             clearTimeout(vinDecodeTimeout); 
             const vin = this.value.toUpperCase().trim();
             const vinStatus = document.getElementById('vinStatus');
@@ -542,9 +353,8 @@
                 }, 500); // 500ms de espera
             }
         }
-
-        async function fetchVinData(vin) {
-            console.log(`fetchVinData llamado con VIN: ${vin}`); // Log
+        async function fetchVinData(vin) { /* ... (código fetchVinData sin cambios, incluyendo logs) ... */
+             console.log(`fetchVinData llamado con VIN: ${vin}`); // Log
             const vinStatus = document.getElementById('vinStatus');
             try {
                 const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
@@ -579,22 +389,16 @@
                 limpiarFichaVIN();
             }
         }
-        
-        async function fetchTipoDeCambio() {
-            const tcInput = document.getElementById('tipoCambio');
+        async function fetchTipoDeCambio() { /* ... (código fetchTipoDeCambio sin cambios) ... */
+             const tcInput = document.getElementById('tipoCambio');
             const tcHelp = document.getElementById('tipoCambioHelp');
             tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
-
-            // Using a stable JSON API from Hacienda which consumes BCCR data
             const url = `https://api.hacienda.go.cr/indicadores/tc`;
-            
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
-
                 const data = await response.json();
                 const valorVenta = data?.dolar?.venta?.valor;
-                
                 if (valorVenta) {
                     tcInput.value = parseFloat(valorVenta).toFixed(2);
                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR');
@@ -607,32 +411,25 @@
                 tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
             }
         }
-        
-        function displayVinData(data) {
-            let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
+        function displayVinData(data) { /* ... (código displayVinData sin cambios) ... */
+             let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
-
             document.getElementById('vinMake').textContent = data.Make || 'No disponible';
             document.getElementById('vinModel').textContent = data.Model || 'No disponible';
             document.getElementById('vinTrim').textContent = data.Trim || 'No disponible';
             document.getElementById('vinEngine').textContent = engineInfo.trim() || 'No disponible';
             document.getElementById('vinCountry').textContent = data.PlantCountry || 'No disponible';
             document.getElementById('vinInfoCard').classList.remove('hidden');
-        }
-        
-        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
+         }
 
-        function generarTextoDesglose(esParaWhatsapp = false) {
+        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
+        function generarTextoDesglose(esParaWhatsapp = false) { /* ... (sin cambios) ... */
             if (!calculoActual) return "";
             const d = calculoActual;
-            // Cálculo de gastos admin (solo para el texto)
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            const b = esParaWhatsapp ? '*' : ''; // Bold para WhatsApp
-
+            const b = esParaWhatsapp ? '*' : '';
             const line = '---------------------------------';
             const doubleLine = '=====================';
-
-            // Usar plantillas literales para un formato más limpio
             const texto = `
 ${b}CÁLCULO DE IMPUESTOS CR${b}
 ${doubleLine}
@@ -655,20 +452,14 @@ ${doubleLine}
 
 TC: ${d.tc} | Fecha: ${d.fecha}
             `.trim().split('\n').map(line => line.trim()).join('\n');
-
             return texto;
         }
-
-        function descargarPDF() {
-            if (!calculoActual) {
-                alert('Primero calcula un vehículo');
-                return;
-            }
+        function descargarPDF() { /* ... (sin cambios) ... */
+            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const contenido = generarTextoDesglose();
-
                 doc.setFont("Helvetica", "normal");
                 doc.setFontSize(10);
                 doc.text(contenido, 10, 15);
@@ -678,58 +469,52 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 alert("No se pudo generar el PDF. Asegúrate de tener conexión a internet.");
             }
         }
-
-        function enviarWhatsApp() {
-            if (!calculoActual) {
-                alert('Primero calcula un vehículo');
-                return;
-            }
-            const mensaje = generarTextoDesglose(true); // Formato para WhatsApp
+        function enviarWhatsApp() { /* ... (sin cambios) ... */
+            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
+            const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
         }
 
         // --- FUNCIONES DE LIMPIEZA ---
         function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
-        function limpiarFormulario() {
+        function limpiarFormulario() { /* ... (sin cambios) ... */
             document.getElementById('ano').value = '';
             document.getElementById('valor').value = '';
             document.getElementById('flete').value = '';
             document.getElementById('resultado').classList.add('hidden');
             document.getElementById('detalle').classList.add('hidden');
             document.getElementById('ayudaAno').textContent = '';
-            
-            // Ocultar también la tarjeta de millaje si se limpia el formulario
             document.getElementById('millajeInfoCard').classList.add('hidden');
             document.getElementById('resultadoTraspaso').innerHTML = '';
             document.getElementById('millaje').value = '';
             document.getElementById('valorFiscal').value = '';
-
             limpiarVIN();
         }
-        function limpiarVIN() {
+        function limpiarVIN() { /* ... (sin cambios) ... */
             document.getElementById('vin').value = '';
             document.getElementById('vinStatus').innerHTML = '';
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SIMPLIFICADA PARA SAFARI - SIN await, usando undefined) *** ---
-        
-        async function iniciarScanner() { // Mantenemos async por si usamos await adentro para listVideoInputDevices
+        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SIMPLIFICADA PARA SAFARI - CORRECTA) *** ---
+
+        async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
-            
+
             // Asegurarse de detener cualquier instancia anterior
-            detenerScanner(); 
+            detenerScanner();
 
             try {
-                // Asegurarnos que ZXingBrowser esté cargado
+                // Asegurarnos que ZXingBrowser esté cargado y no sea null
                 if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
                     throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado correctamente.');
                 }
-                
+
                 // --- PISTAS PARA EL LECTOR ---
                 const hints = new Map();
+                // Verificar que BarcodeFormat exista
                 if (typeof ZXingBrowser.BarcodeFormat === 'undefined') {
                      throw new Error('Los formatos de código de barras (BarcodeFormat) no están disponibles en ZXingBrowser.');
                 }
@@ -739,61 +524,62 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
                     ZXingBrowser.BarcodeFormat.QR_CODE // Mantenido para pruebas
                 ];
+                // Usamos el valor numérico 1 directamente.
                 hints.set(1, formats); // 1 = POSSIBLE_FORMATS
-                
+
                 // Inicializamos el lector CON las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
-                
+
                 scannerContainer.classList.remove('hidden');
-                console.log("Scanner iniciado, intentando acceder a la cámara predeterminada..."); 
+                console.log("Scanner iniciado, intentando acceder a la cámara predeterminada...");
 
                 // --- Usamos 'undefined' para que elija la cámara automáticamente ---
-                
                 // NO usamos await aquí, decodeFromVideoDevice usa un callback
                 codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err, controls) => {
                     if (result) {
                         console.log("Código encontrado:", result);
                         document.getElementById('vin').value = result.text;
-                        detenerScanner(); 
+                        detenerScanner();
                         document.getElementById('vin').dispatchEvent(new Event('input'));
                     }
                     if (err) {
+                        // Ignoramos el error 'NotFoundException' (ocurre continuamente)
                         if (!(err instanceof ZXingBrowser.NotFoundException)) {
                              console.error("Error durante el escaneo:", err);
-                             // Considerar si mostrar un mensaje o detener si el error persiste
-                             // alert(`Error de escaneo: ${err}`);
-                             // detenerScanner(); 
+                             // Considerar detener si el error es grave o persistente
+                             // detenerScanner();
                         }
                         // Si es NotFoundException, no hacemos nada, sigue escaneando.
                     }
                 });
 
             } catch (error) {
-                // Captura errores al configurar/iniciar la cámara
+                // Captura errores al configurar/iniciar la cámara (ej: librería no cargada, permisos denegados)
                 console.error("Error al iniciar el scanner: ", error);
-                alert(`Error al iniciar el scanner: ${error}. Revisa la consola para más detalles.`);
-                detenerScanner(); 
+                alert(`Error al iniciar el scanner: ${error.message}. Revisa la consola para más detalles.`);
+                detenerScanner(); // Asegurarnos de cerrar si hubo un error al iniciar
             }
         }
 
         function detenerScanner() {
              if (codeReader) {
                  try {
-                     codeReader.reset(); 
-                     console.log("Scanner detenido y recursos liberados."); 
+                     codeReader.reset(); // Detiene el stream y libera la cámara
+                     console.log("Scanner detenido y recursos liberados.");
                  } catch (resetError) {
                      console.error("Error al detener el scanner:", resetError);
                  } finally {
-                      codeReader = null;
+                      codeReader = null; // Asegurarse de limpiar la referencia
                  }
              }
              const scannerContainer = document.getElementById('scanner-container');
               if (scannerContainer) {
-                  scannerContainer.classList.add('hidden');
+                  scannerContainer.classList.add('hidden'); // Ocultar el contenedor
               }
         }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
-    
-</body> </html>
+</body>
+</html>
+        
