@@ -153,14 +153,7 @@
             box-shadow: 0 0 8px #dc2626;
             top: 50%;
             transform: translateY(-50%);
-            /* Animación opcional para la línea */
-            /* animation: scan 1.5s linear infinite; */ /* Puedes descomentar esto si quieres la animación */
         }
-        /* @keyframes scan {
-            0% { top: 10%; }
-            50% { top: 90%; }
-            100% { top: 10%; }
-        } */
         .scanner-text {
             color: white;
             font-weight: 600;
@@ -613,14 +606,14 @@
                      tcInput.value = parseFloat(valorVenta).toFixed(2);
                      const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
                      tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
-                     document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2); // Actualizar footer también
+                     document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2);
                  } else {
                      throw new Error('La respuesta de la API no contiene el formato esperado.');
                  }
              } catch (error) {
                  console.error("Error fetching TC:", error);
                  tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
-                 document.getElementById('tcFooter').textContent = 'Error'; // Indicar error en footer
+                 document.getElementById('tcFooter').textContent = 'Error';
              }
          }
         function displayVinData(data) {
@@ -639,7 +632,7 @@
              if (!calculoActual) return "";
              const d = calculoActual;
              const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-             const b = esParaWhatsapp ? '*' : ''; // Negrita en WhatsApp
+             const b = esParaWhatsapp ? '*' : '';
              const line = '---------------------------------';
              const doubleLine = '=====================';
              const texto = `
@@ -662,23 +655,22 @@
  ${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
  ${doubleLine}
  Fecha cálculo: ${d.fecha}
-             `.trim().split('\n').map(line => line.trim()).join('\n'); // Limpia espacios extra
+             `.trim().split('\n').map(line => line.trim()).join('\n');
              return texto;
          }
         function descargarPDF() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
             try {
-                // Verificar si jsPDF está cargado
                 if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
                     throw new Error("La librería jsPDF no está cargada.");
                 }
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const contenido = generarTextoDesglose(); // Usar la misma función de texto
-                doc.setFont("Courier", "normal"); // Fuente monoespaciada
+                const contenido = generarTextoDesglose();
+                doc.setFont("Courier", "normal");
                 doc.setFontSize(10);
-                doc.text(contenido, 15, 20); // Márgenes
-                doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`); // Nombre más único
+                doc.text(contenido, 15, 20);
+                doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`);
             } catch (e) {
                 console.error("Error al generar PDF:", e);
                 alert(`No se pudo generar el PDF: ${e.message}. Revisa la consola para más detalles.`);
@@ -686,7 +678,7 @@
         }
         function enviarWhatsApp() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
-            const mensaje = generarTextoDesglose(true); // Generar texto para WhatsApp
+            const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
         }
@@ -701,14 +693,14 @@
             ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
                  const element = document.getElementById(id);
                  if (element) element.innerHTML = '';
-                 if (id === 'tcFooter') element.textContent = 'N/A'; // Resetear footer TC
+                 if (id === 'tcFooter') element.textContent = 'N/A';
             });
             ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
                  const element = document.getElementById(id);
                  if (element) element.classList.add('hidden');
             });
              calculoActual = null;
-             fetchTipoDeCambio(); // Recargar TC
+             fetchTipoDeCambio();
         }
         function limpiarVIN() {
             document.getElementById('vin').value = '';
@@ -739,14 +731,13 @@
                     throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // Configurar hints - *** CORRECCIÓN AQUÍ ***
+                // Configurar hints
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
                 ];
-                // Usar el número 1 para POSSIBLE_FORMATS en lugar de la enum que daba error
-                hints.set(1, formats);
+                hints.set(1, formats); // Usar número 1 para POSSIBLE_FORMATS
 
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
                 console.log("CodeReader inicializado con hints numéricos.");
@@ -770,15 +761,15 @@
                 codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
                     if (result) {
                         console.log("Código detectado:", result.text);
-                        // Vibrar suavemente (si el navegador lo soporta)
                         if (navigator.vibrate) { navigator.vibrate(100); }
                         document.getElementById('vin').value = result.text;
                         document.getElementById('vin').dispatchEvent(new Event('input'));
-                        detenerScanner(); // ¡Importante detener al encontrar!
+                        detenerScanner(); // Detener al encontrar
                     }
-                    if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+                    // --- *** CORRECCIÓN AQUÍ *** ---
+                    // Verificar el error usando err.name en lugar de instanceof
+                    if (err && err.name !== 'NotFoundException') {
                         console.error("Error durante escaneo continuo:", err);
-                        // Considera mostrar un mensaje si los errores son persistentes
                     }
                 }).catch(err => {
                     console.error("Error al INICIAR decodeFromVideoDevice:", err);
@@ -805,7 +796,6 @@
             } else if (error.message.includes("ZXingBrowser no cargada")) {
                  errorMsg = "Error al cargar librería de escaneo.";
             }
-            // Asegurarse de que el contenedor del scanner esté oculto si hay error al iniciar
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
                  scannerContainer.classList.add('hidden');
@@ -817,7 +807,7 @@
             console.log("Intentando detener scanner...");
             if (codeReader) {
                 try {
-                    codeReader.reset(); // Detiene escaneo y libera cámara
+                    codeReader.reset();
                     console.log("CodeReader reseteado.");
                 } catch (resetError) { console.error("Error al resetear CodeReader:", resetError); }
                 codeReader = null;
@@ -829,12 +819,11 @@
                  catch (e) { console.warn("Error menor al detener tracks:", e); }
                  videoElement.srcObject = null;
             }
-             if (videoElement) videoElement.load(); // Resetear elemento video
+             if (videoElement) videoElement.load();
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) scannerContainer.classList.add('hidden');
 
-            // Desbloquear Orientación
             if (typeof screen.orientation?.unlock === 'function') {
                 try { screen.orientation.unlock(); console.log("Orientación desbloqueada."); }
                 catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
