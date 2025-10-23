@@ -691,31 +691,30 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN MEJORADA CON "HINTS") *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SÚPER CORREGIDA) *** ---
         
         async function iniciarScanner() {
-            // --- PISTAS PARA EL LECTOR ---
-            // Le decimos que se enfoque en los formatos comunes de VIN
-            const hints = new Map();
-            const formats = [
-                ZXingBrowser.BarcodeFormat.CODE_39,
-                ZXingBrowser.BarcodeFormat.CODE_128,
-                ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-                ZXingBrowser.BarcodeFormat.QR_CODE // Lo dejamos para las pruebas
-            ];
-            hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-            
-            // Inicializamos el lector CON las pistas
-            codeReader = new ZXingBrowser.BrowserCodeReader(hints);
-            // --- FIN DE PISTAS ---
-
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             
             try {
+                // --- PISTAS PARA EL LECTOR (MOVIDAS DENTRO DEL TRY) ---
+                const hints = new Map();
+                const formats = [
+                    ZXingBrowser.BarcodeFormat.CODE_39,
+                    ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.QR_CODE
+                ];
+                hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+                
+                // Inicializamos el lector CON las pistas (MOVIDO DENTRO DEL TRY)
+                codeReader = new ZXingBrowser.BrowserCodeReader(hints);
+                // --- FIN DE PISTAS ---
+
                 scannerContainer.classList.remove('hidden');
                 
-                // Pedir permiso y empezar a decodificar desde la cámara
+                // Pedir permiso y empezar a decodificar
                 codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
                     if (result) {
                         // ¡Resultado encontrado!
@@ -727,14 +726,14 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     }
                     if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
                         // Hubo un error que no fue "no se encontró código"
-                        // No mostramos alerta aquí para no molestar al usuario en cada cuadro
                         console.error(err);
                     }
                 });
 
             } catch (error) {
+                // Este catch ahora sí capturará CUALQUIER error (incluyendo si ZXingBrowser no cargó)
                 console.error("Error al iniciar la cámara: ", error);
-                alert(`Error al iniciar la cámara: ${error}. Asegúrate de estar en un servidor (localhost o https).`);
+                alert(`Error al iniciar la cámara: ${error}. Revisa la consola para más detalles.`);
                 detenerScanner();
             }
         }
