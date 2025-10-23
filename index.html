@@ -108,7 +108,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000; /* Fondo negro sólido */
+            background: #000;
             z-index: 200;
             display: flex;
             flex-direction: column;
@@ -121,7 +121,7 @@
             left: 50%;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Llena la pantalla, mantiene aspecto */
+            object-fit: cover;
             transform: translate(-50%, -50%);
             z-index: 201;
         }
@@ -131,19 +131,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 202; /* Sobre el video */
+            z-index: 202;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
         #scanner-viewfinder {
-            width: 90%; /* Ancho, para códigos de barras horizontales */
+            width: 90%;
             max-width: 600px;
-            height: 100px; /* Alargado */
+            height: 100px;
             position: relative;
             border: 2px solid rgba(255, 255, 255, 0.7);
-            /* El truco del "recorte" (dimmer) */
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
         }
         .scanner-red-line {
@@ -154,6 +153,13 @@
             box-shadow: 0 0 8px #dc2626;
             top: 50%;
             transform: translateY(-50%);
+            /* Animación opcional para la línea */
+            animation: scan 1.5s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: calc(100% - 2px); }
+            100% { top: 0; }
         }
         .scanner-text {
             color: white;
@@ -169,6 +175,7 @@
             background: rgba(255,255,255,0.2);
             color: white;
             border: 1px solid rgba(255,255,255,0.5);
+            z-index: 203; /* Asegurar que esté sobre la sombra */
         }
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
@@ -352,6 +359,8 @@
         let calculoActual = null;
         let vinDecodeTimeout;
         let codeReader = null; // Variable global para el scanner
+        // --- NUEVA VARIABLE GLOBAL PARA CONTROLAR EL STREAM DEL SCANNER ---
+        let localStream = null;
 
         const anoActual = new Date().getFullYear();
 
@@ -532,7 +541,7 @@
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         function handleVinInput() {
-            console.log("handleVinInput triggered!"); // Log para verificar ejecución
+            console.log("handleVinInput triggered!");
             clearTimeout(vinDecodeTimeout);
             const vin = this.value.toUpperCase().trim();
             const vinStatus = document.getElementById('vinStatus');
@@ -548,30 +557,30 @@
             }
 
             if (vin.length === 17) {
-                console.log("VIN tiene 17 caracteres, iniciando decodificación..."); // Log
+                console.log("VIN tiene 17 caracteres, iniciando decodificación...");
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
                 vinDecodeTimeout = setTimeout(() => {
-                    console.log("setTimeout ejecutando fetchVinData..."); // Log
+                    console.log("setTimeout ejecutando fetchVinData...");
                     fetchVinData(vin);
-                }, 500); // 500ms de espera
+                }, 500);
             }
         }
         async function fetchVinData(vin) {
-            console.log(`fetchVinData llamado con VIN: ${vin}`); // Log
+            console.log(`fetchVinData llamado con VIN: ${vin}`);
             const vinStatus = document.getElementById('vinStatus');
             try {
                 const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
-                console.log(`Consultando API: ${apiUrl}`); // Log
+                console.log(`Consultando API: ${apiUrl}`);
                 const response = await fetch(apiUrl);
-                console.log(`Respuesta recibida, status: ${response.status}`); // Log
+                console.log(`Respuesta recibida, status: ${response.status}`);
                 if (!response.ok) {
                     throw new Error(`Respuesta de red no fue OK (${response.status})`);
                 }
                 const data = await response.json();
-                console.log("Datos recibidos de la API:", data); // Log
+                console.log("Datos recibidos de la API:", data);
 
                 if (data && data.Results && data.Results[0]) {
-                    if (data.Results[0].ErrorCode === "0") {
+                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) { // Validar datos básicos
                         const vehicleInfo = data.Results[0];
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
@@ -580,7 +589,8 @@
                             document.getElementById('ano').dispatchEvent(new Event('change'));
                         }
                     } else {
-                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado"}</span>`;
+                        // Considerar ErrorCode != 0 o datos faltantes como error
+                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado o inválido"}</span>`;
                         limpiarFichaVIN();
                     }
                 } else {
@@ -604,7 +614,7 @@
                  const valorVenta = data?.dolar?.venta?.valor;
                  if (valorVenta) {
                      tcInput.value = parseFloat(valorVenta).toFixed(2);
-                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR');
+                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
                      tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
                  } else {
                      throw new Error('La respuesta de la API no contiene el formato esperado.');
@@ -617,11 +627,11 @@
         function displayVinData(data) {
              let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
              if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
-             document.getElementById('vinMake').textContent = data.Make || 'No disponible';
-             document.getElementById('vinModel').textContent = data.Model || 'No disponible';
-             document.getElementById('vinTrim').textContent = data.Trim || 'No disponible';
-             document.getElementById('vinEngine').textContent = engineInfo.trim() || 'No disponible';
-             document.getElementById('vinCountry').textContent = data.PlantCountry || 'No disponible';
+             document.getElementById('vinMake').textContent = data.Make || 'N/D'; // Usar N/D si no hay dato
+             document.getElementById('vinModel').textContent = data.Model || 'N/D';
+             document.getElementById('vinTrim').textContent = data.Trim || 'N/D';
+             document.getElementById('vinEngine').textContent = engineInfo.trim() || 'N/D';
+             document.getElementById('vinCountry').textContent = data.PlantCountry || 'N/D';
              document.getElementById('vinInfoCard').classList.remove('hidden');
          }
 
@@ -630,31 +640,31 @@
             if (!calculoActual) return "";
             const d = calculoActual;
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            const b = esParaWhatsapp ? '*' : '';
+            const b = esParaWhatsapp ? '*' : ''; // Negrita en WhatsApp
             const line = '---------------------------------';
             const doubleLine = '=====================';
+            // Texto más limpio y conciso
             const texto = `
-${b}CÁLCULO DE IMPUESTOS CR${b}
+${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
+Año: ${d.ano} | TC: ${d.tc}
 ${doubleLine}
 
-${b}VALORES EN DÓLARES${b}
-${line}
-Valor vehículo: ${formatUSD(d.valor)}
+${b}Base (USD):${b}
+Valor: ${formatUSD(d.valor)}
 Flete: ${formatUSD(d.flete)}
 Seguros: ${formatUSD(d.totalSeguros)}
-${b}Base Impuestos (USD): ${formatUSD(d.baseImpuestos)}${b}
-
-${b}VALORES EN COLONES${b}
+*Subtotal USD:* ${formatUSD(d.baseImpuestos)}
 ${line}
-Montos del Vehículo: ${formatCRC((d.valor + d.flete) * d.tc)}
-Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
-Gastos Administrativos: ${formatCRC(gastosAdminColones)}
-${doubleLine}
-${b}GRAN TOTAL: ${formatCRC(d.totalColones)}${b}
-${doubleLine}
 
-TC: ${d.tc} | Fecha: ${d.fecha}
-            `.trim().split('\n').map(line => line.trim()).join('\n');
+${b}Costos (CRC):${b}
+Vehículo+Flete: ${formatCRC((d.valor + d.flete) * d.tc)}
+Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
+Gastos Admin.: ${formatCRC(gastosAdminColones)}
+${doubleLine}
+${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
+${doubleLine}
+Fecha cálculo: ${d.fecha}
+            `.trim().split('\n').map(line => line.trim()).join('\n'); // Limpia espacios extra
             return texto;
         }
         function descargarPDF() {
@@ -662,19 +672,19 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const contenido = generarTextoDesglose();
-                doc.setFont("Helvetica", "normal");
+                const contenido = generarTextoDesglose(); // Usar la misma función de texto
+                doc.setFont("Courier", "normal"); // Fuente monoespaciada para mejor alineación
                 doc.setFontSize(10);
-                doc.text(contenido, 10, 15);
-                doc.save(`Nacionalizacion-${calculoActual.ano}.pdf`);
+                doc.text(contenido, 15, 20); // Márgenes
+                doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`); // Nombre más único
             } catch (e) {
                 console.error("Error al generar PDF:", e);
-                alert("No se pudo generar el PDF. Asegúrate de tener conexión a internet.");
+                alert("No se pudo generar el PDF. Asegúrate de tener conexión a internet y que la librería jsPDF cargó correctamente.");
             }
         }
         function enviarWhatsApp() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
-            const mensaje = generarTextoDesglose(true);
+            const mensaje = generarTextoDesglose(true); // Generar texto para WhatsApp
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
         }
@@ -682,17 +692,23 @@ TC: ${d.tc} | Fecha: ${d.fecha}
         // --- FUNCIONES DE LIMPIEZA ---
         function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
         function limpiarFormulario() {
-            document.getElementById('ano').value = '';
-            document.getElementById('valor').value = '';
-            document.getElementById('flete').value = '';
-            document.getElementById('resultado').classList.add('hidden');
-            document.getElementById('detalle').classList.add('hidden');
-            document.getElementById('ayudaAno').textContent = '';
-            document.getElementById('millajeInfoCard').classList.add('hidden');
-            document.getElementById('resultadoTraspaso').innerHTML = '';
-            document.getElementById('millaje').value = '';
-            document.getElementById('valorFiscal').value = '';
-            limpiarVIN();
+            // Limpiar todos los campos del formulario principal
+            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.value = '';
+            });
+            // Limpiar textos de ayuda y resultados
+            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent'].forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) element.innerHTML = '';
+            });
+            // Ocultar tarjetas de resultados
+            ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) element.classList.add('hidden');
+            });
+             calculoActual = null; // Resetear el cálculo actual
+             fetchTipoDeCambio(); // Intentar recargar el tipo de cambio
         }
         function limpiarVIN() {
             document.getElementById('vin').value = '';
@@ -700,153 +716,164 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN CORREGIDA Y ROBUSTA) *** ---
+       // --- *** INICIO: CÓDIGO DEL SCANNER - USANDO decodeContinuously *** ---
 
         async function iniciarScanner() {
+            console.log("Iniciando scanner...");
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
 
-            // 1. Asegurarse de detener cualquier instancia anterior
+            // Asegurarse de detener cualquier instancia anterior y liberar recursos
             detenerScanner();
 
             try {
-                // --- Bloquear Orientación ---
-                if (typeof screen.orientation.lock === 'function') {
+                // Bloquear Orientación si es posible
+                if (typeof screen.orientation?.lock === 'function') {
                     try {
                         await screen.orientation.lock('landscape');
                         console.log("Orientación bloqueada a horizontal.");
-                    } catch (e) {
-                        console.warn("No se pudo bloquear la orientación:", e);
+                    } catch (err) {
+                        console.warn("No se pudo bloquear la orientación:", err);
                     }
                 }
 
-                // 2. Validar que la librería esté cargada
-                if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
-                    throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
+                // Validar librería ZXing
+                if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
+                    throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // 3. Configurar las pistas (hints) para el lector
+                // Configurar hints para formatos de VIN
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
+                    // Podrías añadir más si es necesario, pero estos son los comunes para VIN
                 ];
-                hints.set(1, formats); // 1 = POSSIBLE_FORMATS
+                hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
 
-                // 4. Inicializar el lector con las pistas
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+                console.log("CodeReader inicializado.");
 
-                // 5. Mostrar el contenedor del scanner
+                // Obtener dispositivos de video
+                const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+                if (videoInputDevices.length === 0) {
+                    throw new Error("No se encontraron cámaras.");
+                }
+
+                // Preferir cámara trasera ('environment')
+                let selectedDeviceId = videoInputDevices[0].deviceId; // Default a la primera
+                const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('trasera') || device.label.toLowerCase().includes('environment'));
+                if (rearCamera) {
+                    selectedDeviceId = rearCamera.deviceId;
+                    console.log("Usando cámara trasera:", rearCamera.label);
+                } else {
+                    console.log("No se encontró cámara trasera específica, usando la primera:", videoInputDevices[0].label);
+                }
+
+                // Mostrar UI del scanner
                 scannerContainer.classList.remove('hidden');
-                console.log("Scanner iniciado, solicitando permiso de cámara...");
+                console.log("Contenedor del scanner visible.");
 
-                // 6. Obtener el stream
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        aspectRatio: { ideal: 1.7777777778 } // 16:9
+
+                // Iniciar escaneo continuo
+                console.log(`Iniciando decodeContinuously para deviceId: ${selectedDeviceId}`);
+                codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
+                    if (result) {
+                        // ¡Código encontrado!
+                        console.log("Código de barras detectado:", result.text);
+                        document.getElementById('vin').value = result.text; // Actualizar campo VIN
+                        document.getElementById('vin').dispatchEvent(new Event('input')); // Disparar evento para decodificar VIN
+                        detenerScanner(); // Detener escaneo y cerrar cámara
                     }
-                };
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-                // 7. Asignar el stream al video
-                videoElement.srcObject = stream;
-
-                // --- *** INICIO DE LA CORRECCIÓN CRÍTICA DE LÓGICA *** ---
-                // Creamos una Promise que se resolverá SÓLO cuando el video esté reproduciéndose
-                const decodePromise = new Promise((resolve, reject) => {
-                    videoElement.onloadedmetadata = () => {
-                        console.log("Metadatos cargados, intentando reproducir...");
-                        videoElement.play().then(() => {
-                            console.log("Video reproduciendo. Llamando a decodeOnce...");
-                            // AHORA que el video está reproduciendo, llamamos a decodeOnce
-                            codeReader.decodeOnceFromVideoElement(videoElement)
-                              .then(resolve) // Resuelve la Promise principal con el resultado
-                              .catch(reject); // Rechaza si decodeOnce falla
-                        }).catch(reject); // Rechaza si play() falla
-                    };
-                    // Manejar error si el video no carga
-                    videoElement.onerror = () => {
-                        reject(new Error("No se pudo cargar el stream de video."));
-                    };
+                    if (err) {
+                        // Ignorar errores comunes de 'NotFoundException' que ocurren cuando no hay código en el frame
+                        if (!(err instanceof ZXingBrowser.NotFoundException)) {
+                            console.error("Error durante el escaneo continuo:", err);
+                            // Podrías mostrar un mensaje sutil al usuario aquí si el error persiste
+                        }
+                        // Continuar escaneando aunque haya error en un frame
+                    }
+                }).catch(err => {
+                    // Errores al iniciar el stream (permisos, etc.)
+                    console.error("Error al iniciar decodeFromVideoDevice:", err);
+                    handleScannerError(err); // Usar función centralizada para errores de inicio
+                    detenerScanner(); // Asegurar limpieza en caso de error de inicio
                 });
 
-                // 8. Esperar el resultado de la decodificación
-                const result = await decodePromise;
-                 // --- *** FIN DE LA CORRECCIÓN CRÍTICA DE LÓGICA *** ---
+                 // Guardar referencia al stream para detenerlo luego
+                 // Nota: decodeFromVideoDevice maneja el stream internamente,
+                 // pero necesitamos acceso a los controles si existen.
+                 // ZXing no expone directamente el stream, así que nos enfocamos en reset()
+                 // y el manejo manual del stream ya no es necesario aquí.
 
-                // 9. Procesar el resultado
-                if (result) {
-                    console.log("Código encontrado:", result.text);
-                    document.getElementById('vin').value = result.text;
-                    // Disparamos el 'input' para que se ejecute la decodificación del VIN
-                    document.getElementById('vin').dispatchEvent(new Event('input'));
-                }
-
-                // 10. Detener el scanner (siempre se ejecuta después de un éxito o si no hubo resultado)
-                 detenerScanner();
 
             } catch (error) {
-                // 11. Manejo de errores mejorado
-                console.error("Error al iniciar el scanner: ", error);
-                let errorMsg = `Error al iniciar el scanner: ${error.message}`;
-
-                // NotFoundException es normal si se cancela o no se encuentra nada rápidamente
-                if (error.name === 'NotFoundException') {
-                    errorMsg = 'Escaneo cancelado o no se encontró código.';
-                    console.log(errorMsg); // No alertamos al usuario por esto
-                } else if (error.name === 'NotAllowedError') {
-                    errorMsg = "Debes dar permiso a la cámara para escanear.";
-                    alert(errorMsg);
-                } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-                    errorMsg = "No se pudo encontrar una cámara trasera o compatible. Intenta en un dispositivo móvil.";
-                    alert(errorMsg);
-                } else {
-                    // Otro tipo de error
-                    alert(errorMsg);
-                }
-
-                // Asegurarnos de cerrar si hubo un error
-                detenerScanner();
+                 // Errores generales al configurar (librería, cámara no encontrada)
+                console.error("Error general en iniciarScanner:", error);
+                handleScannerError(error);
+                detenerScanner(); // Asegurar limpieza
             }
         }
 
+        // Función centralizada para manejar errores del scanner y mostrar mensajes al usuario
+        function handleScannerError(error) {
+            let errorMsg = `Error con el scanner: ${error.message}`;
+            if (error.name === 'NotAllowedError') {
+                errorMsg = "Permiso de cámara denegado. Habilítalo en la configuración de tu navegador.";
+            } else if (error.name === 'NotFoundError') {
+                errorMsg = "No se encontró una cámara compatible.";
+            } else if (error.name === 'NotReadableError') {
+                 errorMsg = "La cámara ya está en uso o bloqueada. Cierra otras apps/pestañas que la usen.";
+            } else if (error.message.includes("ZXingBrowser no cargada")) {
+                 errorMsg = "Error al cargar la librería de escaneo. Revisa la conexión a internet.";
+            }
+            alert(errorMsg); // Mostrar mensaje al usuario
+        }
+
+
         function detenerScanner() {
+            console.log("Intentando detener scanner...");
             if (codeReader) {
                 try {
-                    codeReader.reset(); // Reinicia el lector
-                    console.log("Scanner reseteado.");
+                    codeReader.reset(); // Método principal para detener decodeContinuously y liberar cámara
+                    console.log("CodeReader reseteado.");
                 } catch (resetError) {
-                    console.error("Error al resetear el scanner:", resetError);
+                    console.error("Error al resetear CodeReader:", resetError);
                 }
+                codeReader = null; // Limpiar la instancia
             }
 
+             // Limpieza adicional del elemento de video (aunque reset() debería manejarlo)
             const videoElement = document.getElementById('videoElement');
-            if (videoElement && videoElement.srcObject) {
-                try {
-                    const tracks = videoElement.srcObject.getTracks();
-                    tracks.forEach(track => track.stop()); // Detiene cada track (apaga la cámara)
-                    console.log("Tracks de video detenidos.");
-                } catch (e) {
-                    console.error("Error al detener tracks:", e);
-                }
-                videoElement.srcObject = null; // Quita la fuente del video
+            if (videoElement) {
+                 videoElement.pause();
+                 if (videoElement.srcObject) {
+                      // Detener tracks manualmente por si acaso reset() no lo hizo completamente
+                      try {
+                           videoElement.srcObject.getTracks().forEach(track => track.stop());
+                           console.log("Tracks de video detenidos manualmente.");
+                      } catch (trackError) {
+                           console.warn("Error menor al detener tracks manualmente:", trackError);
+                      }
+                 }
+                 videoElement.srcObject = null;
+                 videoElement.load(); // Resetear estado del video
             }
 
-            codeReader = null; // Libera la instancia del lector
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) {
-                scannerContainer.classList.add('hidden'); // Oculta el contenedor del scanner
+                scannerContainer.classList.add('hidden');
+                console.log("Contenedor del scanner oculto.");
             }
 
-            // --- Desbloquear Orientación ---
-            if (typeof screen.orientation.unlock === 'function') {
+            // Desbloquear Orientación
+            if (typeof screen.orientation?.unlock === 'function') {
                 try {
                     screen.orientation.unlock();
                     console.log("Orientación desbloqueada.");
-                } catch (e) {
-                    console.warn("No se pudo desbloquear la orientación:", e);
+                } catch (err) {
+                    console.warn("No se pudo desbloquear la orientación:", err);
                 }
             }
         }
