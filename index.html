@@ -20,18 +20,17 @@
         .header-title h1 {
             font-size: 18px;
             font-weight: bold;
-            color: white; /* Título en blanco para máximo contraste */
+            color: white;
             text-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
         .header-title p {
             font-size: 12px;
-            color: #fecdd3; /* Tono rojo-rosado profesional */
+            color: #fecdd3;
             opacity: 1;
         }
         .header-buttons { display: flex; gap: 8px; }
         button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
 
-        /* Estilos de Botones */
         .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-icon:active { background: rgba(255,255,255,0.3); }
 
@@ -53,12 +52,10 @@
         .btn-update-tc { background: #dbeafe; color: #2563eb; font-size: 11px; padding: 6px 10px; font-weight: bold; }
         .btn-update-tc:active { background: #bfdbfe; }
 
-        /* Contenedores y Tarjetas */
         .container { max-width: 500px; margin: 0 auto; padding: 16px; }
         .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
 
-        /* Formulario */
         .form-group { margin-bottom: 12px; }
         .form-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         label { display: block; font-size: 12px; font-weight: 600; color: #374151; }
@@ -67,14 +64,12 @@
         .help-text { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; align-items: center; gap: 6px;}
         .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 
-        /* NUEVA FICHA INFORMATIVA VIN */
         .info-card { background-color: #eff6ff; border: 2px solid #93c5fd; padding: 12px; margin-top: 16px; }
         .info-card-title { font-size: 14px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
         .info-card .detail-row { padding: 8px 0; font-size: 14px; }
         .info-card .detail-label { color: #374151; }
         .info-card .detail-value { color: #1f2937; }
 
-        /* SPINNER DE CARGA */
         .spinner {
             width: 14px; height: 14px;
             border: 2px solid #93c5fd; border-top-color: #3b82f6;
@@ -82,7 +77,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Resultados y Detalles */
         .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
         .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
         .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -94,14 +88,12 @@
         .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
         .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
 
-        /* Historial y Comparador */
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
 
         .hidden { display: none !important; }
 
-        /* --- CSS SCANNER --- */
         #scanner-container {
             position: fixed;
             top: 0;
@@ -168,12 +160,11 @@
             background: rgba(255,255,255,0.2);
             color: white;
             border: 1px solid rgba(255,255,255,0.5);
-            z-index: 203; /* Asegurar que esté sobre la sombra */
+            z-index: 203;
         }
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
         }
-        /* --- FIN CSS SCANNER --- */
     </style>
 </head>
 <body>
@@ -214,6 +205,7 @@
             <button id="btnStopScan">Cancelar</button>
         </div>
     </div>
+    
     <div class="container">
         <div id="comparador" class="card hidden">
             <div class="card-title">Comparar Vehículos</div>
@@ -345,22 +337,27 @@
     </div>
 
     <script>
-        // --- VARIABLES GLOBALES Y CONSTANTES ---
+        // ==========================================
+        // VARIABLES GLOBALES Y CONSTANTES
+        // ==========================================
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
         let vinDecodeTimeout;
-        let codeReader = null; // Variable global para el scanner
+        let codeReader = null;
 
         const anoActual = new Date().getFullYear();
 
         const COSTOS_FIJOS = {
-            SEGURO_1: 0.011, SEGURO_2: 0.007, PAPELEO_USA: 250,
-            DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
+            SEGURO_1: 0.011, 
+            SEGURO_2: 0.007, 
+            PAPELEO_USA: 250,
+            DECLARACION_CR: 106000, 
+            DEKRA: 45000, 
+            ALMACENAMIENTO: 65000
         };
 
-        // --- CONSTANTES HERRAMIENTAS ---
         const MILLAS_POR_KM = 0.621371;
         const KM_POR_MILLA = 1.60934;
         const PROMEDIO_MILLAS_ANO = 15000;
@@ -368,264 +365,88 @@
         const PORCENTAJE_TIMBRES = 0.035;
         const HONORARIOS_TRASPASO = 65000;
 
-        // --- MANEJO DE EVENTOS ---
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('ano').addEventListener('change', validarAno);
-            
-            // Listener principal para el input del VIN
-            document.getElementById('vin').addEventListener('input', handleVinInput);
-            
-            document.getElementById('btnCalcular').addEventListener('click', calcular);
-            document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
-            document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
-            document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
-            document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
-            document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
-            document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
-            document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
-            document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
-            document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
-            document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
-            document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
-            document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
-            document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
-
-            // --- LISTENERS SCANNER ---
-            document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
-            document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
-
-            document.getElementById('ano').max = anoActual + 1;
-            actualizarHistorialUI();
-            fetchTipoDeCambio();
-        });
-
-        // --- FUNCIONES DE FORMATO ---
-        function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
-        function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
-
-        // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
-        function validarAno() {
-            const anoInput = document.getElementById('ano');
-            const ayudaAno = document.getElementById('ayudaAno');
-            const ano = parseInt(anoInput.value);
-            if (!ano || ano < 1980 || ano > anoActual + 1) {
-                anoInput.value = '';
-                ayudaAno.textContent = 'Año inválido';
-            } else {
-                const antiguedad = anoActual - ano;
-                const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
-                ayudaAno.textContent = `${antiguedad} años | Impuesto: ${porcentaje}`;
-            }
+        // ==========================================
+        // FUNCIONES DE FORMATO
+        // ==========================================
+        function formatUSD(num) { 
+            return '$' + Math.round(num).toLocaleString('en-US'); 
         }
-
-        function calcular() {
-            const ano = parseInt(document.getElementById('ano').value);
-            const valor = parseFloat(document.getElementById('valor').value) || 0;
-            const flete = parseFloat(document.getElementById('flete').value) || 0;
-            const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
-            if (!ano || !valor || !flete || !tc) { alert('Completa todos los campos'); return; }
-            const antiguedad = anoActual - ano;
-            const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
-            const valorPlusFlete = valor + flete;
-            const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-            const baseImpuestos = valorPlusFlete + totalSeguros;
-            const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-            const subtotalVehiculoCRC = valorPlusFlete * tc;
-            const impuestosCRC = impuestosUSD * tc;
-            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
-            const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
-            const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
-            calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR') };
-            document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
-            document.getElementById('resultado').classList.remove('hidden');
-            document.getElementById('tcFooter').textContent = tc;
-        }
-
-        function mostrarDetalle() {
-            if (!calculoActual) return;
-            const d = calculoActual;
-            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            let html = `
-                <div class="section-header">VALORES EN DÓLARES</div>
-                <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
-                <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
-                <div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">${formatUSD(d.totalSeguros)}</span></div>
-                <div class="detail-row subtotal"><span class="detail-label">Base Impuestos (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
-                <div class="section-header">VALORES EN COLONES</div>
-                <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
-                <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
-                <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
-                <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
-            document.getElementById('detalleContent').innerHTML = html;
-            document.getElementById('detalle').classList.remove('hidden');
-        }
-
-        // --- FUNCIONES (HERRAMIENTAS) ---
-        function convertirMillaje(event) {
-            const valorInput = parseFloat(document.getElementById('millaje').value);
-            const ano = parseInt(document.getElementById('ano').value);
-            const resultadoCard = document.getElementById('millajeInfoCard');
-            const resultadoLabel = document.getElementById('millajeResultadoLabel');
-            const resultadoValor = document.getElementById('millajeResultadoValor');
-            const promedioLabel = document.getElementById('millajePromedioLabel');
-            const promedioValor = document.getElementById('millajePromedioValor');
-            const promedioStatus = document.getElementById('millajePromedioStatus');
-            function mostrarError(mensaje) {
-                resultadoCard.classList.remove('hidden');
-                resultadoLabel.textContent = 'Error';
-                resultadoValor.textContent = '-';
-                promedioLabel.textContent = 'Error';
-                promedioValor.textContent = '-';
-                promedioStatus.textContent = mensaje;
-                promedioStatus.style.color = '#dc2626';
-            }
-            if (!valorInput || valorInput < 0) { mostrarError('Ingrese un valor de millaje válido'); return; }
-            if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
-            const antiguedad = Math.max(1, anoActual - ano);
-            let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
-            if (event.target.id === 'btnMillasAKm') {
-                resultadoNum = valorInput * KM_POR_MILLA;
-                promedio = PROMEDIO_MILLAS_ANO * antiguedad;
-                esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad;
-                resultadoLabel.textContent = "Total KMs";
-                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
-                promedioLabel.textContent = "Promedio (Millas/Año)";
-                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
-            } else {
-                resultadoNum = valorInput * MILLAS_POR_KM;
-                promedio = PROMEDIO_KMS_ANO * antiguedad;
-                esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad;
-                resultadoLabel.textContent = "Total Millas";
-                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
-                promedioLabel.textContent = "Promedio (KMs/Año)";
-                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
-            }
-            promedioStatus.textContent = esSobrePromedio ? 'Sobre el promedio' : 'Debajo del promedio';
-            promedioStatus.style.color = esSobrePromedio ? '#dc2626' : '#15803d';
-            resultadoCard.classList.remove('hidden');
-        }
-
-        function calcularTraspaso() {
-            const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
-            const resultadoEl = document.getElementById('resultadoTraspaso');
-            if (!valorFiscal || valorFiscal <= 0) {
-                resultadoEl.textContent = 'Ingrese un valor fiscal válido';
-                resultadoEl.style.color = '#dc2626';
-                return;
-            }
-            const timbres = valorFiscal * PORCENTAJE_TIMBRES;
-            const total = timbres + HONORARIOS_TRASPASO;
-            resultadoEl.style.color = '#1f2937';
-            resultadoEl.innerHTML = `
-                <div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
-                <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
-                <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
-        }
-
-        // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
-        function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
-        function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
-        function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
-        function toggleComparacion() { modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
-        function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
-        function limpiarHistorial() { if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
-
-        // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         
-        // Función manejadora del evento 'input' (usa 'this')
-        function handleVinInput() {
-            console.log("handleVinInput triggered por evento input!");
-            clearTimeout(vinDecodeTimeout);
-            
-            const vin = this.value.toUpperCase().trim(); 
+        function formatCRC(num) { 
+            return '₡' + Math.round(num).toLocaleString('es-CR'); 
+        }
+
+        // ==========================================
+        // MANEJO DE VIN - NUEVA IMPLEMENTACIÓN
+        // ==========================================
+        function procesarVIN() {
+            const vinInput = document.getElementById('vin');
             const vinStatus = document.getElementById('vinStatus');
+            const vin = vinInput.value.toUpperCase().trim();
+            
+            clearTimeout(vinDecodeTimeout);
             limpiarFichaVIN();
 
             if (vin.length === 0) {
                 vinStatus.innerHTML = '';
                 return;
             }
+
             if (vin.length < 17) {
                 vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`;
                 return;
             }
 
             if (vin.length === 17) {
-                console.log("VIN tiene 17 caracteres, iniciando decodificación...");
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
                 vinDecodeTimeout = setTimeout(() => {
-                    console.log("setTimeout ejecutando fetchVinData...");
                     fetchVinData(vin);
                 }, 500);
             }
         }
-        
+
         async function fetchVinData(vin) {
-            console.log(`fetchVinData llamado con VIN: ${vin}`);
             const vinStatus = document.getElementById('vinStatus');
             try {
                 const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
-                console.log(`Consultando API: ${apiUrl}`);
                 const response = await fetch(apiUrl);
-                console.log(`Respuesta recibida, status: ${response.status}`);
+                
                 if (!response.ok) {
-                    throw new Error(`Respuesta de red no fue OK (${response.status})`);
+                    throw new Error(`Error de red (${response.status})`);
                 }
+                
                 const data = await response.json();
-                console.log("Datos recibidos de la API:", data);
 
                 if (data && data.Results && data.Results[0]) {
-                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) { // Validar datos básicos
-                        const vehicleInfo = data.Results[0];
+                    const vehicleInfo = data.Results[0];
+                    
+                    if (vehicleInfo.ErrorCode === "0" && vehicleInfo.Make && vehicleInfo.Model) {
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
+                        
                         if (vehicleInfo.ModelYear) {
-                            document.getElementById('ano').value = vehicleInfo.ModelYear;
-                            document.getElementById('ano').dispatchEvent(new Event('change')); 
+                            const anoInput = document.getElementById('ano');
+                            anoInput.value = vehicleInfo.ModelYear;
+                            validarAno();
                         }
                     } else {
-                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado o inválido"}</span>`;
+                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${vehicleInfo.ErrorText || "VIN no encontrado o inválido"}</span>`;
                         limpiarFichaVIN();
                     }
                 } else {
-                    throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
+                    throw new Error("Formato de respuesta inesperado");
                 }
             } catch (error) {
                 console.error('Error fetching VIN data:', error);
-                vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
+                vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}</span>`;
                 limpiarFichaVIN();
             }
         }
-        async function fetchTipoDeCambio() {
-            const tcInput = document.getElementById('tipoCambio');
-            const tcHelp = document.getElementById('tipoCambioHelp');
-            tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
-            const url = `https://api.hacienda.go.cr/indicadores/tc`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
-                const data = await response.json();
-                const valorVenta = data?.dolar?.venta?.valor;
-                if (valorVenta) {
-                    tcInput.value = parseFloat(valorVenta).toFixed(2);
-                    const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
-                    tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
-                    document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2);
-                } else {
-                    throw new Error('La respuesta de la API no contiene el formato esperado.');
-                }
-            } catch (error) {
-                console.error("Error fetching TC:", error);
-                tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
-                document.getElementById('tcFooter').textContent = 'Error';
-            }
-        }
+
         function displayVinData(data) {
             let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
+            
             document.getElementById('vinMake').textContent = data.Make || 'N/D';
             document.getElementById('vinModel').textContent = data.Model || 'N/D';
             document.getElementById('vinTrim').textContent = data.Trim || 'N/D';
@@ -634,276 +455,28 @@
             document.getElementById('vinInfoCard').classList.remove('hidden');
         }
 
-        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
-        function generarTextoDesglose(esParaWhatsapp = false) {
-            if (!calculoActual) return "";
-            const d = calculoActual;
-            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            const b = esParaWhatsapp ? '*' : '';
-            const line = '---------------------------------';
-            const doubleLine = '=====================';
-            const texto = `
-${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
-Año: ${d.ano} | TC: ${d.tc}
-${doubleLine}
-
-${b}Base (USD):${b}
-Valor: ${formatUSD(d.valor)}
-Flete: ${formatUSD(d.flete)}
-Seguros: ${formatUSD(d.totalSeguros)}
-*Subtotal USD:* ${formatUSD(d.baseImpuestos)}
-${line}
-
-${b}Costos (CRC):${b}
-Vehículo+Flete: ${formatCRC((d.valor + d.flete) * d.tc)}
-Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
-Gastos Admin.: ${formatCRC(gastosAdminColones)}
-${doubleLine}
-${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
-${doubleLine}
-Fecha cálculo: ${d.fecha}
-            `.trim().split('\n').map(line => line.trim()).join('\n');
-            return texto;
-        }
-        function descargarPDF() {
-            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
-            try {
-                if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-                    throw new Error("La librería jsPDF no está cargada.");
-                }
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const contenido = generarTextoDesglose();
-                doc.setFont("Courier", "normal");
-                doc.setFontSize(10);
-                doc.text(contenido, 15, 20);
-                doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`);
-            } catch (e) {
-                console.error("Error al generar PDF:", e);
-                alert(`No se pudo generar el PDF: ${e.message}. Revisa la consola para más detalles.`);
-            }
-        }
-        function enviarWhatsApp() {
-            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
-            const mensaje = generarTextoDesglose(true);
-            const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
-            window.open(whatsappURL, '_blank');
+        function limpiarFichaVIN() { 
+            document.getElementById('vinInfoCard').classList.add('hidden'); 
         }
 
-        // --- FUNCIONES DE LIMPIEZA ---
-        function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
-        function limpiarFormulario() {
-            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.value = '';
-            });
-            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.innerHTML = '';
-                if (id === 'tcFooter') element.textContent = 'N/A';
-            });
-            ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.classList.add('hidden');
-            });
-            calculoActual = null;
-            
-            // *** CORRECCIÓN ***
-            // Llamamos a 'handleVinInput' forzando el contexto 'this'
-            // para que sea el input del VIN (ahora vacío).
-            handleVinInput.call(document.getElementById('vin'));
-
-            fetchTipoDeCambio();
-        }
-        
         function limpiarVIN() {
             const vinInput = document.getElementById('vin');
             vinInput.value = '';
-
-            // *** CORRECCIÓN ***
-            // Llamamos a 'handleVinInput' forzando el contexto 'this'
-            // para que sea el input del VIN (ahora vacío).
-            handleVinInput.call(vinInput);
+            document.getElementById('vinStatus').innerHTML = '';
+            limpiarFichaVIN();
         }
 
-       // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
-
-        async function iniciarScanner() {
-            console.log("Iniciando scanner...");
-            const videoElement = document.getElementById('videoElement');
-            const scannerContainer = document.getElementById('scanner-container');
-
-            detenerScanner(); // Limpia instancias anteriores
-
-            try {
-                // Bloquear Orientación
-                if (typeof screen.orientation?.lock === 'function') {
-                    try {
-                        await screen.orientation.lock('landscape');
-                        console.log("Orientación bloqueada a horizontal.");
-                    } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
-                }
-
-                // 1. Validar librería
-                if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
-                    throw new Error('Librería ZXingBrowser no cargada.');
-                }
-
-                // 2. Configurar hints
-                const hints = new Map();
-                const formats = [
-                    ZXingBrowser.BarcodeFormat.CODE_39,
-                    ZXingBrowser.BarcodeFormat.CODE_128,
-                    ZXingBrowser.BarcodeFormat.QR_CODE,
-                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-                    ZXingBrowser.BarcodeFormat.EAN_13,
-                    ZXingBrowser.BarcodeFormat.UPC_A,
-                    ZXingBrowser.BarcodeFormat.ITF,
-                    ZXingBrowser.BarcodeFormat.PDF_417
-                ];
-                
-                if (ZXingBrowser.DecodeHintType) {
-                    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-                    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
-                    console.log("Hints configurados con POSSIBLE_FORMATS y TRY_HARDER.");
-                } else {
-                    hints.set(1, formats); 
-                    console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
-                }
-
-                // 3. Configurar constraints
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                console.log("Constraints de video simplificadas:", constraints);
-
-                // 4. Inicializar codeReader
-                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                console.log("CodeReader inicializado.");
-
-                // Mostrar UI
-                scannerContainer.classList.remove('hidden');
-                console.log("Contenedor del scanner visible.");
-
-                // 5. Iniciar escaneo usando decodeFromConstraints
-                console.log("Iniciando decodeFromConstraints...");
-                codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
-                    if (result) {
-                        console.log("Código detectado:", result.text);
-                        if (navigator.vibrate) { navigator.vibrate(100); }
-                        
-                        const vinInput = document.getElementById('vin');
-                        vinInput.value = result.text; // Establecer el valor
-                        
-                        // *** CORRECCIÓN CLAVE ***
-                        // Disparamos el evento 'input' para que el listener lo capture
-                        // y ejecute handleVinInput con el 'this' correcto.
-                        vinInput.dispatchEvent(new Event('input'));
-                        
-                        // Retrasamos detenerScanner para asegurar que el evento se procese
-                        setTimeout(detenerScanner, 100); // Espera 100ms
-                    }
-                    
-                    if (err && err.name !== 'NotFoundException') {
-                         console.error("Error durante escaneo continuo:", err); 
-                    }
-                }).catch(err => {
-                    // Errores al *iniciar* el stream (ej. permisos denegados)
-                    console.error("Error al INICIAR decodeFromConstraints:", err);
-                    handleScannerError(err);
-                    detenerScanner(); // Detener inmediatamente si hay error al iniciar
-                });
-
-                // 6. Manejo de Linterna
-                videoElement.addEventListener('loadedmetadata', () => {
-                    if (videoElement.srcObject) {
-                        const track = videoElement.srcObject.getVideoTracks()[0];
-                        if (track && 'torch' in track.getCapabilities()) {
-                            track.applyConstraints({ advanced: [{ torch: true }] })
-                                .then(() => console.log("Linterna encendida."))
-                                .catch(e => console.warn("No se pudo encender la linterna:", e));
-                        }
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error general en iniciarScanner:", error);
-                handleScannerError(error);
-                detenerScanner(); // Asegurarse de detener si hay error general
+        // ==========================================
+        // VALIDACIÓN DE AÑO
+        // ==========================================
+        function validarAno() {
+            const anoInput = document.getElementById('ano');
+            const ayudaAno = document.getElementById('ayudaAno');
+            const ano = parseInt(anoInput.value);
+            
+            if (!ano || ano < 1980 || ano > anoActual + 1) {
+                ayudaAno.textContent = 'Año inválido';
+                return;
             }
-        }
-
-        function handleScannerError(error) {
-            let errorMsg = `Error con el scanner: ${error.message}`;
-            if (error.name === 'NotAllowedError') {
-                errorMsg = "Permiso de cámara denegado. Habilítalo en la configuración.";
-            } else if (error.name === 'NotFoundError') {
-                errorMsg = "No se encontró una cámara compatible.";
-            } else if (error.name === 'NotReadableError') {
-                errorMsg = "La cámara está en uso o bloqueada.";
-            } else if (error.message.includes("ZXingBrowser no cargada")) {
-                errorMsg = "Error al cargar librería de escaneo.";
-            }
-            const scannerContainer = document.getElementById('scanner-container');
-            if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
-                scannerContainer.classList.add('hidden');
-            }
-            alert(errorMsg);
-        }
-
-        function detenerScanner() {
-            console.log("Intentando detener scanner...");
-            if (codeReader) {
-                try {
-                    codeReader.reset();
-                    console.log("CodeReader reseteado.");
-                } catch (resetError) { console.error("Error al resetear CodeReader:", resetError); }
-                codeReader = null;
-            }
-
-            const videoElement = document.getElementById('videoElement');
-            if (videoElement && videoElement.srcObject) {
-                try {
-                    const tracks = videoElement.srcObject.getVideoTracks();
-                    tracks.forEach(track => {
-                        // Intentar apagar la linterna si estaba encendida
-                        if (track && 'torch' in track.getCapabilities()) {
-                           const capabilities = track.getCapabilities();
-                           const settings = track.getSettings();
-                           if(capabilities.torch && settings.torch){ // Check if supported AND currently on
-                                track.applyConstraints({ advanced: [{ torch: false }] })
-                                    .then(() => console.log("Linterna apagada."))
-                                    .catch(e => console.warn("No se pudo apagar la linterna:", e));
-                           }
-                        }
-                        track.stop();
-                    });
-                    console.log("Tracks detenidos.");
-                }
-                catch (e) { console.warn("Error menor al detener tracks:", e); }
-                videoElement.srcObject = null;
-            }
-            if (videoElement) {
-                videoElement.pause(); // Añadir pausa explícita
-                videoElement.removeAttribute('src'); // Quitar fuente
-                videoElement.load(); // Forzar recarga
-            }
-
-
-            const scannerContainer = document.getElementById('scanner-container');
-            if (scannerContainer) scannerContainer.classList.add('hidden');
-
-            if (typeof screen.orientation?.unlock === 'function') {
-                try { screen.orientation.unlock(); console.log("Orientación desbloqueada."); }
-                catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
-            }
-        }
-        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
-
-    </script>
-</body>
-</html>
+            
+            const antiguedad = anoActual - ano
