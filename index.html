@@ -650,9 +650,9 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 
                 // 4. Inicializar el lector con las pistas
                 // --- *** INICIO DE LA CORRECCIÓN *** ---
-                // Pasamos null como primer argumento para usar el MultiFormatReader por defecto,
-                // y los hints como SEGUNDO argumento. Este era el error.
-                codeReader = new ZXingBrowser.BrowserCodeReader(null, hints);
+                // Se debe usar 'BrowserMultiFormatReader' en lugar de 'BrowserCodeReader'
+                // Esta clase SÍ se inicializa con los hints y tiene el método 'decodeOnceFromVideoElement'
+                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
                 // --- *** FIN DE LA CORRECCIÓN *** ---
 
                 // 5. Mostrar el contenedor del scanner
