@@ -372,7 +372,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
             
-            // *** ESTE ES EL LISTENER ORIGINAL QUE SE HABÍA ROTO ***
+            // *** CORRECCIÓN CLAVE ***
+            // Este es el listener original y correcto para digitar y pegar.
             document.getElementById('vin').addEventListener('input', handleVinInput);
             
             document.getElementById('btnCalcular').addEventListener('click', calcular);
@@ -535,17 +536,15 @@
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         
-        // *** CORRECCIÓN PRINCIPAL ***
-        // Se modifica la función para que NO dependa de 'this'.
-        // Ahora obtiene el elemento por ID directamente.
+        // *** CORRECCIÓN CLAVE ***
+        // Esta es la función original (manejador de evento).
+        // Se ejecuta cuando el evento 'input' se dispara.
+        // Usa 'this' para referirse al elemento que disparó el evento (el input con id 'vin').
         function handleVinInput() {
             console.log("handleVinInput triggered!");
             clearTimeout(vinDecodeTimeout);
-
-            // Obtener el input y su valor explícitamente por ID
-            const vinInput = document.getElementById('vin');
-            const vin = vinInput.value.toUpperCase().trim();
             
+            const vin = this.value.toUpperCase().trim();
             const vinStatus = document.getElementById('vinStatus');
             limpiarFichaVIN();
 
@@ -713,9 +712,10 @@ Fecha cálculo: ${d.fecha}
             });
             calculoActual = null;
             
-            // *** CORRECCIÓN 2 ***
-            // Llamar a handleVinInput (sin .call) para que procese el campo 'vin' vacío.
-            handleVinInput();
+            // *** CORRECCIÓN 1 ***
+            // Disparamos el evento 'input' en el campo VIN (ahora vacío)
+            // para que handleVinInput lo procese y limpie el estado.
+            document.getElementById('vin').dispatchEvent(new Event('input'));
 
             fetchTipoDeCambio();
         }
@@ -723,10 +723,11 @@ Fecha cálculo: ${d.fecha}
         function limpiarVIN() {
             const vinInput = document.getElementById('vin');
             vinInput.value = '';
-            
-            // *** CORRECCIÓN 3 ***
-            // Llamar a handleVinInput (sin .call) para que procese el campo 'vin' vacío.
-            handleVinInput();
+
+            // *** CORRECCIÓN 2 ***
+            // Disparamos el evento 'input' para que handleVinInput
+            // se entere del cambio (campo vacío) y limpie el estado.
+            vinInput.dispatchEvent(new Event('input'));
         }
 
        // --- *** INICIO: CÓDIGO DEL SCANNER - CORREGIDO Y MEJORADO *** ---
@@ -802,10 +803,10 @@ Fecha cálculo: ${d.fecha}
                         const vinInput = document.getElementById('vin');
                         vinInput.value = result.text;
                         
-                        // *** CORRECCIÓN 4 ***
-                        // Llamar a handleVinInput (sin .call)
-                        // Ahora que la función es robusta, esto funcionará.
-                        handleVinInput();
+                        // *** CORRECCIÓN 3 ***
+                        // Disparamos el evento 'input' para que
+                        // handleVinInput se entere y procese el nuevo VIN.
+                        vinInput.dispatchEvent(new Event('input'));
                         
                         detenerScanner(); // Detener al encontrar
                     }
