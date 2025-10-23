@@ -162,7 +162,6 @@
             margin-top: 24px;
             font-size: 14px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-css
         }
         #btnStopScan {
             margin-top: 24px;
@@ -234,7 +233,6 @@ css
         <div class="card">
             <div class="card-title">Ingrese datos del Vehículo</div>
 
-section-header
             <div class="form-group">
                 <label for="vin">VIN Number</label>
                 <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
@@ -256,7 +254,6 @@ section-header
                 <div class="card-title info-card-title">Información del Vehículo</div>
                 <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
                 <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value" id="vinModel"></span></div>
-Methods
                 <div class="detail-row"><span class="detail-label">Versión</span><span class="detail-value" id="vinTrim"></span></div>
                 <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
                 <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
@@ -329,13 +326,12 @@ Methods
                 <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
                 <div class="result-amount" id="resultadoTotal"></div>
                 <div class="result-buttons">
-  Baden-Württemberg                 <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
+                    <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
                     <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
                 </div>
             </div>
 
             <div id="detalle" class="card hidden">
-Methods
                 <div class="card-title">Desglose</div>
                 <div id="detalleContent"></div>
                 <div class="button-group" style="margin-top: 16px;">
@@ -374,7 +370,6 @@ Methods
         const PORCENTAJE_TIMBRES = 0.035;
         const HONORARIOS_TRASPASO = 65000;
 
-section-header
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
@@ -383,7 +378,6 @@ section-header
             document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
             document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
             document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
-button
             document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
             document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
             document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
@@ -425,7 +419,6 @@ button
 
         function calcular() {
             const ano = parseInt(document.getElementById('ano').value);
-section-header
             const valor = parseFloat(document.getElementById('valor').value) || 0;
             const flete = parseFloat(document.getElementById('flete').value) || 0;
             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
@@ -434,7 +427,6 @@ section-header
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
             const valorPlusFlete = valor + flete;
             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-section-header
             const baseImpuestos = valorPlusFlete + totalSeguros;
             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
             const subtotalVehiculoCRC = valorPlusFlete * tc;
@@ -460,7 +452,6 @@ section-header
                 <div class="detail-row subtotal"><span class="detail-label">Base Impuestos (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
                 <div class="section-header">VALORES EN COLONES</div>
                 <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
-section-header
                 <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
                 <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
@@ -488,6 +479,7 @@ section-header
                 promedioStatus.style.color = '#dc2626';
              }
             if (!valorInput || valorInput < 0) { mostrarError('Ingrese un valor de millaje válido'); return; }
+section-header
             if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
@@ -496,7 +488,6 @@ section-header
                 promedio = PROMEDIO_MILLAS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
                 promedioPorAno = valorInput / antiguedad;
-section-header
                 resultadoLabel.textContent = "Total KMs";
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
                 promedioLabel.textContent = "Promedio (Millas/Año)";
@@ -506,7 +497,6 @@ section-header
                 promedio = PROMEDIO_KMS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
                 promedioPorAno = valorInput / antiguedad;
-s
                 resultadoLabel.textContent = "Total Millas";
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
                 promedioLabel.textContent = "Promedio (KMs/Año)";
@@ -522,7 +512,6 @@ s
             const resultadoEl = document.getElementById('resultadoTraspaso');
             if (!valorFiscal || valorFiscal <= 0) {
                 resultadoEl.textContent = 'Ingrese un valor fiscal válido';
-section-header
                 resultadoEl.style.color = '#dc2626';
                 return;
             }
@@ -531,7 +520,6 @@ section-header
             resultadoEl.style.color = '#1f2937';
             resultadoEl.innerHTML = `
                 <div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
-Methods
                 <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
                 <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
         }
@@ -539,11 +527,9 @@ Methods
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
         function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
         function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
-s
         function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
         function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
         function toggleComparacion() { modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
-section-header
         function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
         function limpiarHistorial() { if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
 
@@ -565,7 +551,6 @@ section-header
             }
 
             if (vin.length === 17) {
-s
                 console.log("VIN tiene 17 caracteres, iniciando decodificación..."); // Log
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
                 vinDecodeTimeout = setTimeout(() => {
@@ -594,7 +579,6 @@ s
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
                         if (vehicleInfo.ModelYear) {
-s
                             document.getElementById('ano').value = vehicleInfo.ModelYear;
                             document.getElementById('ano').dispatchEvent(new Event('change'));
                         }
@@ -603,12 +587,12 @@ s
                         limpiarFichaVIN();
                     }
                 } else {
+all
                     throw new Error("Formato de respuesta inesperado de la API.");
                 }
             } catch (error) {
                 console.error('Error fetching VIN data:', error);
                 vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión.</span>`;
-s
                 limpiarFichaVIN();
             }
         }
@@ -619,26 +603,25 @@ s
             const url = `https://api.hacienda.go.cr/indicadores/tc`;
             try {
                 const response = await fetch(url);
+all
                 if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
                 const data = await response.json();
                 const valorVenta = data?.dolar?.venta?.valor;
                 if (valorVenta) {
                     tcInput.value = parseFloat(valorVenta).toFixed(2);
+a
                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR');
                     tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
-s
                 } else {
                     throw new Error('La respuesta de la API no contiene el formato esperado.');
                 }
             } catch (error) {
                 console.error("Error fetching TC:", error);
-Methods
                 tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
             }
-        }
-        function displayVinData(data) {
+      _
+    function displayVinData(data) {
              let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
-s
             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
             document.getElementById('vinMake').textContent = data.Make || 'No disponible';
             document.getElementById('vinModel').textContent = data.Model || 'No disponible';
@@ -646,7 +629,6 @@ s
             document.getElementById('vinEngine').textContent = engineInfo.trim() || 'No disponible';
             document.getElementById('vinCountry').textContent = data.PlantCountry || 'No disponible';
             document.getElementById('vinInfoCard').classList.remove('hidden');
-s
          }
 
         // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
@@ -683,12 +665,12 @@ TC: ${d.tc} | Fecha: ${d.fecha}
         }
         function descargarPDF() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
+section-header
             try {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const contenido = generarTextoDesglose();
                 doc.setFont("Helvetica", "normal");
-section-header
                 doc.setFontSize(10);
                 doc.text(contenido, 10, 15);
                 doc.save(`Nacionalizacion-${calculoActual.ano}.pdf`);
@@ -700,7 +682,7 @@ section-header
         }
         function enviarWhatsApp() {
             if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
-section-header
+s
             const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
@@ -708,7 +690,6 @@ section-header
 
         // --- FUNCIONES DE LIMPIEZA ---
         function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
-s
         function limpiarFormulario() {
             document.getElementById('ano').value = '';
             document.getElementById('valor').value = '';
@@ -716,8 +697,7 @@ s
             document.getElementById('resultado').classList.add('hidden');
             document.getElementById('detalle').classList.add('hidden');
             document.getElementById('ayudaAno').textContent = '';
-            document.getElementById('millajeInfoCard').classList.add('hidden');
-s
+  s         document.getElementById('millajeInfoCard').classList.add('hidden');
             document.getElementById('resultadoTraspaso').innerHTML = '';
             document.getElementById('millaje').value = '';
             document.getElementById('valorFiscal').value = '';
@@ -726,7 +706,6 @@ s
         function limpiarVIN() {
             document.getElementById('vin').value = '';
             document.getElementById('vinStatus').innerHTML = '';
-s
             limpiarFichaVIN();
         }
 
@@ -737,150 +716,144 @@ s
             const scannerContainer = document.getElementById('scanner-container');
 
             // 1. Asegurarse de detener cualquier instancia anterior
-            detenerScanner(); 
+            detenerScanner(); 
 
             try {
                 // --- Bloquear Orientación (esto está bien) ---
                 if (typeof screen.orientation.lock === 'function') {
                     try {
                         await screen.orientation.lock('landscape');
+css
                         console.log("Orientación bloqueada a horizontal.");
                     } catch (e) {
                         console.warn("No se pudo bloquear la orientación:", e);
                     }
                 }
-                
-                // 2. Validar que la librería esté cargada (esto está bien)
+                
+                // 2. Validar que la librería esté cargada
                 if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
                     throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado.');
                 }
 
-                // 3. Configurar las pistas (esto está bien)
+                // 3. Configurar las pistas (hints) para el lector
                 const hints = new Map();
+    s           // --- Optimizar Formatos ---
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
                 ];
+                
                 hints.set(1, formats); // 1 = POSSIBLE_FORMATS
-                
-                // 4. Inicializar el lector
+                
+                // 4. Inicializar el lector con las pistas
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                
+                
                 // 5. Mostrar el contenedor del scanner
                 scannerContainer.classList.remove('hidden');
                 console.log("Scanner iniciado, solicitando permiso de cámara...");
 
-                // 6. Obtener el stream
+                // 6. --- MANEJO MANUAL DEL STREAM ---
                 const constraints = {
                     video: {
                         facingMode: 'environment',
-                        // --- *** CORRECCIÓN DE TYPO ESTABA AQUÍ *** ---
-                        aspectRatio: { ideal: 1.7777777778 } // 16:9 
+                        aspectRatio: { ideal: 1.7777777778 } // 16:9
                     }
                 };
+
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
                 // 7. Asignar el stream al video
                 videoElement.srcObject = stream;
-                // --- *** CORRECCIÓN DE TYPO ESTABA AQUÍ (se eliminó "Alemán") *** ---
-            
+                
                 // --- *** INICIO DE LA CORRECCIÓN CRÍTICA DE LÓGICA *** ---
                 // Creamos una Promise que se resolverá SÓLO cuando el video esté reproduciéndose
                 const decodePromise = new Promise((resolve, reject) => {
                     videoElement.onloadedmetadata = () => {
                         console.log("Metadatos cargados, intentando reproducir...");
-                        // Intentamos reproducir el video
+al
                         videoElement.play().then(() => {
-s
                             console.log("Video reproduciendo. Llamando a decodeOnce...");
                             // AHORA que el video está reproduciendo, llamamos a decodeOnce
                             codeReader.decodeOnceFromVideoElement(videoElement)
-                            // --- *** CORRECCIÓN DE TYPO ESTABA AQUÍ (se eliminó "Alemán") *** ---
                               .then(resolve) // Resuelve la Promise principal con el resultado
+all
                               .catch(reject); // Rechaza si decodeOnce falla
                         }).catch(reject); // Rechaza si play() falla
                     };
-                    
+                    
                     // Manejar error si el video no carga
-description
                     videoElement.onerror = () => {
                         reject(new Error("No se pudo cargar el stream de video."));
                     };
                 });
 
                 // 8. Esperar el resultado de la decodificación
-                // Esta línea ahora esperará a que el video se reproduzca Y a que decodeOnce termine
                 const result = await decodePromise;
                 // --- *** FIN DE LA CORRECCIÓN CRÍTICA DE LÓGICA *** ---
 
-section-header
                 // 9. Procesar el resultado
                 if (result) {
                     console.log("Código encontrado:", result.text);
+Note
                     document.getElementById('vin').value = result.text;
-                    // Disparamos el 'input' para que se ejecute la decodificación del VIN
-                    document.getElementById('vin').dispatchEvent(new Event('input')); 
+                    detenerScanner(); // Detener al encontrar resultado
+                    document.getElementById('vin').dispatchEvent(new Event('input')); // Disparar el evento de input
                 }
-                
-                // 10. Detener el scanner (siempre se ejecuta después de un éxito)
-s
-                detenerScanner();
 
             } catch (error) {
-                // 11. Manejo de errores mejorado
+                // 10. Manejo de errores mejorado
                 console.error("Error al iniciar el scanner: ", error);
                 let errorMsg = `Error al iniciar el scanner: ${error.message}`;
 
+  s             // Si el error es 'NotFoundException', significa que estuvo escaneando pero no encontró nada
+                // (esto puede pasar si el usuario cancela antes de que 'decodeOnce' termine)
                 if (error.name === 'NotFoundException') {
                     errorMsg = 'Escaneo cancelado o no se encontró código.';
-                    console.log(errorMsg); // No es necesario alertar al usuario por esto
+section-header
                 } else if (error.name === 'NotAllowedError') {
                     errorMsg = "Debes dar permiso a la cámara para escanear.";
-section-header
-                    alert(errorMsg);
                 } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
                     errorMsg = "No se pudo encontrar una cámara trasera. Intenta en un dispositivo móvil.";
-                    alert(errorMsg);
-                } else {
-                    // Otro tipo de error
-s
+                }
+                
+                // Solo mostramos alerta si no fue un 'NotFoundException' (cancelación)
+al
+                if (error.name !== 'NotFoundException') {
                     alert(errorMsg);
                 }
-                
-                // Asegurarnos de cerrar si hubo un error
-                detenerScanner();
+                
+                detenerScanner(); // Asegurarnos de cerrar si hubo un error
+section-header
             }
         }
 
         function detenerScanner() {
-section-header
             if (codeReader) {
                 try {
                     codeReader.reset();
-s
                     console.log("Scanner reseteado.");
                 } catch (resetError) {
                     console.error("Error al resetear el scanner:", resetError);
-s
                 }
             }
 
             const videoElement = document.getElementById('videoElement');
+s
             if (videoElement && videoElement.srcObject) {
                 try {
                     const tracks = videoElement.srcObject.getTracks();
-s
+all
                     tracks.forEach(track => track.stop());
                     console.log("Tracks de video detenidos.");
-                } catch (e) {
+          _
+              } catch (e) {
                     console.error("Error al detener tracks:", e);
+section-header
                 }
                 videoElement.srcObject = null;
             }
-            
+            
             codeReader = null;
-Methods
-section-header
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) {
@@ -890,16 +863,15 @@ section-header
             // --- *** INICIO CORRECCIÓN JS: Desbloquear Orientación *** ---
             if (typeof screen.orientation.unlock === 'function') {
                 try {
-  t-size: 14px
                     screen.orientation.unlock();
+s
                     console.log("Orientación desbloqueada.");
                 } catch (e) {
                     console.warn("No se pudo desbloquear la orientación:", e);
-section-header
                 }
             }
             // --- *** FIN CORRECCIÓN JS *** ---
-        }
+}
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
