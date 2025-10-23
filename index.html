@@ -691,12 +691,15 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (CON CORRECCIÓN VERIFICADA hints.set(1,...) y AJUSTES PARA SAFARI/IOS) *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SIMPLIFICADA PARA SAFARI) *** ---
         
         async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             
+            // Asegurarse de detener cualquier instancia anterior por si acaso
+            detenerScanner(); 
+
             try {
                 // Asegurarnos que ZXingBrowser esté cargado
                 if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
@@ -714,40 +717,61 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
                     ZXingBrowser.BarcodeFormat.QR_CODE // Mantenido para pruebas
                 ];
-
-                // --- *** ¡LA CORRECCIÓN ESTÁ AQUÍ! *** ---
-                // Usamos el valor numérico 1 directamente.
                 hints.set(1, formats); // 1 = POSSIBLE_FORMATS
                 
                 // Inicializamos el lector CON las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
                 
                 scannerContainer.classList.remove('hidden');
-                console.log("Scanner iniciado, intentando acceder a la cámara..."); // Log para depuración
+                console.log("Scanner iniciado, intentando acceder a la cámara predeterminada..."); 
 
-                // --- AJUSTE: ESPECIFICAR CÁMARA TRASERA ---
-                const constraints = {
-                    video: {
-                        facingMode: 'environment' // Pedir la cámara trasera
-                    }
-                };
-
-                // Obtenemos la lista de dispositivos de video
-                const videoInputDevices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+                // --- *** CAMBIO: Usamos 'undefined' para que elija la cámara automáticamente *** ---
+                // Eliminamos la búsqueda explícita de 'selectedDeviceId' y 'constraints'
                 
-                let selectedDeviceId = undefined; // Usar undefined por defecto
-                if (videoInputDevices.length > 0) {
-                     const rearCamera = videoInputDevices.find(device => device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('environment'));
-                     // Si encontramos una cámara trasera, usamos su ID. Si no, dejamos undefined para que elija por defecto.
-                     if(rearCamera) {
-                         selectedDeviceId = rearCamera.deviceId;
-                         console.log(`Usando cámara trasera explícita: ${selectedDeviceId}`); 
-                     } else {
-                         console.log("No se encontró cámara trasera específica, usando la predeterminada.");
-                         // selectedDeviceId sigue siendo undefined
-                     }
-                } else {
-                    console.warn("No se encontraron dispositivos de video. Intentando con la cámara predeterminada."); 
-                }
+                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err, controls) => {
+                    // El callback se mantiene igual
+                    if (result) {
+                        console.log("Código encontrado:", result);
+                        document.getElementById('vin').value = result.text;
+                        detenerScanner(); 
+                        document.getElementById('vin').dispatchEvent(new Event('input'));
+                    }
+                    if (err) {
+                        if (!(err instanceof ZXingBrowser.NotFoundException)) {
+                             console.error("Error durante el escaneo:", err);
+                             // Considerar si mostrar un mensaje o detener si el error persiste
+                             // alert(`Error de escaneo: ${err}`);
+                             // detenerScanner(); 
+                        }
+                        // Si es NotFoundException, no hacemos nada, sigue escaneando.
+                    }
+                });
+
+            } catch (error) {
+                // Captura errores al configurar/iniciar la cámara
+                console.error("Error al iniciar el scanner: ", error);
+                alert(`Error al iniciar el scanner: ${error}. Revisa la consola para más detalles.`);
+                detenerScanner(); 
+            }
+        }
+
+        // La función detenerScanner se mantiene igual que en la versión anterior
+        function detenerScanner() {
+             if (codeReader) {
+                 try {
+                     codeReader.reset(); 
+                     console.log("Scanner detenido y recursos liberados."); 
+                 } catch (resetError) {
+                     console.error("Error al detener el scanner:", resetError);
+                 } finally {
+                      codeReader = null;
+                 }
+             }
+             const scannerContainer = document.getElementById('scanner-container');
+              if (scannerContainer) {
+                  scannerContainer.classList.add('hidden');
+              }
+        }
+        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 </body>
 </html>
