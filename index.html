@@ -132,10 +132,16 @@
     </div>
 
     <div id="scanner-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <video id="videoElement" playsinline style="width: 90%; max-width: 400px; height: auto; border: 2px solid white;"></video>
+        
+        <div style="position: relative; width: 95%; max-width: 600px;">
+            <video id="videoElement" playsinline style="width: 100%; height: auto; border: 2px solid white; background: #333; display: block;"></video>
+            <div style="position: absolute; width: 80%; height: 2px; background: #dc2626; box-shadow: 0 0 8px #dc2626; top: 50%; left: 10%; transform: translateY(-50%); z-index: 1;"></div>
+        </div>
+        
+        <div style="color: white; margin-top: 10px; font-size: 14px; text-align: center; padding: 0 10px;">Centre el código de barras en la línea roja</div>
+        
         <button id="btnStopScan" class="btn-danger-light" style="margin-top: 16px; padding: 12px 20px; font-size: 14px;">Cancelar</button>
     </div>
-
     <div class="container">
         <div id="comparador" class="card hidden">
             <div class="card-title">Comparar Vehículos</div>
@@ -642,30 +648,31 @@ TC: ${d.tc} | Fecha: ${d.fecha}
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
-                    ZXingBrowser.BarcodeFormat.DATA_MATRIX
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.QR_CODE // Agregado para pruebas
                 ];
                 
                 // Usamos el valor numérico 1 (que equivale a DecodeHintType.POSSIBLE_FORMATS)
                 hints.set(1, formats);
                 
                 // 4. Inicializar el lector con las pistas
-                // --- *** INICIO DE LA CORRECCIÓN *** ---
-                // Se debe usar 'BrowserMultiFormatReader' en lugar de 'BrowserCodeReader'
-                // Esta clase SÍ se inicializa con los hints y tiene el método 'decodeOnceFromVideoElement'
+                // Se usa 'BrowserMultiFormatReader'
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                // --- *** FIN DE LA CORRECCIÓN *** ---
-
+                
                 // 5. Mostrar el contenedor del scanner
                 scannerContainer.classList.remove('hidden');
                 console.log("Scanner iniciado, solicitando permiso de cámara...");
 
                 // 6. --- MANEJO MANUAL DEL STREAM ---
-                // Pedimos la cámara trasera ('environment') primero, ideal para escanear
+                // --- *** INICIO DE LA CORRECCIÓN (JS) *** ---
+                // Pedimos la cámara trasera ('environment') y un aspect ratio de paisaje
                 const constraints = {
                     video: {
-                        facingMode: 'environment'
+                        facingMode: 'environment',
+                        aspectRatio: { ideal: 1.7777777778 } // 16:9
                     }
                 };
+                // --- *** FIN DE LA CORRECCIÓN (JS) *** ---
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
