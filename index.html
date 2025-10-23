@@ -372,9 +372,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
             
-            // *** ESTA ES LA LÍNEA CLAVE ***
-            // Vuelve a ser la que era: escucha el evento 'input' (digitar/pegar)
-            // y llama a 'handleVinInput'.
+            // Listener principal para el input del VIN
             document.getElementById('vin').addEventListener('input', handleVinInput);
             
             document.getElementById('btnCalcular').addEventListener('click', calcular);
@@ -537,14 +535,11 @@
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         
-        // *** ESTA ES LA FUNCIÓN CLAVE (DE TU CÓDIGO ORIGINAL) ***
-        // Se ejecuta cuando el evento 'input' se dispara.
-        // Usa 'this' para referirse al input 'vin' que disparó el evento.
+        // Función manejadora del evento 'input' (usa 'this')
         function handleVinInput() {
-            console.log("handleVinInput triggered!");
+            console.log("handleVinInput triggered por evento input!");
             clearTimeout(vinDecodeTimeout);
             
-            // 'this' se refiere al elemento <input id="vin">
             const vin = this.value.toUpperCase().trim(); 
             const vinStatus = document.getElementById('vinStatus');
             limpiarFichaVIN();
@@ -589,7 +584,6 @@
                         displayVinData(vehicleInfo);
                         if (vehicleInfo.ModelYear) {
                             document.getElementById('ano').value = vehicleInfo.ModelYear;
-                            // Disparamos 'change' en 'ano' para que 'validarAno' se ejecute
                             document.getElementById('ano').dispatchEvent(new Event('change')); 
                         }
                     } else {
@@ -803,14 +797,15 @@ Fecha cálculo: ${d.fecha}
                         if (navigator.vibrate) { navigator.vibrate(100); }
                         
                         const vinInput = document.getElementById('vin');
-                        vinInput.value = result.text;
+                        vinInput.value = result.text; // Establecer el valor
                         
-                        // *** CORRECCIÓN ***
-                        // Llamamos a 'handleVinInput' forzando el contexto 'this'
-                        // para que sea el input del VIN.
-                        handleVinInput.call(vinInput);
+                        // *** CORRECCIÓN CLAVE ***
+                        // Disparamos el evento 'input' para que el listener lo capture
+                        // y ejecute handleVinInput con el 'this' correcto.
+                        vinInput.dispatchEvent(new Event('input'));
                         
-                        detenerScanner(); // Detener al encontrar
+                        // Retrasamos detenerScanner para asegurar que el evento se procese
+                        setTimeout(detenerScanner, 100); // Espera 100ms
                     }
                     
                     if (err && err.name !== 'NotFoundException') {
@@ -820,7 +815,7 @@ Fecha cálculo: ${d.fecha}
                     // Errores al *iniciar* el stream (ej. permisos denegados)
                     console.error("Error al INICIAR decodeFromConstraints:", err);
                     handleScannerError(err);
-                    detenerScanner();
+                    detenerScanner(); // Detener inmediatamente si hay error al iniciar
                 });
 
                 // 6. Manejo de Linterna
@@ -838,7 +833,7 @@ Fecha cálculo: ${d.fecha}
             } catch (error) {
                 console.error("Error general en iniciarScanner:", error);
                 handleScannerError(error);
-                detenerScanner();
+                detenerScanner(); // Asegurarse de detener si hay error general
             }
         }
 
@@ -876,10 +871,14 @@ Fecha cálculo: ${d.fecha}
                     const tracks = videoElement.srcObject.getVideoTracks();
                     tracks.forEach(track => {
                         // Intentar apagar la linterna si estaba encendida
-                        if (track && 'torch' in track.getCapabilities() && track.getSettings().torch) {
-                            track.applyConstraints({ advanced: [{ torch: false }] })
-                                .then(() => console.log("Linterna apagada."))
-                                .catch(e => console.warn("No se pudo apagar la linterna:", e));
+                        if (track && 'torch' in track.getCapabilities()) {
+                           const capabilities = track.getCapabilities();
+                           const settings = track.getSettings();
+                           if(capabilities.torch && settings.torch){ // Check if supported AND currently on
+                                track.applyConstraints({ advanced: [{ torch: false }] })
+                                    .then(() => console.log("Linterna apagada."))
+                                    .catch(e => console.warn("No se pudo apagar la linterna:", e));
+                           }
                         }
                         track.stop();
                     });
@@ -888,7 +887,12 @@ Fecha cálculo: ${d.fecha}
                 catch (e) { console.warn("Error menor al detener tracks:", e); }
                 videoElement.srcObject = null;
             }
-            if (videoElement) videoElement.load();
+            if (videoElement) {
+                videoElement.pause(); // Añadir pausa explícita
+                videoElement.removeAttribute('src'); // Quitar fuente
+                videoElement.load(); // Forzar recarga
+            }
+
 
             const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) scannerContainer.classList.add('hidden');
