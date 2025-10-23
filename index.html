@@ -691,86 +691,85 @@ TC: ${d.tc} | Fecha: ${d.fecha}
             limpiarFichaVIN();
         }
 
-        // --- *** INICIO: CÓDIGO DEL SCANNER (VERSIÓN SIMPLIFICADA PARA SAFARI) *** ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER (CORREGIDO) *** ---
         
         async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             
-            // Asegurarse de detener cualquier instancia anterior por si acaso
-            detenerScanner(); 
-
             try {
-                // Asegurarnos que ZXingBrowser esté cargado
+                // Primero, nos aseguramos que ZXingBrowser esté cargado
                 if (typeof ZXingBrowser === 'undefined' || ZXingBrowser === null) {
                     throw new Error('La librería de escaneo (ZXingBrowser) no se ha cargado correctamente.');
                 }
                 
-                // --- PISTAS PARA EL LECTOR ---
+                // --- PISTAS PARA EL LECTOR (MOVIDAS DENTRO DEL TRY) ---
                 const hints = new Map();
+                
+                // Verificamos que BarcodeFormat exista antes de usarlo
                 if (typeof ZXingBrowser.BarcodeFormat === 'undefined') {
                      throw new Error('Los formatos de código de barras (BarcodeFormat) no están disponibles en ZXingBrowser.');
                 }
+
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
                     ZXingBrowser.BarcodeFormat.CODE_128,
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
                     ZXingBrowser.BarcodeFormat.QR_CODE // Mantenido para pruebas
                 ];
+
+                // --- *** LA CORRECCIÓN DEFINITIVA *** ---
+                // Usamos el valor numérico 1 directamente, ya que DecodeHintType no está disponible.
                 hints.set(1, formats); // 1 = POSSIBLE_FORMATS
                 
                 // Inicializamos el lector CON las pistas
                 codeReader = new ZXingBrowser.BrowserCodeReader(hints);
-                
-                scannerContainer.classList.remove('hidden');
-                console.log("Scanner iniciado, intentando acceder a la cámara predeterminada..."); 
+                // --- FIN DE PISTAS ---
 
-                // --- *** CAMBIO: Usamos 'undefined' para que elija la cámara automáticamente *** ---
-                // Eliminamos la búsqueda explícita de 'selectedDeviceId' y 'constraints'
+                scannerContainer.classList.remove('hidden');
                 
-                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err, controls) => {
-                    // El callback se mantiene igual
+                // Pedir permiso y empezar a decodificar
+                codeReader.decodeFromVideoDevice(undefined, videoElement, (result, err) => {
                     if (result) {
+                        // ¡Resultado encontrado!
                         console.log("Código encontrado:", result);
                         document.getElementById('vin').value = result.text;
-                        detenerScanner(); 
+                        detenerScanner();
+                        // Disparar el evento 'input' para que tu lógica de 'handleVinInput' se ejecute
                         document.getElementById('vin').dispatchEvent(new Event('input'));
                     }
-                    if (err) {
-                        if (!(err instanceof ZXingBrowser.NotFoundException)) {
-                             console.error("Error durante el escaneo:", err);
-                             // Considerar si mostrar un mensaje o detener si el error persiste
-                             // alert(`Error de escaneo: ${err}`);
-                             // detenerScanner(); 
-                        }
-                        // Si es NotFoundException, no hacemos nada, sigue escaneando.
+                    if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+                        // Hubo un error que no fue "no se encontró código"
+                        // Solo mostramos errores significativos en la consola
+                        console.error("Error durante el escaneo:", err);
                     }
+                    // Si es NotFoundException, simplemente no hacemos nada y sigue escaneando.
                 });
 
             } catch (error) {
-                // Captura errores al configurar/iniciar la cámara
+                // Este catch ahora sí capturará CUALQUIER error
                 console.error("Error al iniciar el scanner: ", error);
                 alert(`Error al iniciar el scanner: ${error}. Revisa la consola para más detalles.`);
-                detenerScanner(); 
+                detenerScanner(); // Asegurarnos de cerrar si hubo un error al iniciar
             }
         }
 
-        // La función detenerScanner se mantiene igual que en la versión anterior
         function detenerScanner() {
-             if (codeReader) {
-                 try {
-                     codeReader.reset(); 
-                     console.log("Scanner detenido y recursos liberados."); 
-                 } catch (resetError) {
-                     console.error("Error al detener el scanner:", resetError);
-                 } finally {
-                      codeReader = null;
-                 }
+            if (codeReader) {
+                try {
+                    codeReader.reset(); // Apaga la cámara y libera recursos
+                } catch (resetError) {
+                    console.error("Error al detener el scanner:", resetError);
+                    // Aunque falle el reset, intentamos ocultar el contenedor
+                } finally {
+                     codeReader = null;
+                }
+            }
+            // Siempre intentamos ocultar el contenedor, incluso si codeReader es null
+            const scannerContainer = document.getElementById('scanner-container');
+             if (scannerContainer) {
+                 scannerContainer.classList.add('hidden');
              }
-             const scannerContainer = document.getElementById('scanner-container');
-              if (scannerContainer) {
-                  scannerContainer.classList.add('hidden');
-              }
         }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 </body>
