@@ -271,8 +271,8 @@
         <div class="header-title">
             <img src="new-logo.png" alt="Logo" class="header-logo">
             <div>
-                <h1>Calculadora de Vehículos</h1>
-                <p>Importación-Traspaso</p>
+                <h1>Calculadora</h1>
+                <p>Importación de Vehículos</p>
             </div>
         </div>
         <div class="header-buttons">
@@ -713,7 +713,7 @@
 
             historial.unshift({id: Date.now(), ...calculoActual }); 
             localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
-            showToast('✅ Cálculo guardado satisfactoriamente', 'success'); 
+            showToast('✅ Cálculo guardado con éxito', 'success'); 
             actualizarHistorialUI(); 
         }
 
