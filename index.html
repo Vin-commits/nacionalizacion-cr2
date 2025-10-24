@@ -6,11 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nacionalización CR">
-    
+
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="icon-192.png">
-    
+
     <title>Cálculo de Impuestos con VIN</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -21,7 +21,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-logo { width: 36px; height: 36px; }
+        .header-logo { width: 36px; height: 36px; } /* SVG o IMG */
         .header-title h1 {
             font-size: 18px;
             font-weight: bold;
@@ -30,7 +30,7 @@
         }
         .header-title p {
             font-size: 12px;
-            color: #fecdd3; /* Tono rojo-rosado profesional */
+            color: #dcfce7; /* VERDE CLARO: CAMBIO 1 */
             opacity: 1;
         }
         .header-buttons { display: flex; gap: 8px; }
@@ -178,7 +178,7 @@
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
         }
-       /* --- FIN CSS SCANNER --- */
+        /* --- FIN CSS SCANNER --- */
 
         /* ==== INICIO: CSS DEL TOAST ==== */
         #toast {
@@ -218,27 +218,56 @@
             background: #2563eb; /* Azul (como tus botones) */
         }
         /* ==== FIN: CSS DEL TOAST ==== */
-    </style>
-</head>
+
+        /* ==== INICIO: CSS PARA SECCIONES COLAPSABLES ==== */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f0f9ff; /* Un fondo más claro para el header */
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #1f2937;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            transition: background 0.2s ease-in-out;
+        }
+
+        .collapsible-header:hover {
+            background: #e0f2fe;
+        }
+
+        .collapsible-header .arrow-icon {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .collapsible-header.open .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+
+        .collapsible-content.open {
+            max-height: 500px; /* Suficientemente grande para contener el contenido */
+            opacity: 1;
+            margin-bottom: 12px; /* Espacio extra cuando está abierto */
+        }
+        /* ==== FIN: CSS PARA SECCIONES COLAPSABLES ==== */
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-title">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="white" class="header-logo">
-                <path d="M136.1,234.4c-15,0-27.2,12.2-27.2,27.2s12.2,27.2,27.2,27.2s27.2-12.2,27.2-27.2S151.1,234.4,136.1,234.4z M375.9,234.4
-                c-15,0-27.2,12.2-27.2,27.2s12.2,27.2,27.2,27.2s27.2-12.2,27.2-27.2S390.9,234.4,375.9,234.4z M464,176H48c-23.2,0-41,14.3-46.8,34.4
-                c-2.4,8.2-3.1,16.7-2.9,25.2v122.3c0,23.3,18.9,42.2,42.2,42.2H96v21.1c0,11.7,9.5,21.1,21.1,21.1h21.1c11.7,0,21.1-9.5,21.1-21.1
-                v-21.1h192v21.1c0,11.7,9.5,21.1,21.1,21.1h21.1c11.7,0,21.1-9.5,21.1-21.1v-21.1h53.8c23.3,0,42.2-18.9,42.2-42.2V235.5
-                c0.3-8.4-0.5-16.9-2.9-25.2C505,190.3,487.2,176,464,176z M144,304c-22.1,0-40-17.9-40-40s17.9-40,40-40s40,17.9,40,40S166.1,304,144,304
-                z M368,304c-22.1,0-40-17.9-40-40s17.9-40,40-40s40,17.9,40,40S390.1,304,368,304z M488,235.5c-0.1,4.5-1.1,8.9-2.9,12.9
-                c-4.3,9.5-13.4,15.6-23.7,15.6h-48.4c-6-30.8-32.1-53.5-63.5-56.1l48.6-48.6c3.3-3.3,3.3-8.6,0-11.8l-15.8-15.8
-                c-3.3-3.3-8.6-3.3-11.8,0l-65,65.1c-1.3,1.3-2.3,2.8-2.9,4.4c-11.8-1.7-23.9-2.6-36.1-2.6s-24.3,0.9-36.1,2.6
-                c-0.6-1.6-1.6-3.1-2.9-4.4l-65-65.1c-3.3-3.3-8.6-3.3-11.8,0l-15.8,15.8c-3.3-3.3-3.3,8.6,0,11.8l48.6,48.6
-                c-31.4,2.6-57.5,25.3-63.5,56.1H48.5c-10.3,0-19.4-6.2-23.7-15.6c-1.9-4-2.8-8.4-2.9-12.9V235c0-0.2,0-0.3,0-0.5
-                c0-8.5,3.4-16.7,9.4-22.6c6-6,14.1-9.4,22.6-9.4H464c8.5,0,16.6,3.4,22.6,9.4c6,6,9.4,14.1,9.4,22.6C488,235.1,488,235.3,488,235.5
-                z"/>
-            </svg>
+            <img src="new-logo.png" alt="Logo" class="header-logo">
             <div>
                 <h1>Cálculo de Impuestos</h1>
                 <p>Importación de Vehículos</p>
@@ -305,41 +334,55 @@
 
             <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
 
-            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Convertidor de Distancia</div>
-            <div class="form-group">
-                <label for="millaje">Millaje / Kilometraje</label>
-                <input type="number" id="millaje" placeholder="30000">
-                <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
+            <div class="collapsible-header" data-target="collapsible-millaje">
+                <span>Convertidor de Distancia</span>
+                <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+                    <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
+                </svg>
             </div>
-            <div class="button-group">
-                <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
-                <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
-            </div>
-
-            <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
-                <div class="card-title info-card-title">Resultado de Conversión</div>
-                <div class="detail-row">
-                    <span class="detail-label" id="millajeResultadoLabel"></span>
-                    <span class="detail-value" id="millajeResultadoValor"></span>
+            <div id="collapsible-millaje" class="collapsible-content">
+                <div class="form-group">
+                    <label for="millaje">Millaje / Kilometraje</label>
+                    <input type="number" id="millaje" placeholder="30000">
+                    <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
                 </div>
-                <div class="detail-row" style="border-bottom: none;">
-                    <span class="detail-label" id="millajePromedioLabel"></span>
-                    <span class="detail-value" id="millajePromedioValor"></span>
+                <div class="button-group">
+                    <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
+                    <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
                 </div>
-                <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
+
+                <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
+                    <div class="card-title info-card-title">Resultado de Conversión</div>
+                    <div class="detail-row">
+                        <span class="detail-label" id="millajeResultadoLabel"></span>
+                        <span class="detail-value" id="millajeResultadoValor"></span>
+                    </div>
+                    <div class="detail-row" style="border-bottom: none;">
+                        <span class="detail-label" id="millajePromedioLabel"></span>
+                        <span class="detail-value" id="millajePromedioValor"></span>
+                    </div>
+                    <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
+                </div>
+                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
             </div>
-
-            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-
-            <div class="card-title" style="font-size: 14px; margin-bottom: 8px;">Herramienta: Cálculo de Traspaso</div>
-            <div class="form-group">
-                <label for="valorFiscal">Valor Fiscal (₡)</label>
-                <input type="number" id="valorFiscal" placeholder="10000000">
+            
+            <div class="collapsible-header" data-target="collapsible-traspaso">
+                <span>Cálculo de Traspaso</span>
+                <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+                    <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
+                </svg>
             </div>
-            <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
-            <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+            <div id="collapsible-traspaso" class="collapsible-content">
+                <div class="form-group">
+                    <label for="valorFiscal">Valor Fiscal (₡)</label>
+                    <input type="number" id="valorFiscal" placeholder="10000000">
+                </div>
+                <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+                <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+            </div>
+            
 
-            <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
             <div class="form-group">
                 <label for="valor">Valor (USD)</label>
                 <input type="number" id="valor" placeholder="25000">
@@ -389,7 +432,7 @@
             <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
         </div>
     </div>
-</div> <div id="toast" class="toast"></div>
+    <div id="toast" class="toast"></div>
     <script>
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
@@ -398,7 +441,8 @@
         let calculoActual = null;
         let vinDecodeTimeout;
         let codeReader = null; // Variable global para el scanner
-        let toastTimeout;
+        let toastTimeout; // <-- AÑADE ESTA LÍNEA
+
         const anoActual = new Date().getFullYear();
 
         const COSTOS_FIJOS = {
@@ -417,10 +461,7 @@
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
-            
-            // Listener principal para el input del VIN
             document.getElementById('vin').addEventListener('input', handleVinInput);
-            
             document.getElementById('btnCalcular').addEventListener('click', calcular);
             document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
             document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
@@ -440,6 +481,22 @@
             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
+            // --- LISTENERS COLAPSABLES (CAMBIO 4) ---
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.target;
+                    const content = document.getElementById(targetId);
+                    if (content) {
+                        header.classList.toggle('open');
+                        content.classList.toggle('open');
+                        // Puedes añadir scrollIntoView para mejorar UX en móviles
+                        if (content.classList.contains('open')) {
+                            content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                });
+            });
+
             document.getElementById('ano').max = anoActual + 1;
             actualizarHistorialUI();
             fetchTipoDeCambio();
@@ -448,25 +505,21 @@
         // --- FUNCIONES DE FORMATO ---
         function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
         function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
-        
-// --- FUNCIÓN DEL TOAST ---
-function showToast(message, type = 'info', duration = 3000) {
-    const toast = document.getElementById('toast');
 
-    // Limpiar cualquier timeout anterior
-    clearTimeout(toastTimeout);
+        // --- FUNCIÓN DEL TOAST ---
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.getElementById('toast');
+            
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.className = 'toast'; 
+            toast.classList.add(type); 
+            toast.classList.add('show'); 
 
-    // Configurar el toast
-    toast.textContent = message;
-    toast.className = 'toast'; // Resetea clases
-    toast.classList.add(type); // 'success', 'error', o 'info'
-    toast.classList.add('show'); // Lo hace visible
-
-    // Ocultarlo después de 'duration' milisegundos
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-    }, duration);
-}
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
 
         // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
         function validarAno() {
@@ -489,20 +542,29 @@ function showToast(message, type = 'info', duration = 3000) {
             const flete = parseFloat(document.getElementById('flete').value) || 0;
             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
             if (!ano || !valor || !flete || !tc) { 
-    showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); 
-    return; 
-}
+                showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); 
+                return; 
+            }
             const antiguedad = anoActual - ano;
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
+
+            // La "base imponible" es el valor + flete + seguros.
+            // Para fines de desglose, incluimos los seguros directamente en el cálculo
+            // de la base antes de aplicar el impuesto.
             const valorPlusFlete = valor + flete;
             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-            const baseImpuestos = valorPlusFlete + totalSeguros;
+            const baseImpuestos = valorPlusFlete + totalSeguros; // Esta es la base sobre la que se calcula el impuesto.
+
             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-            const subtotalVehiculoCRC = valorPlusFlete * tc;
+            
+            // Subtotal del vehículo en CRC (solo valor + flete)
+            const subtotalVehiculoCRC = valorPlusFlete * tc; 
+
             const impuestosCRC = impuestosUSD * tc;
             const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
+
             calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR') };
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
@@ -517,8 +579,7 @@ function showToast(message, type = 'info', duration = 3000) {
                 <div class="section-header">VALORES EN DÓLARES</div>
                 <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
                 <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
-                <div class="detail-row"><span class="detail-label">Seguros</span><span class="detail-value">${formatUSD(d.totalSeguros)}</span></div>
-                <div class="detail-row subtotal"><span class="detail-label">Base Impuestos (USD)</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
+                <div class="detail-row subtotal"><span class="detail-label">Subtotal en Dólares</span><span class="detail-value">${formatUSD(d.baseImpuestos)}</span></div>
                 <div class="section-header">VALORES EN COLONES</div>
                 <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
                 <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
@@ -547,8 +608,8 @@ function showToast(message, type = 'info', duration = 3000) {
                 promedioStatus.textContent = mensaje;
                 promedioStatus.style.color = '#dc2626';
             }
-            if (!valorInput || valorInput < 0) { mostrarError('Ingrese un valor de millaje válido'); return; }
-            if (!ano || ano < 1980 || ano > anoActual + 1) { mostrarError('Ingrese un año de vehículo válido'); return; }
+            if (!valorInput || valorInput < 0) { showToast('Ingrese un valor de millaje válido', 'error'); return; }
+            if (!ano || ano < 1980 || ano > anoActual + 1) { showToast('Ingrese un año de vehículo válido', 'error'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
             if (event.target.id === 'btnMillasAKm') {
@@ -579,7 +640,8 @@ function showToast(message, type = 'info', duration = 3000) {
             const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
             const resultadoEl = document.getElementById('resultadoTraspaso');
             if (!valorFiscal || valorFiscal <= 0) {
-                resultadoEl.textContent = 'Ingrese un valor fiscal válido';
+                showToast('Ingrese un valor fiscal válido', 'error'); 
+                resultadoEl.textContent = 'Ingrese un valor fiscal válido'; // Mantener el texto de error visible en el campo
                 resultadoEl.style.color = '#dc2626';
                 return;
             }
@@ -718,7 +780,6 @@ ${doubleLine}
 ${b}Base (USD):${b}
 Valor: ${formatUSD(d.valor)}
 Flete: ${formatUSD(d.flete)}
-Seguros: ${formatUSD(d.totalSeguros)}
 *Subtotal USD:* ${formatUSD(d.baseImpuestos)}
 ${line}
 
@@ -734,7 +795,7 @@ Fecha cálculo: ${d.fecha}
             return texto;
         }
         function descargarPDF() {
-            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
+            if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
             try {
                 if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
                     throw new Error("La librería jsPDF no está cargada.");
@@ -748,11 +809,11 @@ Fecha cálculo: ${d.fecha}
                 doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`);
             } catch (e) {
                 console.error("Error al generar PDF:", e);
-                alert(`No se pudo generar el PDF: ${e.message}. Revisa la consola para más detalles.`);
+                showToast(`❌ No se pudo generar el PDF: ${e.message}`, 'error', 5000);
             }
         }
         function enviarWhatsApp() {
-            if (!calculoActual) { alert('Primero calcula un vehículo'); return; }
+            if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
             const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
             window.open(whatsappURL, '_blank');
@@ -776,9 +837,6 @@ Fecha cálculo: ${d.fecha}
             });
             calculoActual = null;
             
-            // *** CORRECCIÓN ***
-            // Llamamos a 'handleVinInput' forzando el contexto 'this'
-            // para que sea el input del VIN (ahora vacío).
             handleVinInput.call(document.getElementById('vin'));
 
             fetchTipoDeCambio();
@@ -788,15 +846,12 @@ Fecha cálculo: ${d.fecha}
             const vinInput = document.getElementById('vin');
             vinInput.value = '';
 
-            // *** CORRECCIÓN ***
-            // Llamamos a 'handleVinInput' forzando el contexto 'this'
-            // para que sea el input del VIN (ahora vacío).
             handleVinInput.call(vinInput);
         }
 
        // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
 
-        async function iniciarScanner() {
+       async function iniciarScanner() {
             console.log("Iniciando scanner...");
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
@@ -804,7 +859,6 @@ Fecha cálculo: ${d.fecha}
             detenerScanner(); // Limpia instancias anteriores
 
             try {
-                // Bloquear Orientación
                 if (typeof screen.orientation?.lock === 'function') {
                     try {
                         await screen.orientation.lock('landscape');
@@ -812,12 +866,10 @@ Fecha cálculo: ${d.fecha}
                     } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
                 }
 
-                // 1. Validar librería
                 if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
                     throw new Error('Librería ZXingBrowser no cargada.');
                 }
 
-                // 2. Configurar hints
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39,
@@ -839,7 +891,6 @@ Fecha cálculo: ${d.fecha}
                     console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
                 }
 
-                // 3. Configurar constraints
                 const constraints = {
                     video: {
                         facingMode: 'environment',
@@ -849,15 +900,12 @@ Fecha cálculo: ${d.fecha}
                 };
                 console.log("Constraints de video simplificadas:", constraints);
 
-                // 4. Inicializar codeReader
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
                 console.log("CodeReader inicializado.");
 
-                // Mostrar UI
                 scannerContainer.classList.remove('hidden');
                 console.log("Contenedor del scanner visible.");
 
-                // 5. Iniciar escaneo usando decodeFromConstraints
                 console.log("Iniciando decodeFromConstraints...");
                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
@@ -867,26 +915,21 @@ Fecha cálculo: ${d.fecha}
                         const vinInput = document.getElementById('vin');
                         vinInput.value = result.text; // Establecer el valor
                         
-                        // *** CORRECCIÓN CLAVE ***
-                        // Disparamos el evento 'input' para que el listener lo capture
-                        // y ejecute handleVinInput con el 'this' correcto.
-                        vinInput.dispatchEvent(new Event('input'));
+                        console.log("VIN detectado, llamando a handleVinInput directamente...");
+                        handleVinInput.call(vinInput); 
                         
-                        // Retrasamos detenerScanner para asegurar que el evento se procese
-                        setTimeout(detenerScanner, 100); // Espera 100ms
+                        setTimeout(detenerScanner, 100); 
                     }
                     
                     if (err && err.name !== 'NotFoundException') {
                          console.error("Error durante escaneo continuo:", err); 
                     }
                 }).catch(err => {
-                    // Errores al *iniciar* el stream (ej. permisos denegados)
                     console.error("Error al INICIAR decodeFromConstraints:", err);
                     handleScannerError(err);
-                    detenerScanner(); // Detener inmediatamente si hay error al iniciar
+                    detenerScanner(); 
                 });
 
-                // 6. Manejo de Linterna
                 videoElement.addEventListener('loadedmetadata', () => {
                     if (videoElement.srcObject) {
                         const track = videoElement.srcObject.getVideoTracks()[0];
@@ -901,7 +944,7 @@ Fecha cálculo: ${d.fecha}
             } catch (error) {
                 console.error("Error general en iniciarScanner:", error);
                 handleScannerError(error);
-                detenerScanner(); // Asegurarse de detener si hay error general
+                detenerScanner(); 
             }
         }
 
@@ -920,7 +963,7 @@ Fecha cálculo: ${d.fecha}
             if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
                 scannerContainer.classList.add('hidden');
             }
-            alert(errorMsg);
+            showToast(`❌ ${errorMsg}`, 'error', 5000); // Reemplazado alert por showToast
         }
 
         function detenerScanner() {
@@ -938,11 +981,10 @@ Fecha cálculo: ${d.fecha}
                 try {
                     const tracks = videoElement.srcObject.getVideoTracks();
                     tracks.forEach(track => {
-                        // Intentar apagar la linterna si estaba encendida
                         if (track && 'torch' in track.getCapabilities()) {
                            const capabilities = track.getCapabilities();
                            const settings = track.getSettings();
-                           if(capabilities.torch && settings.torch){ // Check if supported AND currently on
+                           if(capabilities.torch && settings.torch){ 
                                 track.applyConstraints({ advanced: [{ torch: false }] })
                                     .then(() => console.log("Linterna apagada."))
                                     .catch(e => console.warn("No se pudo apagar la linterna:", e));
@@ -956,9 +998,9 @@ Fecha cálculo: ${d.fecha}
                 videoElement.srcObject = null;
             }
             if (videoElement) {
-                videoElement.pause(); // Añadir pausa explícita
-                videoElement.removeAttribute('src'); // Quitar fuente
-                videoElement.load(); // Forzar recarga
+                videoElement.pause();
+                videoElement.removeAttribute('src');
+                videoElement.load();
             }
 
 
@@ -973,19 +1015,5 @@ Fecha cálculo: ${d.fecha}
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
-
-    <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(registration => {
-          console.log('Service Worker registrado con éxito:', registration.scope);
-        })
-        .catch(error => {
-          console.log('Error al registrar Service Worker:', error);
-        });
-    });
-  }
-</script>
 </body>
 </html>
