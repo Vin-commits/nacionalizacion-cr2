@@ -21,16 +21,16 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-logo { width: 36px; height: 36px; } /* SVG o IMG. ELIMINADO: filter: invert(1); */
+        .header-logo { width: 36px; height: 36px; } /* SVG o IMG. */
         .header-title h1 {
             font-size: 18px;
             font-weight: bold;
-            color: white; /* Título en blanco para máximo contraste */
+            color: white; 
             text-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
         .header-title p {
             font-size: 12px;
-            color: #86efac; /* CAMBIO V4: Verde más oscuro */
+            color: #86efac; 
             opacity: 1;
         }
         .header-buttons { display: flex; gap: 8px; }
@@ -69,6 +69,17 @@
         label { display: block; font-size: 12px; font-weight: 600; color: #374151; }
         input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-family: inherit; }
         input:focus { outline: none; border-color: #2563eb; background: #f0f9ff; }
+        
+        /* Ocultar flechas en inputs de tipo número */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+
         .help-text { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; align-items: center; gap: 6px;}
         .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 
@@ -104,7 +115,6 @@
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
         
-        /* Estilos específicos para mostrar info del vehículo en historial */
         .historial-vehicle-info { 
             font-size: 13px; 
             color: #4b5563; 
@@ -181,7 +191,7 @@
             background: rgba(255,255,255,0.2);
             color: white;
             border: 1px solid rgba(255,255,255,0.5);
-            z-index: 203; /* Asegurar que esté sobre la sombra */
+            z-index: 203; 
         }
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
@@ -196,14 +206,13 @@
             transform: translateX(-50%);
             padding: 12px 24px;
             border-radius: 8px;
-            background: #2d3748; /* Color oscuro por defecto */
+            background: #2d3748; 
             color: white;
             font-size: 14px;
             font-weight: 600;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             
-            /* Animación */
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
@@ -212,19 +221,12 @@
         #toast.show {
             visibility: visible;
             opacity: 1;
-            transform: translateX(-50%) translateY(0); /* Estado visible */
+            transform: translateX(-50%) translateY(0); 
         }
         
-        /* Tipos de Toast */
-        #toast.success {
-            background: #059669; /* Verde (como tu result-card) */
-        }
-        #toast.error {
-            background: #dc2626; /* Rojo (como tus errores) */
-        }
-        #toast.info {
-            background: #2563eb; /* Azul (como tus botones) */
-        }
+        #toast.success { background: #059669; }
+        #toast.error   { background: #dc2626; }
+        #toast.info    { background: #2563eb; }
         /* ==== FIN: CSS DEL TOAST ==== */
 
         /* ==== INICIO: CSS PARA SECCIONES COLAPSABLES ==== */
@@ -232,7 +234,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f0f9ff; /* Un fondo más claro para el header */
+            background: #f0f9ff; 
             padding: 12px 16px;
             border-radius: 8px;
             margin-bottom: 12px;
@@ -243,31 +245,23 @@
             transition: background 0.2s ease-in-out;
         }
 
-        .collapsible-header:hover {
-            background: #e0f2fe;
-        }
-
+        .collapsible-header:hover { background: #e0f2fe; }
         .collapsible-header .arrow-icon {
             width: 18px;
             height: 18px;
             transition: transform 0.3s ease-in-out;
         }
-
-        .collapsible-header.open .arrow-icon {
-            transform: rotate(180deg);
-        }
-
+        .collapsible-header.open .arrow-icon { transform: rotate(180deg); }
         .collapsible-content {
             overflow: hidden;
             max-height: 0;
             opacity: 0;
             transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
         }
-
         .collapsible-content.open {
-            max-height: 500px; /* Suficientemente grande para contener el contenido */
+            max-height: 500px; 
             opacity: 1;
-            margin-bottom: 12px; /* Espacio extra cuando está abierto */
+            margin-bottom: 12px; 
         }
         /* ==== FIN: CSS PARA SECCIONES COLAPSABLES ==== */
     </style>
@@ -320,14 +314,14 @@
                 <div class="help-text" id="vinStatus"></div>
 
                 <div class="button-group" style="margin-top: 8px;">
-                    <button id="btnScanVIN" class="btn-secondary">📸 Escanear VIN</button>
+                    <button id="btnScanVIN" class="btn-secondary">║▌║ Escanear VIN</button>
                     <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="ano">Año del Vehículo</label>
-                <input type="number" id="ano" placeholder="2022" min="1980">
+                <input type="number" id="ano" placeholder="2022" min="1980" inputmode="numeric">
                 <div class="help-text" id="ayudaAno"></div>
             </div>
 
@@ -351,7 +345,7 @@
             <div id="collapsible-millaje" class="collapsible-content">
                 <div class="form-group">
                     <label for="millaje">Millaje / Kilometraje</label>
-                    <input type="number" id="millaje" placeholder="30000">
+                    <input type="number" id="millaje" placeholder="30000" inputmode="numeric">
                     <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
                 </div>
                 <div class="button-group">
@@ -383,7 +377,7 @@
             <div id="collapsible-traspaso" class="collapsible-content">
                 <div class="form-group">
                     <label for="valorFiscal">Valor Fiscal (₡)</label>
-                    <input type="number" id="valorFiscal" placeholder="10000000">
+                    <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
                 </div>
                 <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
                 <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
@@ -393,12 +387,12 @@
 
             <div class="form-group">
                 <label for="valor">Valor (USD)</label>
-                <input type="number" id="valor" placeholder="25000">
+                <input type="number" id="valor" placeholder="25000" inputmode="numeric">
             </div>
 
             <div class="form-group">
                 <label for="flete">Flete (USD)</label>
-                <input type="number" id="flete" placeholder="1500">
+                <input type="number" id="flete" placeholder="1500" inputmode="numeric">
             </div>
 
             <div class="form-group">
@@ -406,7 +400,7 @@
                     <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
                     <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
                 </div>
-                <input type="number" id="tipoCambio" placeholder="520">
+                <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric">
                 <div class="help-text" id="tipoCambioHelp"></div>
             </div>
 
@@ -451,7 +445,6 @@
         let codeReader = null; 
         let toastTimeout; 
 
-        // Variable global para almacenar la información VIN actual
         let currentVinInfo = { make: '', model: '', year: '' }; 
 
         const anoActual = new Date().getFullYear();
@@ -472,6 +465,9 @@
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ano').addEventListener('change', validarAno);
+            // CAMBIO V6: Nuevo listener para validación de año en tiempo real
+            document.getElementById('ano').addEventListener('input', validarInicioAno);
+
             document.getElementById('vin').addEventListener('input', handleVinInput);
             document.getElementById('btnCalcular').addEventListener('click', calcular);
             document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
@@ -530,15 +526,36 @@
                 toast.classList.remove('show');
             }, duration);
         }
+        
+        // --- CAMBIO V6: NUEVA FUNCIÓN DE VALIDACIÓN DE AÑO ---
+        function validarInicioAno() {
+            const anoInput = document.getElementById('ano');
+            const ayudaAno = document.getElementById('ayudaAno');
+            const valor = anoInput.value;
+
+            if (valor.length > 0 && valor[0] !== '1' && valor[0] !== '2') {
+                ayudaAno.innerHTML = '<span style="color: #dc2626;">El año debe comenzar con 1 o 2</span>';
+            } else {
+                // Si el error estaba y se corrigió, limpiar el mensaje de error
+                if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) {
+                     ayudaAno.innerHTML = '';
+                }
+            }
+        }
+        // --- FIN CAMBIO V6 ---
 
         // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
         function validarAno() {
             const anoInput = document.getElementById('ano');
             const ayudaAno = document.getElementById('ayudaAno');
             const ano = parseInt(anoInput.value);
+
+            // CAMBIO V6: La validación de 'inicio' se hace en 'validarInicioAno'
+            // Esta función (en 'change') hace la validación final.
             if (!ano || ano < 1980 || ano > anoActual + 1) {
-                anoInput.value = '';
-                ayudaAno.textContent = 'Año inválido';
+                // No limpiar el input, solo mostrar error.
+                // anoInput.value = ''; // Comentado para que el usuario vea su error
+                ayudaAno.innerHTML = '<span style="color: #dc2626;">Año inválido (1980 - ' + (anoActual + 1) + ')</span>';
             } else {
                 const antiguedad = anoActual - ano;
                 const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
@@ -551,7 +568,14 @@
             const valor = parseFloat(document.getElementById('valor').value) || 0;
             const flete = parseFloat(document.getElementById('flete').value) || 0;
             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
-            if (!ano || !valor || !flete || !tc) { 
+            
+            // CAMBIO V6: Validación de año más estricta antes de calcular
+             if (!ano || ano < 1980 || ano > anoActual + 1) {
+                showToast('Por favor, ingrese un año válido', 'error');
+                document.getElementById('ano').focus(); // Poner foco en el campo de año
+                return;
+            }
+            if (!valor || !flete || !tc) { 
                 showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); 
                 return; 
             }
@@ -580,8 +604,7 @@
                 almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
                 tc, totalColones, 
                 fecha: new Date().toLocaleString('es-CR'),
-                // AGREGAR INFO DEL VEHÍCULO ACTUAL
-                vinInfo: { ...currentVinInfo } // Copiar la información decodificada del VIN
+                vinInfo: { ...currentVinInfo } 
             };
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
@@ -673,13 +696,19 @@
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
         function guardarHistorial() { 
-            if (!calculoActual) return; 
+            if (!calculoActual) {
+                showToast('Primero debes calcular un vehículo', 'error');
+                return;
+            } 
 
             // Asegurarse de que el objeto currentVinInfo tenga datos relevantes para el historial
+            // Si el usuario escribió el año manualmente, currentVinInfo.year estará vacío.
+            let infoAno = document.getElementById('ano').value || 'N/D';
+            
             calculoActual.vinInfo = { 
                 make: document.getElementById('vinMake').textContent || 'N/D',
                 model: document.getElementById('vinModel').textContent || 'N/D',
-                year: document.getElementById('ano').value || 'N/D'
+                year: infoAno
             };
 
             historial.unshift({id: Date.now(), ...calculoActual }); 
@@ -701,13 +730,15 @@
                 const isSelected = vehiculosSeleccionados.has(item.id); 
                 const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; 
                 
-                // Construir la información del vehículo para mostrar en el historial
                 let vehicleInfoText = '';
-                if (item.vinInfo && item.vinInfo.make && item.vinInfo.model && item.vinInfo.year) {
+                if (item.vinInfo && item.vinInfo.make !== 'N/D' && item.vinInfo.model !== 'N/D') {
                     vehicleInfoText = `${item.vinInfo.year} ${item.vinInfo.make} ${item.vinInfo.model}`;
-                } else if (item.ano) { // Si no hay info VIN, al menos mostrar el año
+                } else if (item.ano) { 
                     vehicleInfoText = `Año: ${item.ano}`;
+                } else {
+                    vehicleInfoText = "Vehículo (sin info)";
                 }
+
 
                 html += `
                     <div class="${cardClass}" data-id="${item.id}">
@@ -746,7 +777,7 @@
             let html = ''; 
             sel.forEach((v, idx) => { 
                 let vehicleInfoText = 'Vehículo';
-                if (v.vinInfo && v.vinInfo.make && v.vinInfo.model && v.vinInfo.year) {
+                if (v.vinInfo && v.vinInfo.make !== 'N/D' && v.vinInfo.model !== 'N/D') {
                     vehicleInfoText = `${v.vinInfo.year} ${v.vinInfo.make} ${v.vinInfo.model}`;
                 } else if (v.ano) {
                     vehicleInfoText = `Año: ${v.ano}`;
@@ -787,7 +818,7 @@
             const vin = this.value.toUpperCase().trim(); 
             const vinStatus = document.getElementById('vinStatus');
             limpiarFichaVIN();
-            currentVinInfo = { make: '', model: '', year: '' }; // Limpiar info VIN global
+            currentVinInfo = { make: '', model: '', year: '' }; 
 
             if (vin.length === 0) {
                 vinStatus.innerHTML = '';
@@ -822,7 +853,6 @@
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
                         
-                        // Guardar en la variable global currentVinInfo
                         currentVinInfo = {
                             make: vehicleInfo.Make || 'N/D',
                             model: vehicleInfo.Model || 'N/D',
@@ -836,7 +866,7 @@
                     } else {
                         vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado o inválido"}</span>`;
                         limpiarFichaVIN();
-                        currentVinInfo = { make: '', model: '', year: '' }; // Limpiar si hubo error
+                        currentVinInfo = { make: '', model: '', year: '' }; 
                     }
                 } else {
                     throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
@@ -845,7 +875,7 @@
                 console.error('Error fetching VIN data:', error);
                 vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
                 limpiarFichaVIN();
-                currentVinInfo = { make: '', model: '', year: '' }; // Limpiar si hubo error
+                currentVinInfo = { make: '', model: '', year: '' }; 
             }
         }
         async function fetchTipoDeCambio() {
@@ -893,7 +923,7 @@
             const doubleLine = '=====================';
             
             let vinDisplay = '';
-            if (d.vinInfo && d.vinInfo.make && d.vinInfo.model && d.vinInfo.year) {
+            if (d.vinInfo && d.vinInfo.make !== 'N/D' && d.vinInfo.model !== 'N/D') {
                 vinDisplay = `Vehículo: ${d.vinInfo.year} ${d.vinInfo.make} ${d.vinInfo.model}\n`;
             } else if (d.ano) {
                 vinDisplay = `Año: ${d.ano}\n`;
@@ -963,7 +993,7 @@ Fecha cálculo: ${d.fecha}
                 if (element) element.classList.add('hidden');
             });
             calculoActual = null;
-            currentVinInfo = { make: '', model: '', year: '' }; // Limpiar info VIN global
+            currentVinInfo = { make: '', model: '', year: '' }; 
             
             handleVinInput.call(document.getElementById('vin'));
 
