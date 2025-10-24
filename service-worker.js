@@ -1,12 +1,10 @@
 // Nombre de la caché
-const CACHE_NAME = 'nacionalizacion-cr-cache-v2';
-
-// Archivos para guardar en caché (el "App Shell")
 const CACHE_FILES = [
-  '.', // Esto cachea el index.html (o la página raíz)
+  '.',
   'manifest.json',
-  'icon-192.png', // Añadimos los íconos
+  'icon-192.png',
   'icon-512.png',
+  'new-logo.png', // <--- AÑADE ESTA LÍNEA
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js'
 ];
