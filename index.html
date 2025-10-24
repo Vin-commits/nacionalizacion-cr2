@@ -178,7 +178,48 @@
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
         }
-        /* --- FIN CSS SCANNER --- */
+       /* --- FIN CSS SCANNER --- */
+
+        /* ==== INICIO: CSS DEL TOAST ==== */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: #2d3748; /* Color oscuro por defecto */
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            
+            /* Animación */
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0); /* Estado visible */
+        }
+        
+        /* Tipos de Toast */
+        #toast.success {
+            background: #059669; /* Verde (como tu result-card) */
+        }
+        #toast.error {
+            background: #dc2626; /* Rojo (como tus errores) */
+        }
+        #toast.info {
+            background: #2563eb; /* Azul (como tus botones) */
+        }
+        /* ==== FIN: CSS DEL TOAST ==== */
+    </style>
+</head>
     </style>
 </head>
 <body>
@@ -348,7 +389,7 @@
             <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
         </div>
     </div>
-
+</div> <div id="toast" class="toast"></div>
     <script>
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
@@ -357,7 +398,7 @@
         let calculoActual = null;
         let vinDecodeTimeout;
         let codeReader = null; // Variable global para el scanner
-
+        let toastTimeout;
         const anoActual = new Date().getFullYear();
 
         const COSTOS_FIJOS = {
@@ -407,6 +448,25 @@
         // --- FUNCIONES DE FORMATO ---
         function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
         function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
+        
+// --- FUNCIÓN DEL TOAST ---
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.getElementById('toast');
+
+    // Limpiar cualquier timeout anterior
+    clearTimeout(toastTimeout);
+
+    // Configurar el toast
+    toast.textContent = message;
+    toast.className = 'toast'; // Resetea clases
+    toast.classList.add(type); // 'success', 'error', o 'info'
+    toast.classList.add('show'); // Lo hace visible
+
+    // Ocultarlo después de 'duration' milisegundos
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, duration);
+}
 
         // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
         function validarAno() {
@@ -428,7 +488,10 @@
             const valor = parseFloat(document.getElementById('valor').value) || 0;
             const flete = parseFloat(document.getElementById('flete').value) || 0;
             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
-            if (!ano || !valor || !flete || !tc) { alert('Completa todos los campos'); return; }
+            if (!ano || !valor || !flete || !tc) { 
+    showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); 
+    return; 
+}
             const antiguedad = anoActual - ano;
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
             const valorPlusFlete = valor + flete;
@@ -530,7 +593,7 @@
         }
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); alert('Guardado'); actualizarHistorialUI(); }
+        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); showToast('✅ Cálculo guardado', 'success'); actualizarHistorialUI(); }
         function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
         function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
         function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
