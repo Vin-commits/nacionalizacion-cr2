@@ -1,5 +1,5 @@
 // Nombre de la caché
-const CACHE_NAME = 'nacionalizacion-cr-cache-v5'; // CAMBIO V4
+const CACHE_NAME = 'nacionalizacion-cr-cache-v6'; // CAMBIO V4
 
 // Archivos para guardar en caché (el "App Shell")
 const CACHE_FILES = [
