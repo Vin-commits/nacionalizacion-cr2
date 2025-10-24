@@ -271,8 +271,8 @@
         <div class="header-title">
             <img src="new-logo.png" alt="Logo" class="header-logo">
             <div>
-                <h1>Cálculo de Impuestos</h1>
-                <p>Importación de Vehículos</p>
+                <h1>Calculadora de Vehículos</h1>
+                <p>Importación-Traspaso</p>
             </div>
         </div>
         <div class="header-buttons">
@@ -713,7 +713,7 @@
 
             historial.unshift({id: Date.now(), ...calculoActual }); 
             localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
-            showToast('✅ Cálculo guardado', 'success'); 
+            showToast('✅ Cálculo guardado satisfactoriamente', 'success'); 
             actualizarHistorialUI(); 
         }
 
@@ -1099,7 +1099,7 @@ Fecha cálculo: ${d.fecha}
         function handleScannerError(error) {
             let errorMsg = `Error con el scanner: ${error.message}`;
             if (error.name === 'NotAllowedError') {
-                errorMsg = "Permiso de cámara denegado. Habilítalo en la configuración.";
+                errorMsg = "Debes permitir el uso de la cámara para continuar";
             } else if (error.name === 'NotFoundError') {
                 errorMsg = "No se encontró una cámara compatible.";
             } else if (error.name === 'NotReadableError') {
