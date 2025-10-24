@@ -21,11 +21,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-logo { 
-    width: 36px; 
-    height: 36px; 
-    filter: invert(1); /* <-- AÑADE ESTA LÍNEA */
-}
+        .header-logo { width: 36px; height: 36px; } /* SVG o IMG. ELIMINADO: filter: invert(1); */
         .header-title h1 {
             font-size: 18px;
             font-weight: bold;
@@ -107,6 +103,14 @@
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
+        
+        /* Estilos específicos para mostrar info del vehículo en historial */
+        .historial-vehicle-info { 
+            font-size: 13px; 
+            color: #4b5563; 
+            margin-top: 4px; 
+            font-weight: 500;
+        }
 
         .hidden { display: none !important; }
 
@@ -444,8 +448,11 @@
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
         let vinDecodeTimeout;
-        let codeReader = null; // Variable global para el scanner
-        let toastTimeout; // <-- AÑADE ESTA LÍNEA
+        let codeReader = null; 
+        let toastTimeout; 
+
+        // Variable global para almacenar la información VIN actual
+        let currentVinInfo = { make: '', model: '', year: '' }; 
 
         const anoActual = new Date().getFullYear();
 
@@ -485,7 +492,7 @@
             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
-            // --- LISTENERS COLAPSABLES (CAMBIO 4) ---
+            // --- LISTENERS COLAPSABLES ---
             document.querySelectorAll('.collapsible-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const targetId = header.dataset.target;
@@ -493,7 +500,6 @@
                     if (content) {
                         header.classList.toggle('open');
                         content.classList.toggle('open');
-                        // Puedes añadir scrollIntoView para mejorar UX en móviles
                         if (content.classList.contains('open')) {
                             content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         }
@@ -552,16 +558,12 @@
             const antiguedad = anoActual - ano;
             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
 
-            // La "base imponible" es el valor + flete + seguros.
-            // Para fines de desglose, incluimos los seguros directamente en el cálculo
-            // de la base antes de aplicar el impuesto.
             const valorPlusFlete = valor + flete;
             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-            const baseImpuestos = valorPlusFlete + totalSeguros; // Esta es la base sobre la que se calcula el impuesto.
+            const baseImpuestos = valorPlusFlete + totalSeguros; 
 
             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
             
-            // Subtotal del vehículo en CRC (solo valor + flete)
             const subtotalVehiculoCRC = valorPlusFlete * tc; 
 
             const impuestosCRC = impuestosUSD * tc;
@@ -569,7 +571,18 @@
             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
 
-            calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR') };
+            calculoActual = { 
+                ano, valor, flete, antiguedad, 
+                totalSeguros, baseImpuestos, impuestosUSD, 
+                papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
+                declaracion: COSTOS_FIJOS.DECLARACION_CR, 
+                dekra: COSTOS_FIJOS.DEKRA, 
+                almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
+                tc, totalColones, 
+                fecha: new Date().toLocaleString('es-CR'),
+                // AGREGAR INFO DEL VEHÍCULO ACTUAL
+                vinInfo: { ...currentVinInfo } // Copiar la información decodificada del VIN
+            };
             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
             document.getElementById('resultado').classList.remove('hidden');
             document.getElementById('tcFooter').textContent = tc;
@@ -645,7 +658,7 @@
             const resultadoEl = document.getElementById('resultadoTraspaso');
             if (!valorFiscal || valorFiscal <= 0) {
                 showToast('Ingrese un valor fiscal válido', 'error'); 
-                resultadoEl.textContent = 'Ingrese un valor fiscal válido'; // Mantener el texto de error visible en el campo
+                resultadoEl.textContent = 'Ingrese un valor fiscal válido'; 
                 resultadoEl.style.color = '#dc2626';
                 return;
             }
@@ -659,24 +672,122 @@
         }
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { if (!calculoActual) return; historial.unshift({id: Date.now(), ...calculoActual }); localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); showToast('✅ Cálculo guardado', 'success'); actualizarHistorialUI(); }
-        function actualizarHistorialUI() { const card = document.getElementById('historialCard'); const content = document.getElementById('historialContent'); if (historial.length === 0) { card.classList.add('hidden'); return; } card.classList.remove('hidden'); let html = ''; historial.forEach(item => { const isSelected = vehiculosSeleccionados.has(item.id); const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; html += `<div class="${cardClass}" data-id="${item.id}"><div>${item.ano} | ${formatUSD(item.valor)} + ${formatUSD(item.flete)}</div><div style="font-size: 12px; color: #6b7280; margin-top: 4px;">${item.fecha}</div><div style="font-weight: bold; color: #2563eb; margin-top: 4px;">${formatCRC(item.totalColones)}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`; }); content.innerHTML = html; content.querySelectorAll('.comparison-card').forEach(card => { card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); }); }
-        function seleccionarComparacion(id) { if (!modoComparacion) return; if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); } else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); } actualizarHistorialUI(); mostrarComparacion(); }
-        function mostrarComparacion() { const comp = document.getElementById('comparador'); if (vehiculosSeleccionados.size < 2) { comp.classList.add('hidden'); return; } const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); let html = ''; sel.forEach((v, idx) => { html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">Vehículo ${idx + 1}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Año: ${v.ano}<br>Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; }); if (sel.length === 2) { const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; } document.getElementById('comparacionContent').innerHTML = html; comp.classList.remove('hidden');}
-        function toggleComparacion() { modoComparacion = !modoComparacion; document.getElementById('btnComparar').classList.toggle('active', modoComparacion); vehiculosSeleccionados.clear(); if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); actualizarHistorialUI(); }
+        function guardarHistorial() { 
+            if (!calculoActual) return; 
+
+            // Asegurarse de que el objeto currentVinInfo tenga datos relevantes para el historial
+            calculoActual.vinInfo = { 
+                make: document.getElementById('vinMake').textContent || 'N/D',
+                model: document.getElementById('vinModel').textContent || 'N/D',
+                year: document.getElementById('ano').value || 'N/D'
+            };
+
+            historial.unshift({id: Date.now(), ...calculoActual }); 
+            localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
+            showToast('✅ Cálculo guardado', 'success'); 
+            actualizarHistorialUI(); 
+        }
+
+        function actualizarHistorialUI() { 
+            const card = document.getElementById('historialCard'); 
+            const content = document.getElementById('historialContent'); 
+            if (historial.length === 0) { 
+                card.classList.add('hidden'); 
+                return; 
+            } 
+            card.classList.remove('hidden'); 
+            let html = ''; 
+            historial.forEach(item => { 
+                const isSelected = vehiculosSeleccionados.has(item.id); 
+                const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; 
+                
+                // Construir la información del vehículo para mostrar en el historial
+                let vehicleInfoText = '';
+                if (item.vinInfo && item.vinInfo.make && item.vinInfo.model && item.vinInfo.year) {
+                    vehicleInfoText = `${item.vinInfo.year} ${item.vinInfo.make} ${item.vinInfo.model}`;
+                } else if (item.ano) { // Si no hay info VIN, al menos mostrar el año
+                    vehicleInfoText = `Año: ${item.ano}`;
+                }
+
+                html += `
+                    <div class="${cardClass}" data-id="${item.id}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="historial-vehicle-info">${vehicleInfoText}</div>
+                            <div style="font-weight: bold; color: #2563eb;">${formatCRC(item.totalColones)}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Valor: ${formatUSD(item.valor)} + Flete: ${formatUSD(item.flete)}</div>
+                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">${item.fecha}</div>
+                        ${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}
+                    </div>`; 
+            }); 
+            content.innerHTML = html; 
+            content.querySelectorAll('.comparison-card').forEach(card => { 
+                card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); 
+            }); 
+        }
+
+        function seleccionarComparacion(id) { 
+            if (!modoComparacion) return; 
+            if (vehiculosSeleccionados.has(id)) { 
+                vehiculosSeleccionados.delete(id); 
+            } else if (vehiculosSeleccionados.size < 2) { 
+                vehiculosSeleccionados.add(id); 
+            } 
+            actualizarHistorialUI(); 
+            mostrarComparacion(); 
+        }
+        function mostrarComparacion() { 
+            const comp = document.getElementById('comparador'); 
+            if (vehiculosSeleccionados.size < 2) { 
+                comp.classList.add('hidden'); 
+                return; 
+            } 
+            const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); 
+            let html = ''; 
+            sel.forEach((v, idx) => { 
+                let vehicleInfoText = 'Vehículo';
+                if (v.vinInfo && v.vinInfo.make && v.vinInfo.model && v.vinInfo.year) {
+                    vehicleInfoText = `${v.vinInfo.year} ${v.vinInfo.make} ${v.vinInfo.model}`;
+                } else if (v.ano) {
+                    vehicleInfoText = `Año: ${v.ano}`;
+                }
+                html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">${vehicleInfoText}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; 
+            }); 
+            if (sel.length === 2) { 
+                const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
+                html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; 
+            } 
+            document.getElementById('comparacionContent').innerHTML = html; 
+            comp.classList.remove('hidden');
+        }
+        function toggleComparacion() { 
+            modoComparacion = !modoComparacion; 
+            document.getElementById('btnComparar').classList.toggle('active', modoComparacion); 
+            vehiculosSeleccionados.clear(); 
+            if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); 
+            actualizarHistorialUI(); 
+        }
         function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
-        function limpiarHistorial() { if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial'); actualizarHistorialUI(); document.getElementById('comparador').classList.add('hidden'); } }
+        function limpiarHistorial() { 
+            if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { 
+                historial = []; 
+                vehiculosSeleccionados.clear(); 
+                localStorage.removeItem('impuestosHistorial'); 
+                actualizarHistorialUI(); 
+                document.getElementById('comparador').classList.add('hidden'); 
+                showToast('Historial limpiado', 'info');
+            } 
+        }
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         
-        // Función manejadora del evento 'input' (usa 'this')
         function handleVinInput() {
-            console.log("handleVinInput triggered por evento input!");
             clearTimeout(vinDecodeTimeout);
             
             const vin = this.value.toUpperCase().trim(); 
             const vinStatus = document.getElementById('vinStatus');
             limpiarFichaVIN();
+            currentVinInfo = { make: '', model: '', year: '' }; // Limpiar info VIN global
 
             if (vin.length === 0) {
                 vinStatus.innerHTML = '';
@@ -688,34 +799,36 @@
             }
 
             if (vin.length === 17) {
-                console.log("VIN tiene 17 caracteres, iniciando decodificación...");
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
                 vinDecodeTimeout = setTimeout(() => {
-                    console.log("setTimeout ejecutando fetchVinData...");
                     fetchVinData(vin);
                 }, 500);
             }
         }
         
         async function fetchVinData(vin) {
-            console.log(`fetchVinData llamado con VIN: ${vin}`);
             const vinStatus = document.getElementById('vinStatus');
             try {
                 const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
-                console.log(`Consultando API: ${apiUrl}`);
                 const response = await fetch(apiUrl);
-                console.log(`Respuesta recibida, status: ${response.status}`);
                 if (!response.ok) {
                     throw new Error(`Respuesta de red no fue OK (${response.status})`);
                 }
                 const data = await response.json();
-                console.log("Datos recibidos de la API:", data);
 
                 if (data && data.Results && data.Results[0]) {
-                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) { // Validar datos básicos
+                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) { 
                         const vehicleInfo = data.Results[0];
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
+                        
+                        // Guardar en la variable global currentVinInfo
+                        currentVinInfo = {
+                            make: vehicleInfo.Make || 'N/D',
+                            model: vehicleInfo.Model || 'N/D',
+                            year: vehicleInfo.ModelYear || 'N/D'
+                        };
+
                         if (vehicleInfo.ModelYear) {
                             document.getElementById('ano').value = vehicleInfo.ModelYear;
                             document.getElementById('ano').dispatchEvent(new Event('change')); 
@@ -723,6 +836,7 @@
                     } else {
                         vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado o inválido"}</span>`;
                         limpiarFichaVIN();
+                        currentVinInfo = { make: '', model: '', year: '' }; // Limpiar si hubo error
                     }
                 } else {
                     throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
@@ -731,6 +845,7 @@
                 console.error('Error fetching VIN data:', error);
                 vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
                 limpiarFichaVIN();
+                currentVinInfo = { make: '', model: '', year: '' }; // Limpiar si hubo error
             }
         }
         async function fetchTipoDeCambio() {
@@ -776,9 +891,17 @@
             const b = esParaWhatsapp ? '*' : '';
             const line = '---------------------------------';
             const doubleLine = '=====================';
+            
+            let vinDisplay = '';
+            if (d.vinInfo && d.vinInfo.make && d.vinInfo.model && d.vinInfo.year) {
+                vinDisplay = `Vehículo: ${d.vinInfo.year} ${d.vinInfo.make} ${d.vinInfo.model}\n`;
+            } else if (d.ano) {
+                vinDisplay = `Año: ${d.ano}\n`;
+            }
+
             const texto = `
 ${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
-Año: ${d.ano} | TC: ${d.tc}
+${vinDisplay}TC: ${d.tc}
 ${doubleLine}
 
 ${b}Base (USD):${b}
@@ -840,6 +963,7 @@ Fecha cálculo: ${d.fecha}
                 if (element) element.classList.add('hidden');
             });
             calculoActual = null;
+            currentVinInfo = { make: '', model: '', year: '' }; // Limpiar info VIN global
             
             handleVinInput.call(document.getElementById('vin'));
 
@@ -856,17 +980,15 @@ Fecha cálculo: ${d.fecha}
        // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
 
        async function iniciarScanner() {
-            console.log("Iniciando scanner...");
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
 
-            detenerScanner(); // Limpia instancias anteriores
+            detenerScanner(); 
 
             try {
                 if (typeof screen.orientation?.lock === 'function') {
                     try {
                         await screen.orientation.lock('landscape');
-                        console.log("Orientación bloqueada a horizontal.");
                     } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
                 }
 
@@ -889,10 +1011,8 @@ Fecha cálculo: ${d.fecha}
                 if (ZXingBrowser.DecodeHintType) {
                     hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
                     hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
-                    console.log("Hints configurados con POSSIBLE_FORMATS y TRY_HARDER.");
                 } else {
                     hints.set(1, formats); 
-                    console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
                 }
 
                 const constraints = {
@@ -902,24 +1022,18 @@ Fecha cálculo: ${d.fecha}
                         height: { ideal: 720 }
                     }
                 };
-                console.log("Constraints de video simplificadas:", constraints);
 
                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                console.log("CodeReader inicializado.");
 
                 scannerContainer.classList.remove('hidden');
-                console.log("Contenedor del scanner visible.");
 
-                console.log("Iniciando decodeFromConstraints...");
                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
-                        console.log("Código detectado:", result.text);
                         if (navigator.vibrate) { navigator.vibrate(100); }
                         
                         const vinInput = document.getElementById('vin');
-                        vinInput.value = result.text; // Establecer el valor
+                        vinInput.value = result.text; 
                         
-                        console.log("VIN detectado, llamando a handleVinInput directamente...");
                         handleVinInput.call(vinInput); 
                         
                         setTimeout(detenerScanner, 100); 
@@ -967,15 +1081,13 @@ Fecha cálculo: ${d.fecha}
             if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
                 scannerContainer.classList.add('hidden');
             }
-            showToast(`❌ ${errorMsg}`, 'error', 5000); // Reemplazado alert por showToast
+            showToast(`❌ ${errorMsg}`, 'error', 5000); 
         }
 
         function detenerScanner() {
-            console.log("Intentando detener scanner...");
             if (codeReader) {
                 try {
                     codeReader.reset();
-                    console.log("CodeReader reseteado.");
                 } catch (resetError) { console.error("Error al resetear CodeReader:", resetError); }
                 codeReader = null;
             }
@@ -996,7 +1108,6 @@ Fecha cálculo: ${d.fecha}
                         }
                         track.stop();
                     });
-                    console.log("Tracks detenidos.");
                 }
                 catch (e) { console.warn("Error menor al detener tracks:", e); }
                 videoElement.srcObject = null;
@@ -1012,7 +1123,7 @@ Fecha cálculo: ${d.fecha}
             if (scannerContainer) scannerContainer.classList.add('hidden');
 
             if (typeof screen.orientation?.unlock === 'function') {
-                try { screen.orientation.unlock(); console.log("Orientación desbloqueada."); }
+                try { screen.orientation.unlock(); }
                 catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
             }
         }
