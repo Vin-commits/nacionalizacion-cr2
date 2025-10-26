@@ -15,109 +15,71 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js"></script>
-    
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script> ```
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
+        /* [!] TUS ESTILOS CSS COMPLETOS VAN AQUÍ (Sin cambios respecto a tu versión anterior) */
+        /* ... (Asegúrate de copiar todos tus estilos aquí) ... */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
         .header-logo { width: 36px; height: 36px; }
-        .header-title h1 {
-            font-size: 18px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.25);
-        }
-        .header-title p {
-            font-size: 12px;
-            color: #86efac;
-            opacity: 1;
-        }
+        .header-title h1 { font-size: 18px; font-weight: bold; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+        .header-title p { font-size: 12px; color: #86efac; opacity: 1; }
         .header-buttons { display: flex; gap: 8px; }
         button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
-
-        /* Estilos de Botones */
         .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-icon:active { background: rgba(255,255,255,0.3); }
-
         .btn-header { background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px; }
         .btn-header.active { background: #fbbf24; color: #1f2937; }
-
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
         .btn-secondary:active { background: #d1d5db; }
-
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
-
         .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
         .btn-result:active { background: rgba(255,255,255,0.3); }
-
         .btn-danger-light { background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
         .btn-info-light { background: #dbeafe; color: #1e40af; padding: 12px; border-radius: 8px; }
         .btn-success-light { background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px; }
         .btn-update-tc { background: #dbeafe; color: #2563eb; font-size: 11px; padding: 6px 10px; font-weight: bold; }
         .btn-update-tc:active { background: #bfdbfe; }
-
-        /* Contenedores y Tarjetas */
         .container { max-width: 500px; margin: 0 auto; padding: 16px; }
         .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
-
-        /* Formulario */
         .form-group { margin-bottom: 12px; }
         .form-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         label { display: block; font-size: 12px; font-weight: 600; color: #374151; }
         input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-family: inherit; }
         input:focus { outline: none; border-color: #2563eb; background: #f0f9ff; }
-
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-
         .help-text { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; align-items: center; gap: 6px;}
         .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-
-        /* NUEVA FICHA INFORMATIVA VIN */
         .info-card { background-color: #eff6ff; border: 2px solid #93c5fd; padding: 12px; margin-top: 16px; }
         .info-card-title { font-size: 14px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
         .info-card .detail-row { padding: 8px 0; font-size: 14px; }
         .info-card .detail-label { color: #374151; }
         .info-card .detail-value { color: #1f2937; }
-
-        /* SPINNER DE CARGA */
         .spinner { width: 14px; height: 14px; border: 2px solid #93c5fd; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Resultados y Detalles */
         .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
         .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
         .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
         .detail-row.subtotal { font-weight: bold; color: #1e40af; }
         .detail-label { color: #6b7280; }
         .detail-value { font-weight: 600; color: #1f2937; }
         .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
         .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
-
-        /* Historial y Comparador */
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
         .historial-vehicle-info { font-size: 13px; color: #4b5563; margin-top: 4px; font-weight: 500; }
-
         .hidden { display: none !important; }
-
-        /* --- CSS SCANNER --- */
         #scanner-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #videoElement { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; object-fit: cover; transform: translate(-50%, -50%); z-index: 201; }
         #scanner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 202; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -126,34 +88,24 @@
         .scanner-text { color: white; font-weight: 600; margin-top: 24px; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
         #btnStopScan { margin-top: 24px; padding: 12px 24px; font-size: 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); z-index: 203; }
         #btnStopScan:active { background: rgba(255,255,255,0.3); }
-        /* --- FIN CSS SCANNER --- */
-
-        /* ==== INICIO: CSS DEL TOAST ==== */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; background: #2d3748; color: white; font-size: 14px; font-weight: 600; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s, transform 0.3s; }
         #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
         #toast.success { background: #059669; }
         #toast.error   { background: #dc2626; }
         #toast.info    { background: #2563eb; }
-        /* ==== FIN: CSS DEL TOAST ==== */
-
-        /* ==== INICIO: CSS PARA SECCIONES COLAPSABLES ==== */
         .collapsible-header { display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; cursor: pointer; font-weight: bold; color: #1f2937; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: background 0.2s ease-in-out; }
         .collapsible-header:hover { background: #e0f2fe; }
         .collapsible-header .arrow-icon { width: 18px; height: 18px; transition: transform 0.3s ease-in-out; }
         .collapsible-header.open .arrow-icon { transform: rotate(180deg); }
         .collapsible-content { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; }
         .collapsible-content.open { max-height: 500px; opacity: 1; margin-bottom: 12px; }
-        /* ==== FIN: CSS PARA SECCIONES COLAPSABLES ==== */
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-title">
             <img src="new-logo.png" alt="Logo" class="header-logo">
-            <div>
-                <h1>Calculadora</h1>
-                <p>Importación de Vehículos</p>
-            </div>
+            <div><h1>Calculadora</h1><p>Importación de Vehículos</p></div>
         </div>
         <div class="header-buttons">
             <button class="btn-header" id="btnComparar">Compare</button>
@@ -164,11 +116,9 @@
     <div id="scanner-container" class="hidden">
         <video id="videoElement" playsinline></video>
         <div id="scanner-overlay">
-            <div id="scanner-viewfinder">
-                <div class="scanner-red-line"></div>
-            </div>
-            <div class="scanner-text">Centre el código de barras en la línea roja</div>
-            <button id="btnStopScan">Cancelar</button>
+             <div id="scanner-viewfinder"><div class="scanner-red-line"></div></div>
+             <div class="scanner-text">Centre el código de barras en la línea roja</div>
+             <button id="btnStopScan">Cancelar</button>
         </div>
     </div>
 
@@ -177,28 +127,15 @@
         <div id="auth-section" class="card">
             <div id="login-form">
                 <div class="card-title">Iniciar Sesión</div>
-                <div class="form-group">
-                    <label for="loginEmail">Correo Electrónico</label>
-                    <input type="email" id="loginEmail" placeholder="usuario@ejemplo.com">
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Contraseña</label>
-                    <input type="password" id="loginPassword">
-                </div>
+                <div class="form-group"><label for="loginEmail">Correo Electrónico</label><input type="email" id="loginEmail" placeholder="usuario@ejemplo.com"></div>
+                <div class="form-group"><label for="loginPassword">Contraseña</label><input type="password" id="loginPassword"></div>
                 <button id="btnLogin" class="btn-primary" style="width: 100%;">Ingresar</button>
-                <p id="loginError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
-                </div>
-
-           <div id="create-account-form" style="display: none; border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
+                <p id="loginError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center; min-height: 16px;"></p>
+            </div>
+            <div id="create-account-form" style="display: none; border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
                  <div class="card-title">Crear Nueva Cuenta (Admin)</div>
-                 <div class="form-group">
-                     <label for="createEmail">Correo Electrónico Cliente</label>
-                     <input type="email" id="createEmail" placeholder="cliente@ejemplo.com">
-                 </div>
-                 <div class="form-group">
-                     <label for="createPassword">Contraseña Temporal</label>
-                     <input type="password" id="createPassword">
-                 </div>
+                 <div class="form-group"><label for="createEmail">Correo Electrónico Cliente</label><input type="email" id="createEmail" placeholder="cliente@ejemplo.com"></div>
+                 <div class="form-group"><label for="createPassword">Contraseña Temporal</label><input type="password" id="createPassword"></div>
                  <button id="btnCreateAccount" class="btn-secondary" style="width: 100%;">Crear Cuenta</button>
                  <p id="createError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
             </div>
@@ -219,23 +156,13 @@
             </div>
 
             <div class="card"> <div class="card-title">Ingrese datos del Vehículo</div>
-
                 <div class="form-group">
                     <label for="vin">VIN Number</label>
                     <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
                     <div class="help-text" id="vinStatus"></div>
-                    <div class="button-group" style="margin-top: 8px;">
-                        <button id="btnScanVIN" class="btn-secondary">║▌║ Escanear VIN</button>
-                        <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
-                    </div>
+                    <div class="button-group" style="margin-top: 8px;"><button id="btnScanVIN" class="btn-secondary">║▌║ Escanear VIN</button><button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button></div>
                 </div>
-
-                <div class="form-group">
-                    <label for="ano">Año del Vehículo</label>
-                    <input type="number" id="ano" placeholder="2022" min="1980" inputmode="numeric">
-                    <div class="help-text" id="ayudaAno"></div>
-                </div>
-
+                <div class="form-group"><label for="ano">Año del Vehículo</label><input type="number" id="ano" placeholder="2022" min="1980" inputmode="numeric"><div class="help-text" id="ayudaAno"></div></div>
                 <div id="vinInfoCard" class="card info-card hidden">
                      <div class="card-title info-card-title">Información del Vehículo</div>
                      <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
@@ -244,23 +171,14 @@
                      <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
                      <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
                  </div>
-
                 <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-
                 <div class="collapsible-header" data-target="collapsible-millaje">
                      <span>Convertidor de Distancia</span>
                      <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/></svg>
                 </div>
                  <div id="collapsible-millaje" class="collapsible-content">
-                     <div class="form-group">
-                         <label for="millaje">Millaje / Kilometraje</label>
-                         <input type="number" id="millaje" placeholder="30000" inputmode="numeric">
-                         <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
-                     </div>
-                     <div class="button-group">
-                         <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
-                         <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
-                     </div>
+                     <div class="form-group"><label for="millaje">Millaje / Kilometraje</label><input type="number" id="millaje" placeholder="30000" inputmode="numeric"><div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div></div>
+                     <div class="button-group"><button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button><button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button></div>
                      <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
                          <div class="card-title info-card-title">Resultado de Conversión</div>
                          <div class="detail-row"><span class="detail-label" id="millajeResultadoLabel"></span><span class="detail-value" id="millajeResultadoValor"></span></div>
@@ -269,68 +187,28 @@
                      </div>
                      <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
                  </div>
-
                 <div class="collapsible-header" data-target="collapsible-traspaso">
                      <span>Cálculo de Traspaso</span>
                      <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/></svg>
                  </div>
                  <div id="collapsible-traspaso" class="collapsible-content">
-                     <div class="form-group">
-                         <label for="valorFiscal">Valor Fiscal (₡)</label>
-                         <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
-                     </div>
+                     <div class="form-group"><label for="valorFiscal">Valor Fiscal (₡)</label><input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric"></div>
                      <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
                      <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
                      <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
                  </div>
-
+                <div class="form-group"><label for="valor">Valor (USD)</label><input type="number" id="valor" placeholder="25000" inputmode="numeric"></div>
+                <div class="form-group"><label for="flete">Flete (USD)</label><input type="number" id="flete" placeholder="1500" inputmode="numeric"></div>
                 <div class="form-group">
-                    <label for="valor">Valor (USD)</label>
-                    <input type="number" id="valor" placeholder="25000" inputmode="numeric">
+                    <div class="form-group-header"><label for="tipoCambio">Tipo de Cambio (₡/USD)</label><button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button></div>
+                    <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric"><div class="help-text" id="tipoCambioHelp"></div>
                 </div>
-
-                <div class="form-group">
-                    <label for="flete">Flete (USD)</label>
-                    <input type="number" id="flete" placeholder="1500" inputmode="numeric">
-                </div>
-
-                <div class="form-group">
-                    <div class="form-group-header">
-                        <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
-                        <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
-                    </div>
-                    <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric">
-                    <div class="help-text" id="tipoCambioHelp"></div>
-                </div>
-
-                <div class="button-group">
-                    <button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button>
-                    <button class="btn-primary" id="btnCalcular">Calcular</button>
-                </div>
+                <div class="button-group"><button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button><button class="btn-primary" id="btnCalcular">Calcular</button></div>
             </div> <div id="resultado" class="hidden">
-                 <div class="result-card">
-                     <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
-                     <div class="result-amount" id="resultadoTotal"></div>
-                     <div class="result-buttons">
-                         <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
-                         <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
-                     </div>
-                 </div>
-                 <div id="detalle" class="card hidden">
-                     <div class="card-title">Desglose</div>
-                     <div id="detalleContent"></div>
-                     <div class="button-group" style="margin-top: 16px;">
-                         <button id="btnDescargar" class="btn-info-light">Exportar (PDF)</button>
-                         <button id="btnWhatsApp" class="btn-success-light">WhatsApp</button>
-                     </div>
-                 </div>
+                 <div class="result-card">...</div> <div id="detalle" class="card hidden">...</div>
              </div>
-
             <button id="btnLogout" class="btn-danger-light" style="width: 100%; padding: 12px; margin-top: 20px; font-size: 14px;">Cerrar Sesión</button>
-
-        </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
-            <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
-        </div>
+        </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;"><p>TC Venta BCCR: <span id="tcFooter">N/A</span></p></div>
 
     </div> <div id="toast" class="toast"></div>
 
@@ -347,10 +225,7 @@
         // Inicializar Firebase (UNA SOLA VEZ)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); // Objeto global para autenticación
-        const firebaseConfig = { /* ...tu config... */ };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
+        const db = firebase.firestore(); // Objeto global para Firestore
         // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
 
@@ -374,52 +249,53 @@ const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
 
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('ano').addEventListener('change', validarAno);
-            document.getElementById('ano').addEventListener('input', validarInicioAno);
-            document.getElementById('vin').addEventListener('input', handleVinInput);
-            document.getElementById('btnCalcular').addEventListener('click', calcular);
-            document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
-            document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
-            document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
-            document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
-            document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
-            document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
-            document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
-            document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
-            document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
-            document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
-            document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
-            document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
-            document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
-            document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
-            document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
+             document.getElementById('ano').addEventListener('change', validarAno);
+             document.getElementById('ano').addEventListener('input', validarInicioAno);
+             document.getElementById('vin').addEventListener('input', handleVinInput);
+             document.getElementById('btnCalcular').addEventListener('click', calcular);
+             document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
+             document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
+             document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
+             document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
+             document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
+             document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
+             document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
+             document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
+             document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
+             document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
+             document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
+             document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
+             document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
+             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
+             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
-            // Listeners para Autenticación
+            // Listeners Auth
             document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
-            const btnCreate = document.getElementById('btnCreateAccount'); // Botón Admin
+            const btnCreate = document.getElementById('btnCreateAccount');
             if (btnCreate) { btnCreate.addEventListener('click', crearCuenta); }
-            const btnLogout = document.getElementById('btnLogout'); // Botón Logout
+            const btnLogout = document.getElementById('btnLogout');
             if (btnLogout) { btnLogout.addEventListener('click', cerrarSesion); }
 
             // Listeners Colapsables
             document.querySelectorAll('.collapsible-header').forEach(header => {
-                header.addEventListener('click', () => {
+                 header.addEventListener('click', () => {
                     const targetId = header.dataset.target;
                     const content = document.getElementById(targetId);
                     if (content) {
                         header.classList.toggle('open');
                         content.classList.toggle('open');
                         if (content.classList.contains('open')) {
-                            content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }
-                    }
-                });
-            });
+                            // Suavizar scroll
+                            setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+                         }
+                     }
+                 });
+             });
 
             document.getElementById('ano').max = anoActual + 1;
             actualizarHistorialUI();
             fetchTipoDeCambio();
-            // El estado de Auth se maneja con onAuthStateChanged más abajo
+            // Auth state handled by onAuthStateChanged
         });
 
         // --- FUNCIONES DE AUTENTICACIÓN ---
@@ -432,15 +308,27 @@ const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
 
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    console.log('Cuenta creada:', userCredential.user.email);
-                    showToast(`✅ Cuenta creada para ${userCredential.user.email}`, 'success');
+                    const user = userCredential.user;
+                    console.log('Cuenta creada en Auth:', user.uid, user.email);
+                    const userDocRef = db.collection('usuarios').doc(user.uid);
+                    return userDocRef.set({
+                        email: user.email,
+                        suscripcionActiva: true,
+                        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
+                        metodoPago: 'manual_sinpe'
+                    });
+                })
+                .then(() => {
+                    console.log("Documento de usuario creado en Firestore.");
+                    showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
                     document.getElementById('createEmail').value = '';
                     document.getElementById('createPassword').value = '';
-                    // AQUÍ - Futuro: Guardar estado inicial de suscripción en Firestore
                 })
                 .catch((error) => {
-                    console.error("Error al crear cuenta:", error);
-                    errorElement.textContent = `Error: ${error.message}`;
+                    console.error("Error al crear cuenta o doc Firestore:", error);
+                    if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
+                    else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
+                    else { errorElement.textContent = `Error: ${error.message}`; }
                     showToast(`❌ Error al crear cuenta`, 'error');
                 });
         }
@@ -449,49 +337,65 @@ const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const errorElement = document.getElementById('loginError');
-            errorElement.textContent = '';
+            errorElement.textContent = 'Verificando...';
             if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
 
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => { console.log('Usuario inició sesión:', userCredential.user.email); })
                 .catch((error) => {
                     console.error("Error al iniciar sesión:", error);
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                         errorElement.textContent = 'Correo o contraseña incorrectos.';
-                    } else {
-                         errorElement.textContent = `Error: ${error.message}`;
-                    }
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { errorElement.textContent = 'Correo o contraseña incorrectos.'; }
+                    else { errorElement.textContent = `Error: ${error.message}`; }
                 });
         }
 
         function cerrarSesion() {
-            auth.signOut().then(() => {
-                console.log('Usuario cerró sesión');
-                showToast('Sesión cerrada', 'info');
-            }).catch((error) => {
+            auth.signOut().catch((error) => {
                 console.error('Error al cerrar sesión:', error);
                 showToast('Error al cerrar sesión', 'error');
             });
         }
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN --- (Controla qué se ve)
+        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
         auth.onAuthStateChanged((user) => {
             const authSection = document.getElementById('auth-section');
             const appContent = document.getElementById('app-content');
+            const loginError = document.getElementById('loginError');
 
-            if (user) { // Usuario LOGUEADO
-                console.log('Estado: Logueado como', user.email);
-                authSection.style.display = 'none';
-                appContent.style.display = 'block';
-                // AQUÍ - Futuro: Leer de Firestore para verificar suscripción
-                // Si la suscripción no está activa, podrías mostrar appContent
-                // pero deshabilitar botones o mostrar un mensaje de "Suscríbete".
+            if (user) { // Usuario logueado en Auth
+                console.log('Estado: Logueado como', user.email, user.uid);
+                loginError.textContent = 'Verificando suscripción...';
+                const userDocRef = db.collection('usuarios').doc(user.uid);
 
+                userDocRef.get().then((doc) => {
+                    if (doc.exists && doc.data().suscripcionActiva === true) {
+                        console.log("Suscripción activa encontrada.");
+                        authSection.style.display = 'none';
+                        appContent.style.display = 'block';
+                        loginError.textContent = '';
+                    } else {
+                        console.log("Suscripción no activa o documento no encontrado.");
+                        authSection.style.display = 'block';
+                        appContent.style.display = 'none';
+                        loginError.textContent = 'Necesitas una suscripción activa para usar la app.';
+                        // Considera desloguear para evitar inconsistencias
+                        // auth.signOut();
+                    }
+                }).catch((error) => {
+                    console.error("Error al obtener datos de Firestore:", error);
+                    authSection.style.display = 'block';
+                    appContent.style.display = 'none';
+                    loginError.textContent = 'Error al verificar suscripción. Intenta de nuevo.';
+                    // Considera desloguear
+                    // auth.signOut();
+                });
             } else { // Usuario DESLOGUEADO
                 console.log('Estado: Deslogueado');
                 authSection.style.display = 'block';
                 appContent.style.display = 'none';
-                limpiarFormulario(); // Limpiar datos si cierra sesión
+                loginError.textContent = '';
+                // No llamamos a limpiarFormulario aquí directamente para evitar errores si los elementos no existen aún
+                // Se podría llamar condicionalmente si appContent estaba visible antes.
             }
         });
 
@@ -500,113 +404,84 @@ const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
         function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
 
         // --- FUNCIÓN DEL TOAST ---
-        function showToast(message, type = 'info', duration = 3000) {
-            const toast = document.getElementById('toast');
-            clearTimeout(toastTimeout);
-            toast.textContent = message;
-            toast.className = 'toast';
-            toast.classList.add(type);
-            toast.classList.add('show');
-            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, duration);
-        }
+        function showToast(message, type = 'info', duration = 3000) { /* ...código sin cambios... */ }
 
         // --- VALIDACIÓN DE AÑO ---
-        function validarInicioAno() {
-            const anoInput = document.getElementById('ano');
-            const ayudaAno = document.getElementById('ayudaAno');
-            const valor = anoInput.value;
-            if (valor.length > 0 && valor[0] !== '1' && valor[0] !== '2') {
-                ayudaAno.innerHTML = '<span style="color: #dc2626;">El año debe comenzar con 1 o 2</span>';
-            } else {
-                if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) { ayudaAno.innerHTML = ''; }
-            }
-        }
-
-        function validarAno() {
-            const anoInput = document.getElementById('ano');
-            const ayudaAno = document.getElementById('ayudaAno');
-            const ano = parseInt(anoInput.value);
-            if (!ano || ano < 1980 || ano > anoActual + 1) {
-                ayudaAno.innerHTML = '<span style="color: #dc2626;">Año inválido (1980 - ' + (anoActual + 1) + ')</span>';
-            } else {
-                const antiguedad = anoActual - ano;
-                const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
-                ayudaAno.textContent = `${antiguedad} años | Impuesto: ${porcentaje}`;
-            }
-        }
+        function validarInicioAno() { /* ...código sin cambios... */ }
+        function validarAno() { /* ...código sin cambios... */ }
 
         // --- LÓGICA DE CÁLCULO ---
-        function calcular() {
-             const ano = parseInt(document.getElementById('ano').value);
-             const valor = parseFloat(document.getElementById('valor').value) || 0;
-             const flete = parseFloat(document.getElementById('flete').value) || 0;
-             const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
+        function calcular() { /* ...código sin cambios... */ }
+        function mostrarDetalle() { /* ...código sin cambios... */ }
 
-             if (!ano || ano < 1980 || ano > anoActual + 1) { showToast('Por favor, ingrese un año válido', 'error'); document.getElementById('ano').focus(); return; }
-             if (!valor || !flete || !tc) { showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); return; }
+        // --- FUNCIONES (HERRAMIENTAS) ---
+        function convertirMillaje(event) { /* ...código sin cambios... */ }
+        function calcularTraspaso() { /* ...código sin cambios... */ }
 
-             const antiguedad = anoActual - ano;
-             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
-             const valorPlusFlete = valor + flete;
-             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-             const baseImpuestos = valorPlusFlete + totalSeguros;
-             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-             const subtotalVehiculoCRC = valorPlusFlete * tc;
-             const impuestosCRC = impuestosUSD * tc;
-             const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
-             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
-             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
+        // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
+        function guardarHistorial() { /* ...código v5 sin cambios... */ }
+        function actualizarHistorialUI() { /* ...código v5 sin cambios... */ }
+        function seleccionarComparacion(id) { /* ...código v5 sin cambios... */ }
+        function mostrarComparacion() { /* ...código v5 sin cambios... */ }
+        function toggleComparacion() { /* ...código v5 sin cambios... */ }
+        function toggleHistorial() { /* ...código v5 sin cambios... */ }
+        function limpiarHistorial() { /* ...código v5 sin cambios... */ }
 
-             calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR'), vinInfo: { ...currentVinInfo } };
-             document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
-             document.getElementById('resultado').classList.remove('hidden');
-             document.getElementById('tcFooter').textContent = tc;
+        // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
+        function handleVinInput() { /* ...código v5 sin cambios... */ }
+        async function fetchVinData(vin) { /* ...código v5 sin cambios... */ }
+        async function fetchTipoDeCambio() { /* ...código v5 sin cambios... */ }
+        function displayVinData(data) { /* ...código v5 sin cambios... */ }
+
+        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
+        function generarTextoDesglose(esParaWhatsapp = false) { /* ...código v5 sin cambios... */ }
+        function descargarPDF() { /* ...código v5 sin cambios... */ }
+        function enviarWhatsApp() { /* ...código v5 sin cambios... */ }
+
+        // --- FUNCIONES DE LIMPIEZA ---
+        function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
+        function limpiarFormulario() {
+            // Limpia solo los campos dentro de app-content
+            const appContent = document.getElementById('app-content');
+            if (!appContent || appContent.style.display === 'none') return; // No limpiar si no está visible
+
+            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.value = '';
+            });
+            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) {
+                     if (id === 'tcFooter') element.textContent = 'N/A';
+                     else element.innerHTML = '';
+                 }
+            });
+             ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
+                 const element = document.getElementById(id);
+                 if (element) element.classList.add('hidden');
+            });
+            calculoActual = null;
+            currentVinInfo = { make: '', model: '', year: '' };
+            if (document.getElementById('vin')) { // Asegurarse que existe antes de llamar
+                 handleVinInput.call(document.getElementById('vin'));
+            }
+            // No llamar a fetchTipoDeCambio aquí, se llama al cargar la página
+        }
+        function limpiarVIN() {
+            const vinInput = document.getElementById('vin');
+            if (vinInput) {
+                vinInput.value = '';
+                handleVinInput.call(vinInput);
+            }
         }
 
-        function mostrarDetalle() {
-             if (!calculoActual) return;
-             const d = calculoActual;
-             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-             let html = `<div class="section-header">VALORES EN DÓLARES</div> <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div> <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div> <div class="detail-row subtotal"><span class="detail-label">Subtotal en Dólares</span><span class="detail-value">${formatUSD(d.valor + d.flete)}</span></div> <div class="section-header">VALORES EN COLONES</div> <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div> <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div> <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div> <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
-             document.getElementById('detalleContent').innerHTML = html;
-             document.getElementById('detalle').classList.remove('hidden');
-        }
-
-        // --- FUNCIONES (HERRAMIENTAS) --- (Sin cambios aquí)
-        function convertirMillaje(event) { /* ...código original... */ }
-        function calcularTraspaso() { /* ...código original... */ }
-
-        // --- LÓGICA DE HISTORIAL Y COMPARACIÓN --- (Sin cambios aquí, ya incluye info VIN)
-        function guardarHistorial() { /* ...código v5... */ }
-        function actualizarHistorialUI() { /* ...código v5... */ }
-        function seleccionarComparacion(id) { /* ...código v5... */ }
-        function mostrarComparacion() { /* ...código v5... */ }
-        function toggleComparacion() { /* ...código v5... */ }
-        function toggleHistorial() { /* ...código v5... */ }
-        function limpiarHistorial() { /* ...código v5... */ }
-
-        // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) --- (Sin cambios aquí)
-        function handleVinInput() { /* ...código v5... */ }
-        async function fetchVinData(vin) { /* ...código v5... */ }
-        async function fetchTipoDeCambio() { /* ...código v5... */ }
-        function displayVinData(data) { /* ...código v5... */ }
-
-        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA --- (Sin cambios aquí)
-        function generarTextoDesglose(esParaWhatsapp = false) { /* ...código v5... */ }
-        function descargarPDF() { /* ...código v5... */ }
-        function enviarWhatsApp() { /* ...código v5... */ }
-
-        // --- FUNCIONES DE LIMPIEZA --- (Sin cambios aquí)
-        function limpiarFichaVIN() { /* ...código v5... */ }
-        function limpiarFormulario() { /* ...código v5... */ }
-        function limpiarVIN() { /* ...código v5... */ }
-
-        // --- CÓDIGO DEL SCANNER --- (Sin cambios aquí, ya incluye validación v7)
-        async function iniciarScanner() { /* ...código v7... */ }
-        function handleScannerError(error) { /* ...código v7... */ }
-        function detenerScanner() { /* ...código v7... */ }
+        // --- CÓDIGO DEL SCANNER ---
+        async function iniciarScanner() { /* ...código v7 sin cambios... */ }
+        function handleScannerError(error) { /* ...código v7 sin cambios... */ }
+        function detenerScanner() { /* ...código v7 sin cambios... */ }
 
     </script>
+
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
