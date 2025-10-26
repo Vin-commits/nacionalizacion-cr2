@@ -604,201 +604,233 @@
 
         // --- FUNCIONES DE AUTENTICACIÓN ---
 
-        // --- NUEVA FUNCIÓN AÑADIDA ---
-        function enviarResetPassword() {
-            if (typeof auth === 'undefined') { showToast("Error de servicio", "error"); return; }
-            const emailInput = document.getElementById('loginEmail');
-            const errorElement = document.getElementById('loginError');
-            const email = emailInput.value;
+function crearCuenta() {
+     if (typeof auth === 'undefined' || typeof db === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
+     const emailInput = document.getElementById('createEmail');
+     const passwordInput = document.getElementById('createPassword');
+     const errorElement = document.getElementById('createError');
+     if (!emailInput || !passwordInput || !errorElement) return;
+     const email = emailInput.value;
+     const password = passwordInput.value;
+     errorElement.textContent = '';
+     if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+     
+     auth.createUserWithEmailAndPassword(email, password)
+         .then(userCredential => {
+             const user = userCredential.user;
+             console.log('Cuenta creada en Auth:', user.uid);
+             const userDocRef = db.collection('usuarios').doc(user.uid);
 
-            if (!email) {
-                errorElement.textContent = 'Por favor, ingresa tu correo para restablecer la contraseña.';
-                emailInput.focus();
-                return;
-            }
+             // --- LÓGICA DE FECHA DE EXPIRACIÓN AÑADIDA ---
+             const hoy = new Date();
+             const fechaExpiracion = new Date(hoy);
+             fechaExpiracion.setDate(hoy.getDate() + 30); // Añade 30 días
 
-            errorElement.textContent = 'Enviando correo...';
-            
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    errorElement.textContent = ''; // Limpiar error anterior
-                    showToast(`✅ Correo de reenvío enviado a ${email}`, 'success', 5000);
-                })
-                .catch((error) => {
-                    console.error("Error al enviar correo de reseteo:", error);
-                    if (error.code === 'auth/user-not-found') {
-                        errorElement.textContent = 'No se encontró un usuario con ese correo.';
-                    } else {
-                        errorElement.textContent = `Error: ${error.message}`;
-                    }
-                });
-        }
-
-        function crearCuenta() {
-             if (typeof auth === 'undefined' || typeof db === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
-             const emailInput = document.getElementById('createEmail');
-             const passwordInput = document.getElementById('createPassword');
-             const errorElement = document.getElementById('createError');
-             if (!emailInput || !passwordInput || !errorElement) return;
-             const email = emailInput.value;
-             const password = passwordInput.value;
-             errorElement.textContent = '';
-             if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
-             
-             auth.createUserWithEmailAndPassword(email, password)
-                 .then(userCredential => {
-                     const user = userCredential.user;
-                     console.log('Cuenta creada en Auth:', user.uid);
-                     const userDocRef = db.collection('usuarios').doc(user.uid);
-                     return userDocRef.set({ 
-                         email: user.email, 
-                         suscripcionActiva: true, 
-                         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
-                         metodoPago: 'manual_admin'
-                     });
-                 })
-                 .then(() => {
-                     console.log("Doc Firestore creado.");
-                     showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
-                     emailInput.value = ''; 
-                     passwordInput.value = '';
-                 })
-                 .catch(error => {
-                     console.error("Error al crear cuenta o doc Firestore:", error);
-                     if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
-                     else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
-                     else { errorElement.textContent = `Error: ${error.message}`; }
-                     showToast(`❌ Error al crear cuenta`, 'error');
-                 });
-        }
-
-        // --- FUNCIÓN MODIFICADA PARA ESTADO DE CARGA ---
-        function iniciarSesion() {
-             if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
-             const emailInput = document.getElementById('loginEmail');
-             const passwordInput = document.getElementById('loginPassword');
-             const errorElement = document.getElementById('loginError');
-             const btnLogin = document.getElementById('btnLogin'); // Botón añadido
-             
-             if (!emailInput || !passwordInput || !errorElement || !btnLogin) return; // btnLogin añadido a la validación
-             
-             const email = emailInput.value;
-             const password = passwordInput.value;
-             errorElement.textContent = 'Verificando...';
-             if (!email || !password) { 
-                 errorElement.textContent = 'Ingresa correo y contraseña.'; 
-                 return; 
-             }
-             
-             // Deshabilitar botón
-             btnLogin.disabled = true;
-             btnLogin.textContent = 'Verificando...';
-             
-             auth.signInWithEmailAndPassword(email, password)
-                 .then(userCredential => { 
-                     console.log('Usuario inició sesión:', userCredential.user.email); 
-                     // No necesitamos re-habilitar el botón aquí,
-                     // onAuthStateChanged ocultará el formulario
-                 })
-                 .catch(error => {
-                     console.error("Error al iniciar sesión:", error);
-                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { 
-                         errorElement.textContent = 'Correo o contraseña incorrectos.'; 
-                     }
-                     else { errorElement.textContent = `Error: ${error.message}`; }
-                     
-                     // Re-habilitar botón SI HAY ERROR
-                     btnLogin.disabled = false;
-                     btnLogin.textContent = 'Ingresar';
-                 });
-        }
-
-        function cerrarSesion() {
-             if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); return; }
-             auth.signOut().catch(error => { 
-                 console.error('Error al cerrar sesión:', error); 
-                 showToast('Error al cerrar sesión', 'error'); 
+             return userDocRef.set({ 
+                 email: user.email, 
+                 suscripcionActiva: true, 
+                 fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
+                 // --- NUEVO CAMPO AÑADIDO ---
+                 fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(fechaExpiracion), 
+                 metodoPago: 'manual_admin'
              });
-        }
+         })
+         .then(() => {
+             console.log("Doc Firestore creado con fecha de expiración.");
+             showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
+             emailInput.value = ''; 
+             passwordInput.value = '';
+         })
+         .catch(error => {
+             console.error("Error al crear cuenta o doc Firestore:", error);
+             if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
+             else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
+             else { errorElement.textContent = `Error: ${error.message}`; }
+             showToast(`❌ Error al crear cuenta`, 'error');
+         });
+}
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
-        if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-             auth.onAuthStateChanged(user => {
-                 const authSection = document.getElementById('auth-section');
-                 const appContent = document.getElementById('app-content');
-                 const loginError = document.getElementById('loginError');
-                 const headerButtons = document.getElementById('main-header-buttons');
-                 
-                 if (!authSection || !appContent || !loginError || !headerButtons) { 
-                     console.error("Elementos UI Auth cruciales no encontrados. No se puede continuar."); 
-                     if (document.body) document.body.innerHTML = "Error crítico de UI. Contacte al administrador.";
-                     return; 
+function iniciarSesion() {
+    // ... (El resto de la función iniciarSesion se mantiene igual)
+     if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
+     const emailInput = document.getElementById('loginEmail');
+     const passwordInput = document.getElementById('loginPassword');
+     const errorElement = document.getElementById('loginError');
+     const btnLogin = document.getElementById('btnLogin'); 
+     
+     if (!emailInput || !passwordInput || !errorElement || !btnLogin) return; 
+     
+     const email = emailInput.value;
+     const password = passwordInput.value;
+     errorElement.textContent = 'Verificando...';
+     if (!email || !password) { 
+         errorElement.textContent = 'Ingresa correo y contraseña.'; 
+         return; 
+     }
+     
+     btnLogin.disabled = true;
+     btnLogin.textContent = 'Verificando...';
+     
+     auth.signInWithEmailAndPassword(email, password)
+         .then(userCredential => { 
+             console.log('Usuario inició sesión:', userCredential.user.email); 
+             // onAuthStateChanged se encargará del resto
+         })
+         .catch(error => {
+             console.error("Error al iniciar sesión:", error);
+             if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { 
+                 errorElement.textContent = 'Correo o contraseña incorrectos.'; 
+             }
+             else { errorElement.textContent = `Error: ${error.message}`; }
+             
+             btnLogin.disabled = false;
+             btnLogin.textContent = 'Ingresar';
+         });
+}
+
+function enviarResetPassword() {
+    // ... (Esta función se mantiene igual)
+     if (typeof auth === 'undefined') { showToast("Error de servicio", "error"); return; }
+     const emailInput = document.getElementById('loginEmail');
+     const errorElement = document.getElementById('loginError');
+     const email = emailInput.value;
+
+     if (!email) {
+         errorElement.textContent = 'Por favor, ingresa tu correo para restablecer la contraseña.';
+         emailInput.focus();
+         return;
+     }
+
+     errorElement.textContent = 'Enviando correo...';
+     
+     auth.sendPasswordResetEmail(email)
+         .then(() => {
+             errorElement.textContent = ''; 
+             showToast(`✅ Correo de reenvío enviado a ${email}`, 'success', 5000);
+         })
+         .catch((error) => {
+             console.error("Error al enviar correo de reseteo:", error);
+             if (error.code === 'auth/user-not-found') {
+                 errorElement.textContent = 'No se encontró un usuario con ese correo.';
+             } else {
+                 errorElement.textContent = `Error: ${error.message}`;
+             }
+         });
+}
+
+function cerrarSesion() {
+    // ... (Esta función se mantiene igual)
+     if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); return; }
+     auth.signOut().catch(error => { 
+         console.error('Error al cerrar sesión:', error); 
+         showToast('Error al cerrar sesión', 'error'); 
+     });
+}
+
+// --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN (MODIFICADA) ---
+if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
+     auth.onAuthStateChanged(user => {
+         const authSection = document.getElementById('auth-section');
+         const appContent = document.getElementById('app-content');
+         const loginError = document.getElementById('loginError');
+         const headerButtons = document.getElementById('main-header-buttons');
+         
+         if (!authSection || !appContent || !loginError || !headerButtons) { 
+             console.error("Elementos UI Auth cruciales no encontrados."); 
+             if (document.body) document.body.innerHTML = "Error crítico de UI.";
+             return; 
+         }
+
+         if (user) { // Usuario Logueado
+             loginError.textContent = 'Verificando suscripción...';
+             headerButtons.style.display = 'none';
+             
+             const userDocRef = db.collection('usuarios').doc(user.uid);
+             
+             userDocRef.get().then(doc => {
+                 const createAccountForm = document.getElementById('create-account-form');
+                 if(createAccountForm) {
+                     // CAMBIA ESTE CORREO POR TU CORREO DE ADMIN
+                     if (user.email === 'edwin_valverdeg@hotmail.com') { 
+                         createAccountForm.style.display = 'block';
+                     } else {
+                         createAccountForm.style.display = 'none';
+                     }
                  }
 
-                 if (user) { // Usuario está Logueado
-                     loginError.textContent = 'Verificando suscripción...';
+                 // --- VERIFICACIÓN DE FECHA AÑADIDA ---
+                 const datosUsuario = doc.data();
+                 const hoy = new Date();
+                 let suscripcionValida = false;
+
+                 if (doc.exists && datosUsuario.suscripcionActiva === true && datosUsuario.fechaExpiracionSuscripcion) {
+                     const fechaExpiracion = datosUsuario.fechaExpiracionSuscripcion.toDate(); // Convertir Timestamp a Date
+                     if (fechaExpiracion > hoy) {
+                         suscripcionValida = true;
+                     } else {
+                         console.log("Suscripción expirada.");
+                         loginError.textContent = 'Tu suscripción ha expirado. Contacta al administrador para renovarla.';
+                     }
+                 } else if (!doc.exists || datosUsuario.suscripcionActiva !== true) {
+                      console.log("Suscripción NO activa o doc no existe.");
+                      loginError.textContent = 'Necesitas una suscripción activa.';
+                 } else if (!datosUsuario.fechaExpiracionSuscripcion) {
+                      console.log("Falta fecha de expiración en Firestore.");
+                      loginError.textContent = 'Error de configuración de cuenta. Contacta al administrador.';
+                 }
+                 // --- FIN VERIFICACIÓN DE FECHA ---
+
+
+                 if (suscripcionValida) {
+                     // SUSCRIPCIÓN VÁLIDA Y VIGENTE
+                     console.log("Suscripción activa y vigente. Mostrando app.");
+                     authSection.style.display = 'none';
+                     appContent.style.display = 'block';
+                     headerButtons.style.display = 'flex';
+                     loginError.textContent = '';
+                 } else {
+                     // SUSCRIPCIÓN INVÁLIDA O EXPIRADA
+                     authSection.style.display = 'block'; // Mostrar login con el mensaje de error ya puesto
+                     appContent.style.display = 'none';
                      headerButtons.style.display = 'none';
-                     
-                     const userDocRef = db.collection('usuarios').doc(user.uid);
-                     
-                     userDocRef.get().then(doc => {
-                         const createAccountForm = document.getElementById('create-account-form');
-                         if(createAccountForm) {
-                             // --- CAMBIA ESTE CORREO POR TU CORREO DE ADMIN ---
-                             if (user.email === 'edwin_valverdeg@hotmail.com') { 
-                                 createAccountForm.style.display = 'block';
-                             } else {
-                                 createAccountForm.style.display = 'none';
-                             }
-                         }
-
-                         if (doc.exists && doc.data().suscripcionActiva === true) {
-                             // SUSCRIPCIÓN VÁLIDA
-                             console.log("Suscripción activa. Mostrando app.");
-                             authSection.style.display = 'none';
-                             appContent.style.display = 'block';
-                             headerButtons.style.display = 'flex';
-                             loginError.textContent = '';
-                         } else {
-                             // LOGUEADO PERO SIN SUSCRIPCIÓN
-                             console.log("Suscripción NO activa o doc no existe.");
-                             authSection.style.display = 'block';
-                             appContent.style.display = 'none';
-                             headerButtons.style.display = 'none';
-                             loginError.textContent = 'Necesitas una suscripción activa.';
-                             auth.signOut(); // Desloguear si no tiene suscripción
-                         }
-                     }).catch(error => {
-                         // ERROR AL VERIFICAR FIRESTORE
-                         console.error("Error al verificar Firestore:", error);
-                         authSection.style.display = 'block';
-                         appContent.style.display = 'none';
-                         headerButtons.style.display = 'none';
-                         loginError.textContent = 'Error verificando suscripción.';
-                         auth.signOut(); // Desloguear si hay error
-                     });
-                 } else { // Usuario está Deslogueado
-     console.log('Estado: Deslogueado');
-     authSection.style.display = 'block'; // Mostrar login
-     appContent.style.display = 'none';
-     headerButtons.style.display = 'none';
-     loginError.textContent = '';
-
-     // Ocultar el form de crear cuenta si está visible
-     const createAccountForm = document.getElementById('create-account-form');
-
-     // >>> ASEGÚRATE DE QUE ESTA LÍNEA EXISTA <<<
-     if(createAccountForm) createAccountForm.style.display = 'none';
- }
+                     // Mantenemos al usuario logueado en Auth, pero no le damos acceso a la app.
+                     // Si prefieres desloguearlo, descomenta la siguiente línea:
+                     // auth.signOut(); 
+                 }
+             }).catch(error => {
+                 // ERROR AL VERIFICAR FIRESTORE
+                 console.error("Error al verificar Firestore:", error);
+                 authSection.style.display = 'block';
+                 appContent.style.display = 'none';
+                 headerButtons.style.display = 'none';
+                 loginError.textContent = 'Error verificando suscripción.';
+                 auth.signOut(); // Desloguear si hay error
              });
-        } else {
-             console.error("Firebase Auth o Firestore no definidos globalmente.");
-             document.addEventListener('DOMContentLoaded', () => {
-                 const loginError = document.getElementById('loginError');
-                 if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
-                 else if (document.body) document.body.innerHTML = "Error crítico de Firebase.";
-             });
-        }
+         } else { // Usuario Deslogueado
+             console.log('Estado: Deslogueado');
+             authSection.style.display = 'block';
+             appContent.style.display = 'none';
+             headerButtons.style.display = 'none';
+             loginError.textContent = '';
+             
+             const btnLogin = document.getElementById('btnLogin');
+             if (btnLogin) {
+                 btnLogin.disabled = false;
+                 btnLogin.textContent = 'Ingresar';
+             }
+             
+             const createAccountForm = document.getElementById('create-account-form');
+             if(createAccountForm) createAccountForm.style.display = 'none';
+         }
+     });
+} else {
+     console.error("Firebase Auth o Firestore no definidos globalmente.");
+     document.addEventListener('DOMContentLoaded', () => {
+         const loginError = document.getElementById('loginError');
+         if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
+         else if (document.body) document.body.innerHTML = "Error crítico de Firebase.";
+     });
+}
 
         // --- FUNCIONES DE FORMATO ---
         function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
