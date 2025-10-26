@@ -1,5 +1,5 @@
 // Nombre de la caché
-const CACHE_NAME = 'nacionalizacion-cr-cache-v12'; // CAMBIO V4
+const CACHE_NAME = 'nacionalizacion-cr-cache-v13'; // CAMBIO V4
 
 // Archivos para guardar en caché (el "App Shell")
 const CACHE_FILES = [
@@ -9,10 +9,11 @@ const CACHE_FILES = [
   'icon-512.png',
   'new-logo.png',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https/cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js',
-  // --- AÑADIR ESTAS LÍNEAS ---
+  'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js',
   'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js'
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js' // <-- AÑADIDA
+];
   // --- FIN LÍNEAS AÑADIDAS ---
 ];
 
