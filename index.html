@@ -49,6 +49,12 @@
 
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
         .btn-secondary:active, .btn-secondary:hover { background: #d1d5db; cursor: pointer; }
+        
+        /* --- ESTILO AÑADIDO PARA BOTÓN ACTIVO --- */
+        .btn-secondary.active {
+            background: #fbbf24;
+            color: #1f2937;
+        }
 
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
@@ -866,6 +872,15 @@
 
         // --- FUNCIONES (HERRAMIENTAS) ---
         function convertirMillaje(event) {
+            
+            // --- LÓGICA DE BOTÓN ACTIVO AÑADIDA ---
+            const btnMillas = document.getElementById('btnMillasAKm');
+            const btnKms = document.getElementById('btnKmsAMillas');
+            if (btnMillas) btnMillas.classList.remove('active');
+            if (btnKms) btnKms.classList.remove('active');
+            if (event && event.target) event.target.classList.add('active');
+            // --- FIN LÓGICA AÑADIDA ---
+            
             const valorInput = parseFloat(document.getElementById('millaje').value);
             const ano = parseInt(document.getElementById('ano').value);
             const resultadoCard = document.getElementById('millajeInfoCard');
@@ -874,6 +889,7 @@
             const promedioLabel = document.getElementById('millajePromedioLabel');
             const promedioValor = document.getElementById('millajePromedioValor');
             const promedioStatus = document.getElementById('millajePromedioStatus');
+            
             function mostrarError(mensaje) {
                 resultadoCard.classList.remove('hidden');
                 resultadoLabel.textContent = 'Error';
@@ -883,8 +899,18 @@
                 promedioStatus.textContent = mensaje;
                 promedioStatus.style.color = '#dc2626';
             }
-            if (!valorInput || valorInput < 0) { showToast('Ingrese un valor de millaje válido', 'error'); return; }
-            if (!ano || ano < 1980 || ano > anoActual + 1) { showToast('Ingrese un año de vehículo válido', 'error'); return; }
+            if (!valorInput || valorInput < 0) { 
+                showToast('Ingrese un valor de millaje válido', 'error'); 
+                // Si falla, quitamos el 'active' porque no hay resultado
+                if (event && event.target) event.target.classList.remove('active');
+                return; 
+            }
+            if (!ano || ano < 1980 || ano > anoActual + 1) { 
+                showToast('Ingrese un año de vehículo válido', 'error'); 
+                // Si falla, quitamos el 'active'
+                if (event && event.target) event.target.classList.remove('active');
+                return; 
+            }
             const antiguedad = Math.max(1, anoActual - ano);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
             if (event.target.id === 'btnMillasAKm') {
@@ -937,7 +963,7 @@
             } 
 
             // Asegurarse de que el objeto currentVinInfo tenga datos relevantes para el historial
-            // Si el usuario escribió el año manualmente, currentVinInfo.year estará vacío.
+            // Si el usuario escribió el año manually, currentVinInfo.year estará vacío.
             let infoAno = document.getElementById('ano').value || 'N/D';
             
             calculoActual.vinInfo = { 
@@ -1227,6 +1253,14 @@ Fecha cálculo: ${d.fecha}
                 const element = document.getElementById(id);
                 if (element) element.classList.add('hidden');
             });
+            
+            // --- AÑADIDO: LIMPIAR BOTONES DE CONVERSIÓN ---
+            const btnMillas = document.getElementById('btnMillasAKm');
+            const btnKms = document.getElementById('btnKmsAMillas');
+            if (btnMillas) btnMillas.classList.remove('active');
+            if (btnKms) btnKms.classList.remove('active');
+            // --- FIN ---
+            
             calculoActual = null;
             currentVinInfo = { make: '', model: '', year: '' }; 
             
