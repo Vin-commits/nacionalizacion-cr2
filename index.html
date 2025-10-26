@@ -778,24 +778,18 @@
                          auth.signOut(); // Desloguear si hay error
                      });
                  } else { // Usuario está Deslogueado
-                     console.log('Estado: Deslogueado');
-                     authSection.style.display = 'block';
-                     appContent.style.display = 'none';
-                     headerButtons.style.display = 'none';
-                     loginError.textContent = '';
-                     
-                     // --- LÓGICA AÑADIDA PARA RESTAURAR BOTÓN ---
-                     // Si el usuario está deslogueado, nos aseguramos
-                     // de que el botón de login esté habilitado.
-                     const btnLogin = document.getElementById('btnLogin');
-                     if (btnLogin) {
-                         btnLogin.disabled = false;
-                         btnLogin.textContent = 'Ingresar';
-                     }
-                     
-                     const createAccountForm = document.getElementById('create-account-form');
-                     if(createAccountForm) createAccountForm.style.display = 'none';
-                 }
+     console.log('Estado: Deslogueado');
+     authSection.style.display = 'block'; // Mostrar login
+     appContent.style.display = 'none';
+     headerButtons.style.display = 'none';
+     loginError.textContent = '';
+
+     // Ocultar el form de crear cuenta si está visible
+     const createAccountForm = document.getElementById('create-account-form');
+
+     // >>> ASEGÚRATE DE QUE ESTA LÍNEA EXISTA <<<
+     if(createAccountForm) createAccountForm.style.display = 'none';
+ }
              });
         } else {
              console.error("Firebase Auth o Firestore no definidos globalmente.");
