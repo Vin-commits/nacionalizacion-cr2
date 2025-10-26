@@ -18,6 +18,9 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script> ```
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -344,6 +347,10 @@
         // Inicializar Firebase (UNA SOLA VEZ)
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth(); // Objeto global para autenticación
+        const firebaseConfig = { /* ...tu config... */ };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore(); // <-- AÑADE ESTA LÍNEA (Objeto Firestore)
         // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
 
