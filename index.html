@@ -214,22 +214,32 @@
 
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
+        // ¡¡¡ ASEGÚRATE DE QUE ESTA ES TU ÚNICA firebaseConfig !!!
         const firebaseConfig = {
-  apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
-  authDomain: "calculos-cr.firebaseapp.com",
-  projectId: "calculos-cr",
-  storageBucket: "calculos-cr.firebasestorage.app",
-  messagingSenderId: "502237422177",
-  appId: "1:502237422177:web:6974139fc782d52a1e8020"
-};
+          // 🔥🔥🔥 PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE 🔥🔥🔥
+          apiKey: "AIzaSy...",
+          authDomain: "...",
+          projectId: "...",
+          storageBucket: "...",
+          messagingSenderId: "...",
+          appId: "..."
+        };
         // Inicializar Firebase (UNA SOLA VEZ)
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); // Objeto global para autenticación
-        const db = firebase.firestore(); // Objeto global para Firestore
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth(); // Objeto global para autenticación
+            const db = firebase.firestore(); // Objeto global para Firestore
+            console.log("Firebase inicializado correctamente.");
+        } catch (e) {
+            console.error("Error inicializando Firebase:", e);
+            // Mostrar un error al usuario si Firebase no carga
+             const loginError = document.getElementById('loginError');
+             if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
+        }
         // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
 
-        // --- VARIABLES GLOBALES Y CONSTANTES --- (UNA SOLA VEZ)
+        // --- VARIABLES GLOBALES Y CONSTANTES --- (Definidas fuera de DOMContentLoaded)
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
         let vehiculosSeleccionados = new Set();
@@ -248,268 +258,223 @@
         const HONORARIOS_TRASPASO = 65000;
 
         // --- MANEJO DE EVENTOS ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM completamente cargado y parseado."); // Log inicial
+        // Esperar a que TODO el HTML esté listo antes de buscar elementos y añadir listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM completamente cargado y parseado. Adjuntando listeners...");
 
-    // Listeners originales (SIN cambios aquí)
-    document.getElementById('ano').addEventListener('change', validarAno);
-    document.getElementById('ano').addEventListener('input', validarInicioAno);
-    document.getElementById('vin').addEventListener('input', handleVinInput);
-    document.getElementById('btnCalcular').addEventListener('click', calcular);
-    document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
-    document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
-    document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
-    document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
-    document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
-    document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
-    document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
-    document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
-    document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
-    document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
-    document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
-    document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
-    document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
-    document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
-    document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
+            try { // Envolver en try-catch por si acaso
+                // Listeners originales
+                document.getElementById('ano').addEventListener('change', validarAno);
+                document.getElementById('ano').addEventListener('input', validarInicioAno);
+                document.getElementById('vin').addEventListener('input', handleVinInput);
+                document.getElementById('btnCalcular').addEventListener('click', calcular);
+                document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
+                document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
+                document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
+                document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
+                document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
+                document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
+                document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
+                document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
+                document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
+                document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
+                document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
+                document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
+                document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
+                document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
+                document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
-    // --- Listeners Auth con VERIFICACIÓN EXPLÍCITA y LOGS ---
-    console.log("Intentando adjuntar listeners de Auth...");
+                // Listeners Auth con VERIFICACIÓN EXPLÍCITA
+                const btnLogin = document.getElementById('btnLogin');
+                if (btnLogin) { btnLogin.addEventListener('click', iniciarSesion); console.log("Listener añadido a btnLogin."); }
+                else { console.error("¡ERROR! No se encontró el elemento #btnLogin."); }
 
-    const btnLogin = document.getElementById('btnLogin');
-    console.log("Elemento btnLogin encontrado:", btnLogin); // Log para ver si se encontró
-    if (btnLogin) {
-        btnLogin.addEventListener('click', iniciarSesion);
-        console.log("Listener añadido a btnLogin.");
-    } else {
-        console.error("¡ERROR! No se encontró el elemento #btnLogin.");
-    }
+                const btnCreate = document.getElementById('btnCreateAccount');
+                if (btnCreate) { btnCreate.addEventListener('click', crearCuenta); console.log("Listener añadido a btnCreateAccount."); }
+                else { console.warn("Elemento #btnCreateAccount no encontrado (¿Formulario admin oculto?)."); }
 
-    const btnCreate = document.getElementById('btnCreateAccount');
-    console.log("Elemento btnCreateAccount encontrado:", btnCreate); // Log
-    if (btnCreate) {
-        btnCreate.addEventListener('click', crearCuenta);
-        console.log("Listener añadido a btnCreateAccount.");
-    } else {
-        // No es un error crítico si el form admin está oculto, pero sí si debería estar visible
-         console.warn("Elemento #btnCreateAccount no encontrado (¿Formulario admin oculto?).");
-    }
+                const btnLogout = document.getElementById('btnLogout');
+                if (btnLogout) { btnLogout.addEventListener('click', cerrarSesion); console.log("Listener añadido a btnLogout."); }
+                else { console.error("¡ERROR! No se encontró el elemento #btnLogout."); }
 
-    const btnLogout = document.getElementById('btnLogout');
-    console.log("Elemento btnLogout encontrado:", btnLogout); // Log
-    if (btnLogout) {
-        btnLogout.addEventListener('click', cerrarSesion);
-        console.log("Listener añadido a btnLogout.");
-    } else {
-        console.error("¡ERROR! No se encontró el elemento #btnLogout.");
-    }
-    // --- FIN Listeners Auth ---
-
-    // Listeners Colapsables
-    document.querySelectorAll('.collapsible-header').forEach(header => {
-        header.addEventListener('click', () => {
-            const targetId = header.dataset.target;
-            const content = document.getElementById(targetId);
-            if (content) {
-                header.classList.toggle('open');
-                content.classList.toggle('open');
-                if (content.classList.contains('open')) {
-                    setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
-                }
-            }
-        });
-    });
-
-    // Configuración inicial
-    document.getElementById('ano').max = anoActual + 1;
-    actualizarHistorialUI();
-    fetchTipoDeCambio();
-    console.log("Configuración inicial de DOMContentLoaded completada.");
-
-}); // FIN DEL DOMContentLoaded
-
-        // --- FUNCIONES DE AUTENTICACIÓN ---
-        function crearCuenta() {
-            const email = document.getElementById('createEmail').value;
-            const password = document.getElementById('createPassword').value;
-            const errorElement = document.getElementById('createError');
-            errorElement.textContent = '';
-            if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    console.log('Cuenta creada en Auth:', user.uid, user.email);
-                    const userDocRef = db.collection('usuarios').doc(user.uid);
-                    return userDocRef.set({
-                        email: user.email,
-                        suscripcionActiva: true,
-                        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
-                        metodoPago: 'manual_sinpe'
+                // Listeners Colapsables
+                document.querySelectorAll('.collapsible-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const targetId = header.dataset.target;
+                        const content = document.getElementById(targetId);
+                        if (content) {
+                            header.classList.toggle('open');
+                            content.classList.toggle('open');
+                            if (content.classList.contains('open')) {
+                                setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+                            }
+                        }
                     });
-                })
-                .then(() => {
-                    console.log("Documento de usuario creado en Firestore.");
-                    showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
-                    document.getElementById('createEmail').value = '';
-                    document.getElementById('createPassword').value = '';
-                })
-                .catch((error) => {
-                    console.error("Error al crear cuenta o doc Firestore:", error);
-                    if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
-                    else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
-                    else { errorElement.textContent = `Error: ${error.message}`; }
-                    showToast(`❌ Error al crear cuenta`, 'error');
                 });
+
+                // Configuración inicial que depende del DOM
+                document.getElementById('ano').max = anoActual + 1;
+                actualizarHistorialUI(); // Actualizar UI del historial si hay datos
+                fetchTipoDeCambio(); // Cargar tipo de cambio inicial
+                console.log("Listeners y configuración inicial completados.");
+
+            } catch (error) {
+                console.error("Error al adjuntar listeners o configuración inicial:", error);
+                 const loginError = document.getElementById('loginError');
+                 if(loginError) loginError.textContent = 'Error al iniciar la app. Refresca.';
+            }
+
+        }); // FIN DEL DOMContentLoaded
+
+        // --- FUNCIONES DE AUTENTICACIÓN --- (Definidas fuera de DOMContentLoaded)
+        function crearCuenta() {
+            // ... (Código de crearCuenta sin cambios) ...
+             const email = document.getElementById('createEmail').value;
+             const password = document.getElementById('createPassword').value;
+             const errorElement = document.getElementById('createError');
+             errorElement.textContent = '';
+             if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+
+             auth.createUserWithEmailAndPassword(email, password)
+                 .then((userCredential) => {
+                     const user = userCredential.user;
+                     console.log('Cuenta creada en Auth:', user.uid, user.email);
+                     const userDocRef = db.collection('usuarios').doc(user.uid);
+                     return userDocRef.set({
+                         email: user.email,
+                         suscripcionActiva: true,
+                         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
+                         metodoPago: 'manual_sinpe'
+                     });
+                 })
+                 .then(() => {
+                     console.log("Documento de usuario creado en Firestore.");
+                     showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
+                     document.getElementById('createEmail').value = '';
+                     document.getElementById('createPassword').value = '';
+                 })
+                 .catch((error) => {
+                     console.error("Error al crear cuenta o doc Firestore:", error);
+                     if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
+                     else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
+                     else { errorElement.textContent = `Error: ${error.message}`; }
+                     showToast(`❌ Error al crear cuenta`, 'error');
+                 });
         }
 
         function iniciarSesion() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const errorElement = document.getElementById('loginError');
-            errorElement.textContent = 'Verificando...';
-            if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+            // ... (Código de iniciarSesion sin cambios) ...
+             const email = document.getElementById('loginEmail').value;
+             const password = document.getElementById('loginPassword').value;
+             const errorElement = document.getElementById('loginError');
+             errorElement.textContent = 'Verificando...';
+             if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => { console.log('Usuario inició sesión:', userCredential.user.email); })
-                .catch((error) => {
-                    console.error("Error al iniciar sesión:", error);
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { errorElement.textContent = 'Correo o contraseña incorrectos.'; }
-                    else { errorElement.textContent = `Error: ${error.message}`; }
-                });
+             auth.signInWithEmailAndPassword(email, password)
+                 .then((userCredential) => { console.log('Usuario inició sesión:', userCredential.user.email); })
+                 .catch((error) => {
+                     console.error("Error al iniciar sesión:", error);
+                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { errorElement.textContent = 'Correo o contraseña incorrectos.'; }
+                     else { errorElement.textContent = `Error: ${error.message}`; }
+                 });
         }
 
         function cerrarSesion() {
-            auth.signOut().catch((error) => {
-                console.error('Error al cerrar sesión:', error);
-                showToast('Error al cerrar sesión', 'error');
-            });
+            // ... (Código de cerrarSesion sin cambios) ...
+             auth.signOut().catch((error) => {
+                 console.error('Error al cerrar sesión:', error);
+                 showToast('Error al cerrar sesión', 'error');
+             });
         }
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
-        auth.onAuthStateChanged((user) => {
-            const authSection = document.getElementById('auth-section');
-            const appContent = document.getElementById('app-content');
-            const loginError = document.getElementById('loginError');
+        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN --- (Definida fuera, pero interactúa con DOM)
+        // Es importante que esta función exista antes de que `DOMContentLoaded` termine
+         if (typeof auth !== 'undefined') { // Solo adjuntar si Firebase Auth se inicializó
+             auth.onAuthStateChanged((user) => {
+                 const authSection = document.getElementById('auth-section');
+                 const appContent = document.getElementById('app-content');
+                 const loginError = document.getElementById('loginError');
 
-            if (user) { // Usuario logueado en Auth
-                console.log('Estado: Logueado como', user.email, user.uid);
-                loginError.textContent = 'Verificando suscripción...';
-                const userDocRef = db.collection('usuarios').doc(user.uid);
+                 // Asegurarse de que los elementos existan antes de manipularlos
+                 if (!authSection || !appContent || !loginError) {
+                     console.error("Elementos de UI (auth/app) no encontrados en onAuthStateChanged");
+                     return;
+                 }
 
-                userDocRef.get().then((doc) => {
-                    if (doc.exists && doc.data().suscripcionActiva === true) {
-                        console.log("Suscripción activa encontrada.");
-                        authSection.style.display = 'none';
-                        appContent.style.display = 'block';
-                        loginError.textContent = '';
-                    } else {
-                        console.log("Suscripción no activa o documento no encontrado.");
-                        authSection.style.display = 'block';
-                        appContent.style.display = 'none';
-                        loginError.textContent = 'Necesitas una suscripción activa para usar la app.';
-                        // Considera desloguear para evitar inconsistencias
-                        // auth.signOut();
-                    }
-                }).catch((error) => {
-                    console.error("Error al obtener datos de Firestore:", error);
-                    authSection.style.display = 'block';
-                    appContent.style.display = 'none';
-                    loginError.textContent = 'Error al verificar suscripción. Intenta de nuevo.';
-                    // Considera desloguear
-                    // auth.signOut();
-                });
-            } else { // Usuario DESLOGUEADO
-                console.log('Estado: Deslogueado');
-                authSection.style.display = 'block';
-                appContent.style.display = 'none';
-                loginError.textContent = '';
-                // No llamamos a limpiarFormulario aquí directamente para evitar errores si los elementos no existen aún
-                // Se podría llamar condicionalmente si appContent estaba visible antes.
-            }
-        });
 
-        // --- FUNCIONES DE FORMATO ---
+                 if (user) { // Usuario logueado en Auth
+                     console.log('Estado: Logueado como', user.email, user.uid);
+                     loginError.textContent = 'Verificando suscripción...';
+                     const userDocRef = db.collection('usuarios').doc(user.uid);
+
+                     userDocRef.get().then((doc) => {
+                         if (doc.exists && doc.data().suscripcionActiva === true) {
+                             console.log("Suscripción activa encontrada.");
+                             authSection.style.display = 'none';
+                             appContent.style.display = 'block';
+                             loginError.textContent = '';
+                         } else {
+                             console.log("Suscripción no activa o documento no encontrado.");
+                             authSection.style.display = 'block';
+                             appContent.style.display = 'none';
+                             loginError.textContent = 'Necesitas una suscripción activa para usar la app.';
+                             // auth.signOut(); // Descomentar si quieres desloguear automáticamente
+                         }
+                     }).catch((error) => {
+                         console.error("Error al obtener datos de Firestore:", error);
+                         authSection.style.display = 'block';
+                         appContent.style.display = 'none';
+                         loginError.textContent = 'Error al verificar suscripción. Intenta de nuevo.';
+                         // auth.signOut(); // Descomentar si quieres desloguear automáticamente
+                     });
+                 } else { // Usuario DESLOGUEADO
+                     console.log('Estado: Deslogueado');
+                     authSection.style.display = 'block';
+                     appContent.style.display = 'none';
+                     loginError.textContent = '';
+                     // Llamar a limpiarFormulario solo si appContent era visible podría ser más seguro
+                     // if (appContent.style.display === 'block') { limpiarFormulario(); }
+                 }
+             });
+         } else {
+             console.error("Firebase Auth no está definido. No se puede adjuntar onAuthStateChanged.");
+             // Mostrar error al usuario
+             const loginError = document.getElementById('loginError');
+             if(loginError) loginError.textContent = 'Error al cargar sistema de autenticación.';
+         }
+
+
+        // --- OTRAS FUNCIONES (Formato, Toast, Validaciones, Cálculo, etc.) ---
+        // [!] ASEGÚRATE DE QUE TODAS TUS FUNCIONES ORIGINALES ESTÉN AQUÍ, UNA SOLA VEZ
         function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
         function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
-
-        // --- FUNCIÓN DEL TOAST ---
-        function showToast(message, type = 'info', duration = 3000) { /* ...código sin cambios... */ }
-
-        // --- VALIDACIÓN DE AÑO ---
-        function validarInicioAno() { /* ...código sin cambios... */ }
-        function validarAno() { /* ...código sin cambios... */ }
-
-        // --- LÓGICA DE CÁLCULO ---
-        function calcular() { /* ...código sin cambios... */ }
-        function mostrarDetalle() { /* ...código sin cambios... */ }
-
-        // --- FUNCIONES (HERRAMIENTAS) ---
-        function convertirMillaje(event) { /* ...código sin cambios... */ }
-        function calcularTraspaso() { /* ...código sin cambios... */ }
-
-        // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { /* ...código v5 sin cambios... */ }
-        function actualizarHistorialUI() { /* ...código v5 sin cambios... */ }
-        function seleccionarComparacion(id) { /* ...código v5 sin cambios... */ }
-        function mostrarComparacion() { /* ...código v5 sin cambios... */ }
-        function toggleComparacion() { /* ...código v5 sin cambios... */ }
-        function toggleHistorial() { /* ...código v5 sin cambios... */ }
-        function limpiarHistorial() { /* ...código v5 sin cambios... */ }
-
-        // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
-        function handleVinInput() { /* ...código v5 sin cambios... */ }
-        async function fetchVinData(vin) { /* ...código v5 sin cambios... */ }
-        async function fetchTipoDeCambio() { /* ...código v5 sin cambios... */ }
-        function displayVinData(data) { /* ...código v5 sin cambios... */ }
-
-        // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
-        function generarTextoDesglose(esParaWhatsapp = false) { /* ...código v5 sin cambios... */ }
-        function descargarPDF() { /* ...código v5 sin cambios... */ }
-        function enviarWhatsApp() { /* ...código v5 sin cambios... */ }
-
-        // --- FUNCIONES DE LIMPIEZA ---
-        function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
-        function limpiarFormulario() {
-            // Limpia solo los campos dentro de app-content
-            const appContent = document.getElementById('app-content');
-            if (!appContent || appContent.style.display === 'none') return; // No limpiar si no está visible
-
-            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.value = '';
-            });
-            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
-                 const element = document.getElementById(id);
-                 if (element) {
-                     if (id === 'tcFooter') element.textContent = 'N/A';
-                     else element.innerHTML = '';
-                 }
-            });
-             ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
-                 const element = document.getElementById(id);
-                 if (element) element.classList.add('hidden');
-            });
-            calculoActual = null;
-            currentVinInfo = { make: '', model: '', year: '' };
-            if (document.getElementById('vin')) { // Asegurarse que existe antes de llamar
-                 handleVinInput.call(document.getElementById('vin'));
-            }
-            // No llamar a fetchTipoDeCambio aquí, se llama al cargar la página
-        }
-        function limpiarVIN() {
-            const vinInput = document.getElementById('vin');
-            if (vinInput) {
-                vinInput.value = '';
-                handleVinInput.call(vinInput);
-            }
-        }
-
-        // --- CÓDIGO DEL SCANNER ---
-        async function iniciarScanner() { /* ...código v7 sin cambios... */ }
-        function handleScannerError(error) { /* ...código v7 sin cambios... */ }
-        function detenerScanner() { /* ...código v7 sin cambios... */ }
-
-    </script>
+        function showToast(message, type = 'info', duration = 3000) { /* ... */ }
+        function validarInicioAno() { /* ... */ }
+        function validarAno() { /* ... */ }
+        function calcular() { /* ... */ }
+        function mostrarDetalle() { /* ... */ }
+        function convertirMillaje(event) { /* ... */ }
+        function calcularTraspaso() { /* ... */ }
+        function guardarHistorial() { /* ... */ }
+        function actualizarHistorialUI() { /* ... */ }
+        function seleccionarComparacion(id) { /* ... */ }
+        function mostrarComparacion() { /* ... */ }
+        function toggleComparacion() { /* ... */ }
+        function toggleHistorial() { /* ... */ }
+        function limpiarHistorial() { /* ... */ }
+        function handleVinInput() { /* ... */ }
+        async function fetchVinData(vin) { /* ... */ }
+        async function fetchTipoDeCambio() { /* ... */ }
+        function displayVinData(data) { /* ... */ }
+        function generarTextoDesglose(esParaWhatsapp = false) { /* ... */ }
+        function descargarPDF() { /* ... */ }
+        function enviarWhatsApp() { /* ... */ }
+        function limpiarFichaVIN() { /* ... */ }
+        function limpiarFormulario() { /* ... (código ajustado para seguridad) */ }
+        function limpiarVIN() { /* ... (código ajustado para seguridad) */ }
+        async function iniciarScanner() { /* ... */ }
+        function handleScannerError(error) { /* ... */ }
+        function detenerScanner() { /* ... */ }
 
     <script>
       if ('serviceWorker' in navigator) {
