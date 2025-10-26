@@ -248,59 +248,84 @@
         const HONORARIOS_TRASPASO = 65000;
 
         // --- MANEJO DE EVENTOS ---
-        document.addEventListener('DOMContentLoaded', () => {
-             document.getElementById('ano').addEventListener('change', validarAno);
-             document.getElementById('ano').addEventListener('input', validarInicioAno);
-             document.getElementById('vin').addEventListener('input', handleVinInput);
-             document.getElementById('btnCalcular').addEventListener('click', calcular);
-             document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
-             document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
-             document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
-             document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
-             document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
-             document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
-             document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
-             document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
-             document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
-             document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
-             document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
-             document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
-             document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
-             document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
-             document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM completamente cargado y parseado."); // Log inicial
 
-            // Listeners Auth
-const btnLogin = document.getElementById('btnLogin'); // Obtener referencia primero
-if (btnLogin) { // Verificar si se encontró
-    btnLogin.addEventListener('click', iniciarSesion); // Añadir listener solo si existe
-}
-// ... (el resto de los listeners para btnCreate y btnLogout se quedan igual) ...
-            const btnCreate = document.getElementById('btnCreateAccount');
-            if (btnCreate) { btnCreate.addEventListener('click', crearCuenta); }
-            const btnLogout = document.getElementById('btnLogout');
-            if (btnLogout) { btnLogout.addEventListener('click', cerrarSesion); }
+    // Listeners originales (SIN cambios aquí)
+    document.getElementById('ano').addEventListener('change', validarAno);
+    document.getElementById('ano').addEventListener('input', validarInicioAno);
+    document.getElementById('vin').addEventListener('input', handleVinInput);
+    document.getElementById('btnCalcular').addEventListener('click', calcular);
+    document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
+    document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
+    document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
+    document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
+    document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
+    document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
+    document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
+    document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
+    document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
+    document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
+    document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
+    document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
+    document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
+    document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
+    document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
-            // Listeners Colapsables
-            document.querySelectorAll('.collapsible-header').forEach(header => {
-                 header.addEventListener('click', () => {
-                    const targetId = header.dataset.target;
-                    const content = document.getElementById(targetId);
-                    if (content) {
-                        header.classList.toggle('open');
-                        content.classList.toggle('open');
-                        if (content.classList.contains('open')) {
-                            // Suavizar scroll
-                            setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
-                         }
-                     }
-                 });
-             });
+    // --- Listeners Auth con VERIFICACIÓN EXPLÍCITA y LOGS ---
+    console.log("Intentando adjuntar listeners de Auth...");
 
-            document.getElementById('ano').max = anoActual + 1;
-            actualizarHistorialUI();
-            fetchTipoDeCambio();
-            // Auth state handled by onAuthStateChanged
+    const btnLogin = document.getElementById('btnLogin');
+    console.log("Elemento btnLogin encontrado:", btnLogin); // Log para ver si se encontró
+    if (btnLogin) {
+        btnLogin.addEventListener('click', iniciarSesion);
+        console.log("Listener añadido a btnLogin.");
+    } else {
+        console.error("¡ERROR! No se encontró el elemento #btnLogin.");
+    }
+
+    const btnCreate = document.getElementById('btnCreateAccount');
+    console.log("Elemento btnCreateAccount encontrado:", btnCreate); // Log
+    if (btnCreate) {
+        btnCreate.addEventListener('click', crearCuenta);
+        console.log("Listener añadido a btnCreateAccount.");
+    } else {
+        // No es un error crítico si el form admin está oculto, pero sí si debería estar visible
+         console.warn("Elemento #btnCreateAccount no encontrado (¿Formulario admin oculto?).");
+    }
+
+    const btnLogout = document.getElementById('btnLogout');
+    console.log("Elemento btnLogout encontrado:", btnLogout); // Log
+    if (btnLogout) {
+        btnLogout.addEventListener('click', cerrarSesion);
+        console.log("Listener añadido a btnLogout.");
+    } else {
+        console.error("¡ERROR! No se encontró el elemento #btnLogout.");
+    }
+    // --- FIN Listeners Auth ---
+
+    // Listeners Colapsables
+    document.querySelectorAll('.collapsible-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const targetId = header.dataset.target;
+            const content = document.getElementById(targetId);
+            if (content) {
+                header.classList.toggle('open');
+                content.classList.toggle('open');
+                if (content.classList.contains('open')) {
+                    setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+                }
+            }
         });
+    });
+
+    // Configuración inicial
+    document.getElementById('ano').max = anoActual + 1;
+    actualizarHistorialUI();
+    fetchTipoDeCambio();
+    console.log("Configuración inicial de DOMContentLoaded completada.");
+
+}); // FIN DEL DOMContentLoaded
 
         // --- FUNCIONES DE AUTENTICACIÓN ---
         function crearCuenta() {
