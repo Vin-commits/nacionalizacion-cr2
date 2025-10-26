@@ -270,7 +270,11 @@
              document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
             // Listeners Auth
-            document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
+const btnLogin = document.getElementById('btnLogin'); // Obtener referencia primero
+if (btnLogin) { // Verificar si se encontró
+    btnLogin.addEventListener('click', iniciarSesion); // Añadir listener solo si existe
+}
+// ... (el resto de los listeners para btnCreate y btnLogout se quedan igual) ...
             const btnCreate = document.getElementById('btnCreateAccount');
             if (btnCreate) { btnCreate.addEventListener('click', crearCuenta); }
             const btnLogout = document.getElementById('btnLogout');
