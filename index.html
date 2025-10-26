@@ -15,125 +15,299 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js"></script>
-
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* [!] ESTILOS CSS ORIGINALES COMPLETOS */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-logo { width: 36px; height: 36px; }
-        .header-title h1 { font-size: 18px; font-weight: bold; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-        .header-title p { font-size: 12px; color: #86efac; opacity: 1; }
+        .header-logo { width: 36px; height: 36px; } /* SVG o IMG. */
+        .header-title h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: white; 
+            text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .header-title p {
+            font-size: 12px;
+            color: #86efac; 
+            opacity: 1;
+        }
         .header-buttons { display: flex; gap: 8px; }
         button { border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+
+        /* Estilos de Botones */
         .btn-icon { background: rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .btn-icon:active { background: rgba(255,255,255,0.3); }
+
         .btn-header { background: rgba(255,255,255,0.2); color: white; width: auto; padding: 8px 12px; font-size: 12px; }
         .btn-header.active { background: #fbbf24; color: #1f2937; }
+
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
-        .btn-secondary:active { background: #d1d5db; }
-        .btn-secondary:hover {
-        background: #d1d5db; /* Mismo color que :active o uno ligeramente más oscuro */
-        cursor: pointer; /* Asegura que el cursor sea una mano */
-    }
+        .btn-secondary:active, .btn-secondary:hover { background: #d1d5db; cursor: pointer; }
+
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
+
         .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
         .btn-result:active { background: rgba(255,255,255,0.3); }
+
         .btn-danger-light { background: #fee2e2; color: #dc2626; padding: 4px 8px; font-size: 11px; border-radius: 4px; }
         .btn-info-light { background: #dbeafe; color: #1e40af; padding: 12px; border-radius: 8px; }
         .btn-success-light { background: #dcfce7; color: #15803d; padding: 12px; border-radius: 8px; }
         .btn-update-tc { background: #dbeafe; color: #2563eb; font-size: 11px; padding: 6px 10px; font-weight: bold; }
         .btn-update-tc:active { background: #bfdbfe; }
+
+        /* Contenedores y Tarjetas */
         .container { max-width: 500px; margin: 0 auto; padding: 16px; }
         .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #1f2937; }
+
+        /* Formulario */
         .form-group { margin-bottom: 12px; }
         .form-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         label { display: block; font-size: 12px; font-weight: 600; color: #374151; }
         input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; font-family: inherit; }
         input:focus { outline: none; border-color: #2563eb; background: #f0f9ff; }
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        
+        /* Ocultar flechas en inputs de tipo número */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+
         .help-text { font-size: 11px; color: #6b7280; margin-top: 4px; display: flex; align-items: center; gap: 6px;}
         .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+
+        /* NUEVA FICHA INFORMATIVA VIN */
         .info-card { background-color: #eff6ff; border: 2px solid #93c5fd; padding: 12px; margin-top: 16px; }
         .info-card-title { font-size: 14px; font-weight: bold; color: #1e40af; margin-bottom: 10px; }
         .info-card .detail-row { padding: 8px 0; font-size: 14px; }
         .info-card .detail-label { color: #374151; }
         .info-card .detail-value { color: #1f2937; }
-        .spinner { width: 14px; height: 14px; border: 2px solid #93c5fd; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* SPINNER DE CARGA */
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid #93c5fd; border-top-color: #3b82f6;
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Resultados y Detalles */
         .result-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-bottom: 16px; padding: 16px; border-radius: 12px; }
         .result-amount { font-size: 32px; font-weight: bold; margin-bottom: 16px; }
         .result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
         .detail-row.subtotal { font-weight: bold; color: #1e40af; }
         .detail-label { color: #6b7280; }
         .detail-value { font-weight: 600; color: #1f2937; }
         .section-header { background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-top: 12px; margin-bottom: 8px; }
         .total-row { background: #f0fdf4; padding: 12px; border-radius: 6px; margin-top: 12px; font-weight: bold; display: flex; justify-content: space-between; font-size: 16px; }
+
+        /* Historial y Comparador */
         .comparison-card { background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .comparison-card:active { background: #eff6ff; border-color: #3b82f6; }
         .comparison-card.selected { border-color: #2563eb; background: #eff6ff; border-width: 3px; }
-        .historial-vehicle-info { font-size: 13px; color: #4b5563; margin-top: 4px; font-weight: 500; }
+        
+        .historial-vehicle-info { 
+            font-size: 13px; 
+            color: #4b5563; 
+            margin-top: 4px; 
+            font-weight: 500;
+        }
+
         .hidden { display: none !important; }
-        #scanner-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #videoElement { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; object-fit: cover; transform: translate(-50%, -50%); z-index: 201; }
-        #scanner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 202; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #scanner-viewfinder { width: 90%; max-width: 600px; height: 100px; position: relative; border: 2px solid rgba(255, 255, 255, 0.7); box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); }
-        .scanner-red-line { position: absolute; width: 100%; height: 2px; background: #dc2626; box-shadow: 0 0 8px #dc2626; top: 50%; transform: translateY(-50%); }
-        .scanner-text { color: white; font-weight: 600; margin-top: 24px; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        #btnStopScan { margin-top: 24px; padding: 12px 24px; font-size: 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); z-index: 203; }
-        #btnStopScan:active { background: rgba(255,255,255,0.3); }
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; background: #2d3748; color: white; font-size: 14px; font-weight: 600; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); visibility: hidden; opacity: 0; transition: opacity 0.3s, visibility 0.3s, transform 0.3s; }
-        #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* --- CSS SCANNER --- */
+        #scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #videoElement {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: 201;
+        }
+        #scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 202;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #scanner-viewfinder {
+            width: 90%;
+            max-width: 600px;
+            height: 100px;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
+        }
+        .scanner-red-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #dc2626;
+            box-shadow: 0 0 8px #dc2626;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .scanner-text {
+            color: white;
+            font-weight: 600;
+            margin-top: 24px;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        #btnStopScan {
+            margin-top: 24px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+            z-index: 203; 
+        }
+        #btnStopScan:active {
+            background: rgba(255,255,255,0.3);
+        }
+        /* --- FIN CSS SCANNER --- */
+
+        /* ==== INICIO: CSS DEL TOAST ==== */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: #2d3748; 
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0); 
+        }
+        
         #toast.success { background: #059669; }
         #toast.error   { background: #dc2626; }
         #toast.info    { background: #2563eb; }
-        .collapsible-header { display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; cursor: pointer; font-weight: bold; color: #1f2937; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: background 0.2s ease-in-out; }
+        /* ==== FIN: CSS DEL TOAST ==== */
+
+        /* ==== INICIO: CSS PARA SECCIONES COLAPSABLES ==== */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f0f9ff; 
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #1f2937;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            transition: background 0.2s ease-in-out;
+        }
+
         .collapsible-header:hover { background: #e0f2fe; }
-        .collapsible-header .arrow-icon { width: 18px; height: 18px; transition: transform 0.3s ease-in-out; }
+        .collapsible-header .arrow-icon {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease-in-out;
+        }
         .collapsible-header.open .arrow-icon { transform: rotate(180deg); }
-        .collapsible-content { overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; }
-        .collapsible-content.open { max-height: 500px; opacity: 1; margin-bottom: 12px; }
+        .collapsible-content {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        }
+        .collapsible-content.open {
+            max-height: 500px; 
+            opacity: 1;
+            margin-bottom: 12px; 
+        }
+        /* ==== FIN: CSS PARA SECCIONES COLAPSABLES ==== */
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-title">
             <img src="new-logo.png" alt="Logo" class="header-logo">
-            <div><h1>Calculadora</h1><p>Importación de Vehículos</p></div>
+            <div>
+                <h1>Calculadora</h1>
+                <p>Importación de Vehículos</p>
+            </div>
         </div>
-        <div class="header-buttons" id="main-header-buttons" style="display: none;"> <button class="btn-header" id="btnComparar">Compare</button>
+        <div class="header-buttons" id="main-header-buttons" style="display: none;">
+            <button class="btn-header" id="btnComparar">Compare</button>
             <button class="btn-header" id="btnHistorial">Historial</button>
         </div>
     </div>
 
     <div id="scanner-container" class="hidden">
-         <video id="videoElement" playsinline></video>
-         <div id="scanner-overlay">
-              <div id="scanner-viewfinder"><div class="scanner-red-line"></div></div>
-              <div class="scanner-text">Centre el código de barras en la línea roja</div>
-              <button id="btnStopScan">Cancelar</button>
-         </div>
+        <video id="videoElement" playsinline></video>
+        <div id="scanner-overlay">
+            <div id="scanner-viewfinder">
+                <div class="scanner-red-line"></div>
+            </div>
+            <div class="scanner-text">Centre el código de barras en la línea roja</div>
+            <button id="btnStopScan">Cancelar</button>
+        </div>
     </div>
-
+    
     <div class="container">
-
-        <div id="auth-section" class="card" style="display: none;"> <div id="login-form">
+        
+        <div id="auth-section" class="card" style="display: none;">
+            <div id="login-form">
                 <div class="card-title">Iniciar Sesión</div>
                 <div class="form-group"><label for="loginEmail">Correo Electrónico</label><input type="email" id="loginEmail" placeholder="usuario@ejemplo.com"></div>
                 <div class="form-group"><label for="loginPassword">Contraseña</label><input type="password" id="loginPassword"></div>
                 <button id="btnLogin" class="btn-primary" style="width: 100%;">Ingresar</button>
                 <p id="loginError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center; min-height: 16px;"></p>
             </div>
-            <div id="create-account-form" style="border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
+            
+            <div id="create-account-form" style="display: none; border-top: 1px solid #e5e7eb; margin-top: 20px; padding-top: 20px;">
                  <div class="card-title">Crear Nueva Cuenta (Admin)</div>
                  <div class="form-group"><label for="createEmail">Correo Electrónico Cliente</label><input type="email" id="createEmail" placeholder="cliente@ejemplo.com"></div>
                  <div class="form-group"><label for="createPassword">Contraseña Temporal</label><input type="password" id="createPassword"></div>
@@ -141,6 +315,7 @@
                  <p id="createError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
             </div>
         </div>
+
         <div id="app-content" style="display: none;">
 
             <div id="comparador" class="card hidden">
@@ -156,90 +331,150 @@
                 <div id="historialContent"></div>
             </div>
 
-            <div class="card"> <div class="card-title">Ingrese datos del Vehículo</div>
-                 <div class="form-group">
-                     <label for="vin">VIN Number</label>
-                     <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
-                     <div class="help-text" id="vinStatus"></div>
-                     <div class="button-group" style="margin-top: 8px;"><button id="btnScanVIN" class="btn-secondary">║▌║ Escanear VIN</button><button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button></div>
-                 </div>
-                 <div class="form-group"><label for="ano">Año del Vehículo</label><input type="number" id="ano" placeholder="2022" min="1980" inputmode="numeric"><div class="help-text" id="ayudaAno"></div></div>
-                 <div id="vinInfoCard" class="card info-card hidden">
-                      <div class="card-title info-card-title">Información del Vehículo</div>
-                      <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
-                      <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value" id="vinModel"></span></div>
-                      <div class="detail-row"><span class="detail-label">Versión</span><span class="detail-value" id="vinTrim"></span></div>
-                      <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
-                      <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
-                  </div>
-                 <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                 <div class="collapsible-header" data-target="collapsible-millaje">
-                      <span>Convertidor de Distancia</span>
-                      <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/></svg>
-                 </div>
-                  <div id="collapsible-millaje" class="collapsible-content">
-                      <div class="form-group"><label for="millaje">Millaje / Kilometraje</label><input type="number" id="millaje" placeholder="30000" inputmode="numeric"><div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div></div>
-                      <div class="button-group"><button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button><button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button></div>
-                      <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
-                          <div class="card-title info-card-title">Resultado de Conversión</div>
-                          <div class="detail-row"><span class="detail-label" id="millajeResultadoLabel"></span><span class="detail-value" id="millajeResultadoValor"></span></div>
-                          <div class="detail-row" style="border-bottom: none;"><span class="detail-label" id="millajePromedioLabel"></span><span class="detail-value" id="millajePromedioValor"></span></div>
-                          <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
-                      </div>
-                      <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                  </div>
-                 <div class="collapsible-header" data-target="collapsible-traspaso">
-                      <span>Cálculo de Traspaso</span>
-                      <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor"><path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/></svg>
-                  </div>
-                  <div id="collapsible-traspaso" class="collapsible-content">
-                      <div class="form-group"><label for="valorFiscal">Valor Fiscal (₡)</label><input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric"></div>
-                      <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
-                      <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
-                      <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                  </div>
-                 <div class="form-group"><label for="valor">Valor (USD)</label><input type="number" id="valor" placeholder="25000" inputmode="numeric"></div>
-                 <div class="form-group"><label for="flete">Flete (USD)</label><input type="number" id="flete" placeholder="1500" inputmode="numeric"></div>
-                 <div class="form-group">
-                     <div class="form-group-header"><label for="tipoCambio">Tipo de Cambio (₡/USD)</label><button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button></div>
-                     <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric"><div class="help-text" id="tipoCambioHelp"></div>
-                 </div>
-                 <div class="button-group"><button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button><button class="btn-primary" id="btnCalcular">Calcular</button></div>
-             </div> <div id="resultado" class="hidden">
-                 <div class="result-card">
-                     <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
-                     <div class="result-amount" id="resultadoTotal"></div>
-                     <div class="result-buttons">
-                         <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
-                         <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
-                     </div>
-                 </div>
-                 <div id="detalle" class="card hidden">
-                     <div class="card-title">Desglose</div>
-                     <div id="detalleContent"></div>
-                     <div class="button-group" style="margin-top: 16px;">
-                         <button id="btnDescargar" class="btn-info-light">Exportar (PDF)</button>
-                         <button id="btnWhatsApp" class="btn-success-light">WhatsApp</button>
-                     </div>
-                 </div>
-             </div>
+            <div class="card">
+                <div class="card-title">Ingrese datos del Vehículo</div>
+
+                <div class="form-group">
+                    <label for="vin">VIN Number</label>
+                    <input type="text" id="vin" placeholder="Ej: 5FNRL6H73LB123456" maxlength="17" autocapitalize="characters">
+                    <div class="help-text" id="vinStatus"></div>
+
+                    <div class="button-group" style="margin-top: 8px;">
+                        <button id="btnScanVIN" class="btn-secondary">║▌║ Escanear VIN</button>
+                        <button id="btnLimpiarVIN" class="btn-danger-light" style="padding: 12px;">Limpiar VIN</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ano">Año del Vehículo</label>
+                    <input type="number" id="ano" placeholder="2022" min="1980" inputmode="numeric">
+                    <div class="help-text" id="ayudaAno"></div>
+                </div>
+
+                <div id="vinInfoCard" class="card info-card hidden">
+                    <div class="card-title info-card-title">Información del Vehículo</div>
+                    <div class="detail-row"><span class="detail-label">Marca</span><span class="detail-value" id="vinMake"></span></div>
+                    <div class="detail-row"><span class="detail-label">Modelo</span><span class="detail-value" id="vinModel"></span></div>
+                    <div class="detail-row"><span class="detail-label">Versión</span><span class="detail-value" id="vinTrim"></span></div>
+                    <div class="detail-row"><span class="detail-label">Motor</span><span class="detail-value" id="vinEngine"></span></div>
+                    <div class="detail-row" style="border-bottom: none;"><span class="detail-label">País</span><span class="detail-value" id="vinCountry"></span></div>
+                </div>
+
+                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+
+                <div class="collapsible-header" data-target="collapsible-millaje">
+                    <span>Convertidor de Distancia</span>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+                        <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
+                    </svg>
+                </div>
+                <div id="collapsible-millaje" class="collapsible-content">
+                    <div class="form-group">
+                        <label for="millaje">Millaje / Kilometraje</label>
+                        <input type="number" id="millaje" placeholder="30000" inputmode="numeric">
+                        <div class="help-text">El color indica si está sobre (rojo) o bajo (verde) el promedio para el año del vehículo.</div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-secondary" id="btnMillasAKm">Millas a Kms</button>
+                        <button class="btn-secondary" id="btnKmsAMillas">Kms a Millas</button>
+                    </div>
+
+                    <div id="millajeInfoCard" class="card info-card hidden" style="margin-top: 16px;">
+                        <div class="card-title info-card-title">Resultado de Conversión</div>
+                        <div class="detail-row">
+                            <span class="detail-label" id="millajeResultadoLabel"></span>
+                            <span class="detail-value" id="millajeResultadoValor"></span>
+                        </div>
+                        <div class="detail-row" style="border-bottom: none;">
+                            <span class="detail-label" id="millajePromedioLabel"></span>
+                            <span class="detail-value" id="millajePromedioValor"></span>
+                        </div>
+                        <div id="millajePromedioStatus" style="font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px;"></div>
+                    </div>
+                    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                </div>
+                
+                <div class="collapsible-header" data-target="collapsible-traspaso">
+                    <span>Cálculo de Traspaso</span>
+                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+                        <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
+                    </svg>
+                </div>
+                <div id="collapsible-traspaso" class="collapsible-content">
+                    <div class="form-group">
+                        <label for="valorFiscal">Valor Fiscal (₡)</label>
+                        <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
+                    </div>
+                    <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+                    <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+                    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                </div>
+                
+
+                <div class="form-group">
+                    <label for="valor">Valor (USD)</label>
+                    <input type="number" id="valor" placeholder="25000" inputmode="numeric">
+                </div>
+
+                <div class="form-group">
+                    <label for="flete">Flete (USD)</label>
+                    <input type="number" id="flete" placeholder="1500" inputmode="numeric">
+                </div>
+
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
+                        <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
+                    </div>
+                    <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric">
+                    <div class="help-text" id="tipoCambioHelp"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button>
+                    <button class="btn-primary" id="btnCalcular">Calcular</button>
+                </div>
+            </div>
+
+            <div id="resultado" class="hidden">
+                <div class="result-card">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;">COSTO TOTAL</div>
+                    <div class="result-amount" id="resultadoTotal"></div>
+                    <div class="result-buttons">
+                        <button class="btn-result" id="btnVerDetalle">Ver Detalle</button>
+                        <button class="btn-result" id="btnGuardarHistorial">Guardar</button>
+                    </div>
+                </div>
+
+                <div id="detalle" class="card hidden">
+                    <div class="card-title">Desglose</div>
+                    <div id="detalleContent"></div>
+                    <div class="button-group" style="margin-top: 16px;">
+                        <button id="btnDescargar" class="btn-info-light">Exportar (PDF)</button>
+                        <button id="btnWhatsApp" class="btn-success-light">WhatsApp</button>
+                    </div>
+                </div>
+            </div>
 
             <button id="btnLogout" class="btn-danger-light" style="width: 100%; padding: 12px; margin-top: 20px; font-size: 14px;">Cerrar Sesión</button>
-
-        </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;"><p>TC Venta BCCR: <span id="tcFooter">N/A</span></p></div>
-
-    </div> <div id="toast" class="toast"></div>
-
+        
+        </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
+            <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
+    
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
-       const firebaseConfig = {
-  apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
-  authDomain: "calculos-cr.firebaseapp.com",
-  projectId: "calculos-cr",
-  storageBucket: "calculos-cr.firebasestorage.app",
-  messagingSenderId: "502237422177",
-  appId: "1:502237422177:web:6974139fc782d52a1e8020"
-};
+        const firebaseConfig = {
+            // 🔥🔥🔥 TU CONFIGURACIÓN DE FIREBASE ESTÁ AQUÍ 🔥🔥🔥
+            apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
+            authDomain: "calculos-cr.firebaseapp.com",
+            projectId: "calculos-cr",
+            storageBucket: "calculos-cr.appspot.com",
+            messagingSenderId: "502237422177",
+            appId: "1:502237422177:web:6974139fc782d52a1e8020"
+        };
         let auth;
         let db;
         try {
@@ -256,18 +491,25 @@
         }
         // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
-
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
         let vehiculosSeleccionados = new Set();
         let calculoActual = null;
         let vinDecodeTimeout;
-        let codeReader = null;
-        let toastTimeout;
-        let currentVinInfo = { make: '', model: '', year: '' };
+        let codeReader = null; 
+        let toastTimeout; 
+
+        let currentVinInfo = { make: '', model: '', year: '' }; 
+
         const anoActual = new Date().getFullYear();
-        const COSTOS_FIJOS = { SEGURO_1: 0.011, SEGURO_2: 0.007, PAPELEO_USA: 250, DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000 };
+
+        const COSTOS_FIJOS = {
+            SEGURO_1: 0.011, SEGURO_2: 0.007, PAPELEO_USA: 250,
+            DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
+        };
+
+        // --- CONSTANTES HERRAMIENTAS ---
         const MILLAS_POR_KM = 0.621371;
         const KM_POR_MILLA = 1.60934;
         const PROMEDIO_MILLAS_ANO = 15000;
@@ -277,115 +519,77 @@
 
         // --- MANEJO DE EVENTOS ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM cargado. Adjuntando listeners...");
-            try {
-                // Listeners originales (con verificación)
-                const anoInput = document.getElementById('ano');
-                if (anoInput) { anoInput.addEventListener('change', validarAno); anoInput.addEventListener('input', validarInicioAno); anoInput.max = anoActual + 1; }
-                else { console.warn("Elemento #ano no encontrado (Ok si está oculto por login)"); } // Cambiado a warn
-                const vinInput = document.getElementById('vin');
-                if (vinInput) vinInput.addEventListener('input', handleVinInput);
-                else { console.warn("Elemento #vin no encontrado (Ok si está oculto por login)"); }
-                const btnCalcularElem = document.getElementById('btnCalcular');
-                if (btnCalcularElem) btnCalcularElem.addEventListener('click', calcular);
-                else { console.warn("Elemento #btnCalcular no encontrado (Ok si está oculto por login)"); }
-                const btnLimpiarForm = document.getElementById('btnLimpiarFormulario');
-                if (btnLimpiarForm) btnLimpiarForm.addEventListener('click', limpiarFormulario);
-                else { console.warn("Elemento #btnLimpiarFormulario no encontrado (Ok si está oculto por login)"); }
-                const btnLimpiarVIN = document.getElementById('btnLimpiarVIN');
-                if(btnLimpiarVIN) btnLimpiarVIN.addEventListener('click', limpiarVIN);
-                else { console.warn("Elemento #btnLimpiarVIN no encontrado (Ok si está oculto por login)"); }
-                const btnVerDetalle = document.getElementById('btnVerDetalle');
-                if (btnVerDetalle) btnVerDetalle.addEventListener('click', mostrarDetalle);
-                else { console.warn("Elemento #btnVerDetalle no encontrado (Ok si está oculto por login)"); }
-                const btnGuardarHistorial = document.getElementById('btnGuardarHistorial');
-                if (btnGuardarHistorial) btnGuardarHistorial.addEventListener('click', guardarHistorial);
-                else { console.warn("Elemento #btnGuardarHistorial no encontrado (Ok si está oculto por login)"); }
-                const btnDescargar = document.getElementById('btnDescargar');
-                if (btnDescargar) btnDescargar.addEventListener('click', descargarPDF);
-                 else { console.warn("Elemento #btnDescargar no encontrado (Ok si está oculto por login)"); }
-                const btnWhatsApp = document.getElementById('btnWhatsApp');
-                if (btnWhatsApp) btnWhatsApp.addEventListener('click', enviarWhatsApp);
-                else { console.warn("Elemento #btnWhatsApp no encontrado (Ok si está oculto por login)"); }
-                const btnHistorial = document.getElementById('btnHistorial');
-                if (btnHistorial) btnHistorial.addEventListener('click', toggleHistorial);
-                else { console.warn("Elemento #btnHistorial no encontrado (Ok si está oculto por login)"); }
-                const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
-                if (btnLimpiarHistorial) btnLimpiarHistorial.addEventListener('click', limpiarHistorial);
-                else { console.warn("Elemento #btnLimpiarHistorial no encontrado (Ok si está oculto por login)"); }
-                const btnComparar = document.getElementById('btnComparar');
-                if (btnComparar) btnComparar.addEventListener('click', toggleComparacion);
-                else { console.warn("Elemento #btnComparar no encontrado (Ok si está oculto por login)"); }
-                const btnActualizarTC = document.getElementById('btnActualizarTC');
-                if (btnActualizarTC) btnActualizarTC.addEventListener('click', fetchTipoDeCambio);
-                else { console.warn("Elemento #btnActualizarTC no encontrado (Ok si está oculto por login)"); }
-                const btnMillasAKm = document.getElementById('btnMillasAKm');
-                if (btnMillasAKm) btnMillasAKm.addEventListener('click', convertirMillaje);
-                else { console.warn("Elemento #btnMillasAKm no encontrado (Ok si está oculto por login)"); }
-                const btnKmsAMillas = document.getElementById('btnKmsAMillas');
-                if (btnKmsAMillas) btnKmsAMillas.addEventListener('click', convertirMillaje);
-                else { console.warn("Elemento #btnKmsAMillas no encontrado (Ok si está oculto por login)"); }
-                const btnCalcTraspaso = document.getElementById('btnCalcularTraspaso');
-                if (btnCalcTraspaso) btnCalcTraspaso.addEventListener('click', calcularTraspaso);
-                else { console.warn("Elemento #btnCalcularTraspaso no encontrado (Ok si está oculto por login)"); }
-                const btnScanVIN = document.getElementById('btnScanVIN');
-                if (btnScanVIN) btnScanVIN.addEventListener('click', iniciarScanner);
-                else { console.warn("Elemento #btnScanVIN no encontrado (Ok si está oculto por login)"); }
-                const btnStopScan = document.getElementById('btnStopScan');
-                if (btnStopScan) btnStopScan.addEventListener('click', detenerScanner);
-                else { console.error("Elemento #btnStopScan no encontrado"); } // Este SÍ debe existir siempre
+            document.getElementById('ano').addEventListener('change', validarAno);
+            // CAMBIO V6: Nuevo listener para validación de año en tiempo real
+            document.getElementById('ano').addEventListener('input', validarInicioAno);
 
-                // Listeners Auth
-                const btnLogin = document.getElementById('btnLogin');
-                if (btnLogin) { btnLogin.addEventListener('click', iniciarSesion); console.log("Listener añadido a btnLogin."); }
-                else { console.error("¡ERROR! No se encontró el elemento #btnLogin."); }
-                const btnCreate = document.getElementById('btnCreateAccount');
-                if (btnCreate) { btnCreate.addEventListener('click', crearCuenta); console.log("Listener añadido a btnCreateAccount."); }
-                else { console.warn("Elemento #btnCreateAccount no encontrado."); }
-                const btnLogout = document.getElementById('btnLogout');
-                if (btnLogout) { btnLogout.addEventListener('click', cerrarSesion); console.log("Listener añadido a btnLogout."); }
-                else { console.warn("Elemento #btnLogout no encontrado (normal si no está logueado)."); }
+            document.getElementById('vin').addEventListener('input', handleVinInput);
+            document.getElementById('btnCalcular').addEventListener('click', calcular);
+            document.getElementById('btnLimpiarFormulario').addEventListener('click', limpiarFormulario);
+            document.getElementById('btnLimpiarVIN').addEventListener('click', limpiarVIN);
+            document.getElementById('btnVerDetalle').addEventListener('click', mostrarDetalle);
+            document.getElementById('btnGuardarHistorial').addEventListener('click', guardarHistorial);
+            document.getElementById('btnDescargar').addEventListener('click', descargarPDF);
+            document.getElementById('btnWhatsApp').addEventListener('click', enviarWhatsApp);
+            document.getElementById('btnHistorial').addEventListener('click', toggleHistorial);
+            document.getElementById('btnLimpiarHistorial').addEventListener('click', limpiarHistorial);
+            document.getElementById('btnComparar').addEventListener('click', toggleComparacion);
+            document.getElementById('btnActualizarTC').addEventListener('click', fetchTipoDeCambio);
+            document.getElementById('btnMillasAKm').addEventListener('click', convertirMillaje);
+            document.getElementById('btnKmsAMillas').addEventListener('click', convertirMillaje);
+            document.getElementById('btnCalcularTraspaso').addEventListener('click', calcularTraspaso);
 
-                // Listeners Colapsables
-                // --- INICIO: LISTENERS COLAPSABLES (ASEGÚRATE QUE ESTÉ ASÍ) ---
-        console.log("Adjuntando listeners colapsables...");
-        document.querySelectorAll('.collapsible-header').forEach(header => {
-            console.log("Encontrado header colapsable:", header); // Log
-            header.addEventListener('click', () => {
-                const targetId = header.dataset.target;
-                console.log("Clic en colapsable, target ID:", targetId); // Log
-                const content = document.getElementById(targetId);
-                if (content) {
-                    header.classList.toggle('open');
-                    content.classList.toggle('open');
-                    console.log("Clases 'open' añadidas/quitadas a:", header.id, content.id); // Log
-                    if (content.classList.contains('open')) {
-                        // Scroll suave para mostrar el contenido
-                        setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
-                    }
-                } else {
-                    console.error("No se encontró el contenido colapsable con ID:", targetId);
-                }
-            });
-        });
-        // --- FIN: LISTENERS COLAPSABLES ---
+            // --- LISTENERS SCANNER ---
+            document.getElementById('btnScanVIN').addEventListener('click', iniciarScanner);
+            document.getElementById('btnStopScan').addEventListener('click', detenerScanner);
 
-
-        // Configuración inicial
-        const anoInput = document.getElementById('ano'); // Mover la referencia aquí
-        if(anoInput) anoInput.max = anoActual + 1;
-        actualizarHistorialUI();
-        fetchTipoDeCambio();
-        console.log("Listeners y config inicial completados.");
-
-    } catch (error) {
-                console.error("Error CRÍTICO al adjuntar listeners:", error);
-                 const loginError = document.getElementById('loginError');
-                 if(loginError) loginError.textContent = 'Error grave al iniciar. Refresca.';
+            // --- LISTENERS AUTH (AÑADIDOS) ---
+            const btnLogin = document.getElementById('btnLogin');
+            if (btnLogin) {
+                btnLogin.addEventListener('click', iniciarSesion);
+                console.log("Listener añadido a btnLogin.");
+            } else {
+                console.error("¡ERROR CRÍTICO! No se encontró el elemento #btnLogin.");
             }
-        }); // FIN DOMContentLoaded
 
-        // --- FUNCIONES DE AUTENTICACIÓN ---
+            const btnCreate = document.getElementById('btnCreateAccount');
+            if (btnCreate) {
+                btnCreate.addEventListener('click', crearCuenta);
+                console.log("Listener añadido a btnCreateAccount.");
+            } else {
+                // Esto es opcional, puede que no exista en todas las vistas
+                console.warn("Elemento #btnCreateAccount no encontrado."); 
+            }
+
+            const btnLogout = document.getElementById('btnLogout');
+            if (btnLogout) {
+                btnLogout.addEventListener('click', cerrarSesion);
+                console.log("Listener añadido a btnLogout.");
+            } else {
+                console.warn("Elemento #btnLogout no encontrado (normal si no está logueado).");
+            }
+            
+            // --- LISTENERS COLAPSABLES ---
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.target;
+                    const content = document.getElementById(targetId);
+                    if (content) {
+                        header.classList.toggle('open');
+                        content.classList.toggle('open');
+                        if (content.classList.contains('open')) {
+                            content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                });
+            });
+
+            document.getElementById('ano').max = anoActual + 1;
+            actualizarHistorialUI();
+            fetchTipoDeCambio();
+        });
+
+        // --- FUNCIONES DE AUTENTICACIÓN (AÑADIDAS) ---
         function crearCuenta() {
              if (typeof auth === 'undefined' || typeof db === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
              const emailInput = document.getElementById('createEmail');
@@ -396,17 +600,26 @@
              const password = passwordInput.value;
              errorElement.textContent = '';
              if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+             
+             // NOTA: Esta función crea un usuario y lo activa de inmediato.
              auth.createUserWithEmailAndPassword(email, password)
                  .then(userCredential => {
                      const user = userCredential.user;
                      console.log('Cuenta creada en Auth:', user.uid);
                      const userDocRef = db.collection('usuarios').doc(user.uid);
-                     return userDocRef.set({ email: user.email, suscripcionActiva: true, fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), metodoPago: 'manual_sinpe' });
+                     // Activa la suscripción inmediatamente al crearla
+                     return userDocRef.set({ 
+                         email: user.email, 
+                         suscripcionActiva: true, 
+                         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
+                         metodoPago: 'manual_admin' // Asumiendo que el admin la crea
+                     });
                  })
                  .then(() => {
                      console.log("Doc Firestore creado.");
                      showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
-                     emailInput.value = ''; passwordInput.value = '';
+                     emailInput.value = ''; 
+                     passwordInput.value = '';
                  })
                  .catch(error => {
                      console.error("Error al crear cuenta o doc Firestore:", error);
@@ -416,6 +629,7 @@
                      showToast(`❌ Error al crear cuenta`, 'error');
                  });
         }
+
         function iniciarSesion() {
              if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
              const emailInput = document.getElementById('loginEmail');
@@ -426,73 +640,108 @@
              const password = passwordInput.value;
              errorElement.textContent = 'Verificando...';
              if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+             
              auth.signInWithEmailAndPassword(email, password)
-                 .then(userCredential => { console.log('Usuario inició sesión:', userCredential.user.email); })
+                 .then(userCredential => { 
+                     console.log('Usuario inició sesión:', userCredential.user.email); 
+                     // onAuthStateChanged se encargará del resto
+                 })
                  .catch(error => {
                      console.error("Error al iniciar sesión:", error);
-                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { errorElement.textContent = 'Correo o contraseña incorrectos.'; }
+                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { 
+                         errorElement.textContent = 'Correo o contraseña incorrectos.'; 
+                     }
                      else { errorElement.textContent = `Error: ${error.message}`; }
                  });
         }
+
         function cerrarSesion() {
              if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); return; }
-             auth.signOut().catch(error => { console.error('Error al cerrar sesión:', error); showToast('Error al cerrar sesión', 'error'); });
+             auth.signOut().catch(error => { 
+                 console.error('Error al cerrar sesión:', error); 
+                 showToast('Error al cerrar sesión', 'error'); 
+             });
         }
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
+        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN (AÑADIDO) ---
         if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-            auth.onAuthStateChanged(user => {
+             auth.onAuthStateChanged(user => {
                  const authSection = document.getElementById('auth-section');
                  const appContent = document.getElementById('app-content');
                  const loginError = document.getElementById('loginError');
                  const headerButtons = document.getElementById('main-header-buttons');
-                 if (!authSection || !appContent || !loginError || !headerButtons) { console.error("Elementos UI Auth no encontrados"); return; }
+                 
+                 if (!authSection || !appContent || !loginError || !headerButtons) { 
+                     console.error("Elementos UI Auth cruciales no encontrados. No se puede continuar."); 
+                     if (document.body) document.body.innerHTML = "Error crítico de UI. Contacte al administrador.";
+                     return; 
+                 }
 
-                 if (user) { // Logueado
+                 if (user) { // Usuario está Logueado
                      loginError.textContent = 'Verificando suscripción...';
-                     headerButtons.style.display = 'none';
+                     headerButtons.style.display = 'none'; // Ocultar botones hasta verificar
+                     
                      const userDocRef = db.collection('usuarios').doc(user.uid);
+                     
                      userDocRef.get().then(doc => {
+                         // Asumimos que la sección de admin solo la ve un admin
+                         const createAccountForm = document.getElementById('create-account-form');
+                         if(createAccountForm) {
+                             // CAMBIA ESTO A TU EMAIL DE ADMIN O LÓGICA DE ROLES
+                             if (user.email === 'admin@ejemplo.com') { 
+                                 createAccountForm.style.display = 'block';
+                             } else {
+                                 createAccountForm.style.display = 'none';
+                             }
+                         }
+
                          if (doc.exists && doc.data().suscripcionActiva === true) {
-                             console.log("Suscripción activa.");
+                             // SUSCRIPCIÓN VÁLIDA
+                             console.log("Suscripción activa. Mostrando app.");
                              authSection.style.display = 'none';
                              appContent.style.display = 'block';
-                             headerButtons.style.display = 'flex';
+                             headerButtons.style.display = 'flex'; // Mostrar botones del header
                              loginError.textContent = '';
                          } else {
-                             console.log("Suscripción NO activa.");
-                             authSection.style.display = 'block';
+                             // LOGUEADO PERO SIN SUSCRIPCIÓN
+                             console.log("Suscripción NO activa o doc no existe.");
+                             authSection.style.display = 'block'; // Mostrar login
                              appContent.style.display = 'none';
                              headerButtons.style.display = 'none';
                              loginError.textContent = 'Necesitas una suscripción activa.';
-                             // auth.signOut(); // Descomentar para desloguear
+                             // Opcional: Desloguear automáticamente si no tiene suscripción
+                             // auth.signOut(); 
                          }
                      }).catch(error => {
-                          console.error("Error Firestore:", error);
-                          authSection.style.display = 'block';
-                          appContent.style.display = 'none';
-                          headerButtons.style.display = 'none';
-                          loginError.textContent = 'Error verificando suscripción.';
-                          // auth.signOut(); // Descomentar para desloguear
+                         // ERROR AL VERIFICAR FIRESTORE
+                         console.error("Error al verificar Firestore:", error);
+                         authSection.style.display = 'block'; // Mostrar login
+                         appContent.style.display = 'none';
+                         headerButtons.style.display = 'none';
+                         loginError.textContent = 'Error verificando suscripción.';
+                         // Opcional: Desloguear si hay error
+                         // auth.signOut(); 
                      });
-                 } else { // Deslogueado
+                 } else { // Usuario está Deslogueado
                      console.log('Estado: Deslogueado');
-                     authSection.style.display = 'block';
+                     authSection.style.display = 'block'; // Mostrar login
                      appContent.style.display = 'none';
                      headerButtons.style.display = 'none';
                      loginError.textContent = '';
-                     // Limpiar formulario si estaba visible
-                     // if (document.getElementById('app-content').style.display === 'block') { limpiarFormulario(); }
+                     
+                     // Ocultar el form de crear cuenta si está visible
+                     const createAccountForm = document.getElementById('create-account-form');
+                     if(createAccountForm) createAccountForm.style.display = 'none';
                  }
-            });
+             });
         } else {
              console.error("Firebase Auth o Firestore no definidos globalmente.");
              document.addEventListener('DOMContentLoaded', () => {
                  const loginError = document.getElementById('loginError');
                  if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
+                 else if (document.body) document.body.innerHTML = "Error crítico de Firebase.";
              });
         }
-
 
         // --- FUNCIONES DE FORMATO ---
         function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
@@ -501,33 +750,46 @@
         // --- FUNCIÓN DEL TOAST ---
         function showToast(message, type = 'info', duration = 3000) {
             const toast = document.getElementById('toast');
-            if (!toast) return;
+            
             clearTimeout(toastTimeout);
             toast.textContent = message;
-            toast.className = 'toast';
-            toast.classList.add(type);
-            toast.classList.add('show');
-            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, duration);
-        }
+            toast.className = 'toast'; 
+            toast.classList.add(type); 
+            toast.classList.add('show'); 
 
-        // --- VALIDACIÓN DE AÑO ---
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+        
+        // --- CAMBIO V6: NUEVA FUNCIÓN DE VALIDACIÓN DE AÑO ---
         function validarInicioAno() {
             const anoInput = document.getElementById('ano');
             const ayudaAno = document.getElementById('ayudaAno');
-            if (!anoInput || !ayudaAno) return;
             const valor = anoInput.value;
+
             if (valor.length > 0 && valor[0] !== '1' && valor[0] !== '2') {
                 ayudaAno.innerHTML = '<span style="color: #dc2626;">El año debe comenzar con 1 o 2</span>';
             } else {
-                if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) { ayudaAno.innerHTML = ''; }
+                // Si el error estaba y se corrigió, limpiar el mensaje de error
+                if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) {
+                    ayudaAno.innerHTML = '';
+                }
             }
         }
+        // --- FIN CAMBIO V6 ---
+
+        // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
         function validarAno() {
             const anoInput = document.getElementById('ano');
             const ayudaAno = document.getElementById('ayudaAno');
-            if (!anoInput || !ayudaAno) return;
             const ano = parseInt(anoInput.value);
+
+            // CAMBIO V6: La validación de 'inicio' se hace en 'validarInicioAno'
+            // Esta función (en 'change') hace la validación final.
             if (!ano || ano < 1980 || ano > anoActual + 1) {
+                // No limpiar el input, solo mostrar error.
+                // anoInput.value = ''; // Comentado para que el usuario vea su error
                 ayudaAno.innerHTML = '<span style="color: #dc2626;">Año inválido (1980 - ' + (anoActual + 1) + ')</span>';
             } else {
                 const antiguedad = anoActual - ano;
@@ -536,319 +798,604 @@
             }
         }
 
-        // --- LÓGICA DE CÁLCULO ---
         function calcular() {
-             const anoElem = document.getElementById('ano');
-             const valorElem = document.getElementById('valor');
-             const fleteElem = document.getElementById('flete');
-             const tcElem = document.getElementById('tipoCambio');
-             const resultadoTotalElem = document.getElementById('resultadoTotal');
-             const resultadoCardElem = document.getElementById('resultado');
-             const tcFooterElem = document.getElementById('tcFooter');
+            const ano = parseInt(document.getElementById('ano').value);
+            const valor = parseFloat(document.getElementById('valor').value) || 0;
+            const flete = parseFloat(document.getElementById('flete').value) || 0;
+            const tc = parseFloat(document.getElementById('tipoCambio').value) || 0;
+            
+            // CAMBIO V6: Validación de año más estricta antes de calcular
+             if (!ano || ano < 1980 || ano > anoActual + 1) {
+                showToast('Por favor, ingrese un año válido', 'error');
+                document.getElementById('ano').focus(); // Poner foco en el campo de año
+                return;
+            }
+            if (!valor || !flete || !tc) { 
+                showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); 
+                return; 
+            }
+            const antiguedad = anoActual - ano;
+            const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
 
-             if (!anoElem || !valorElem || !fleteElem || !tcElem || !resultadoTotalElem || !resultadoCardElem || !tcFooterElem) {
-                 console.error("Faltan elementos para calcular");
-                 showToast("Error interno, faltan elementos", "error");
-                 return;
-             }
+            const valorPlusFlete = valor + flete;
+            const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
+            const baseImpuestos = valorPlusFlete + totalSeguros; 
 
-             const ano = parseInt(anoElem.value);
-             const valor = parseFloat(valorElem.value) || 0;
-             const flete = parseFloat(fleteElem.value) || 0;
-             const tc = parseFloat(tcElem.value) || 0;
+            const impuestosUSD = baseImpuestos * porcentajeImpuesto;
+            
+            const subtotalVehiculoCRC = valorPlusFlete * tc; 
 
-             if (!ano || ano < 1980 || ano > anoActual + 1) { showToast('Por favor, ingrese un año válido', 'error'); anoElem.focus(); return; }
-             if (!valor || !flete || !tc) { showToast('Faltan campos (Año, Valor, Flete, TC)', 'error'); return; }
+            const impuestosCRC = impuestosUSD * tc;
+            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
+            const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
+            const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
 
-             const antiguedad = anoActual - ano;
-             const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
-             const valorPlusFlete = valor + flete;
-             const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-             const baseImpuestos = valorPlusFlete + totalSeguros;
-             const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-             const subtotalVehiculoCRC = valorPlusFlete * tc;
-             const impuestosCRC = impuestosUSD * tc;
-             const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
-             const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
-             const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
-
-             calculoActual = { ano, valor, flete, antiguedad, totalSeguros, baseImpuestos, impuestosUSD, papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, declaracion: COSTOS_FIJOS.DECLARACION_CR, dekra: COSTOS_FIJOS.DEKRA, almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, tc, totalColones, fecha: new Date().toLocaleString('es-CR'), vinInfo: { ...currentVinInfo } };
-
-             resultadoTotalElem.textContent = formatCRC(totalColones);
-             resultadoCardElem.classList.remove('hidden');
-             tcFooterElem.textContent = tc;
+            calculoActual = { 
+                ano, valor, flete, antiguedad, 
+                totalSeguros, baseImpuestos, impuestosUSD, 
+                papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
+                declaracion: COSTOS_FIJOS.DECLARACION_CR, 
+                dekra: COSTOS_FIJOS.DEKRA, 
+                almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
+                tc, totalColones, 
+                fecha: new Date().toLocaleString('es-CR'),
+                vinInfo: { ...currentVinInfo } 
+            };
+            document.getElementById('resultadoTotal').textContent = formatCRC(totalColones);
+            document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('tcFooter').textContent = tc;
         }
-        function mostrarDetalle() {
-             if (!calculoActual) return;
-             const detalleContentElem = document.getElementById('detalleContent');
-             const detalleCardElem = document.getElementById('detalle');
-             if(!detalleContentElem || !detalleCardElem) return;
 
-             const d = calculoActual;
-             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-             let html = `<div class="section-header">VALORES EN DÓLARES</div> <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div> <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div> <div class="detail-row subtotal"><span class="detail-label">Subtotal en Dólares</span><span class="detail-value">${formatUSD(d.valor + d.flete)}</span></div> <div class="section-header">VALORES EN COLONES</div> <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div> <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div> <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div> <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
-             detalleContentElem.innerHTML = html;
-             detalleCardElem.classList.remove('hidden');
+        function mostrarDetalle() {
+            if (!calculoActual) return;
+            const d = calculoActual;
+            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
+            let html = `
+                <div class="section-header">VALORES EN DÓLARES</div>
+                <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
+                <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
+                <div class="detail-row subtotal"><span class="detail-label">Subtotal en Dólares</span><span class="detail-value">${formatUSD(d.valor + d.flete)}</span></div>
+                <div class="section-header">VALORES EN COLONES</div>
+                <div class="detail-row"><span class="detail-label">Montos del Vehículo</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
+                <div class="detail-row"><span class="detail-label">Impuestos</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
+                <div class="detail-row"><span class="detail-label">Gastos Administrativos</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
+                <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
+            document.getElementById('detalleContent').innerHTML = html;
+            document.getElementById('detalle').classList.remove('hidden');
         }
 
         // --- FUNCIONES (HERRAMIENTAS) ---
         function convertirMillaje(event) {
-            const millajeInput = document.getElementById('millaje');
-            const anoInput = document.getElementById('ano');
+            const valorInput = parseFloat(document.getElementById('millaje').value);
+            const ano = parseInt(document.getElementById('ano').value);
             const resultadoCard = document.getElementById('millajeInfoCard');
             const resultadoLabel = document.getElementById('millajeResultadoLabel');
             const resultadoValor = document.getElementById('millajeResultadoValor');
             const promedioLabel = document.getElementById('millajePromedioLabel');
             const promedioValor = document.getElementById('millajePromedioValor');
             const promedioStatus = document.getElementById('millajePromedioStatus');
-            if(!millajeInput || !anoInput || !resultadoCard || !resultadoLabel || !resultadoValor || !promedioLabel || !promedioValor || !promedioStatus) return;
-
-            const valorInput = parseFloat(millajeInput.value);
-            const ano = parseInt(anoInput.value);
-
-            function mostrarError(mensaje) { /* ... */ } // Código interno sin cambios
+            function mostrarError(mensaje) {
+                resultadoCard.classList.remove('hidden');
+                resultadoLabel.textContent = 'Error';
+                resultadoValor.textContent = '-';
+                promedioLabel.textContent = 'Error';
+                promedioValor.textContent = '-';
+                promedioStatus.textContent = mensaje;
+                promedioStatus.style.color = '#dc2626';
+            }
             if (!valorInput || valorInput < 0) { showToast('Ingrese un valor de millaje válido', 'error'); return; }
             if (!ano || ano < 1980 || ano > anoActual + 1) { showToast('Ingrese un año de vehículo válido', 'error'); return; }
             const antiguedad = Math.max(1, anoActual - ano);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
-            if (event.target.id === 'btnMillasAKm') { /* ... (lógica sin cambios) ... */ }
-            else { /* ... (lógica sin cambios) ... */ }
+            if (event.target.id === 'btnMillasAKm') {
+                resultadoNum = valorInput * KM_POR_MILLA;
+                promedio = PROMEDIO_MILLAS_ANO * antiguedad;
+                esSobrePromedio = valorInput > promedio;
+                promedioPorAno = valorInput / antiguedad;
+                resultadoLabel.textContent = "Total KMs";
+                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
+                promedioLabel.textContent = "Promedio (Millas/Año)";
+                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
+            } else {
+                resultadoNum = valorInput * MILLAS_POR_KM;
+                promedio = PROMEDIO_KMS_ANO * antiguedad;
+                esSobrePromedio = valorInput > promedio;
+                promedioPorAno = valorInput / antiguedad;
+                resultadoLabel.textContent = "Total Millas";
+                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
+                promedioLabel.textContent = "Promedio (KMs/Año)";
+                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
+            }
             promedioStatus.textContent = esSobrePromedio ? 'Sobre el promedio' : 'Debajo del promedio';
             promedioStatus.style.color = esSobrePromedio ? '#dc2626' : '#15803d';
             resultadoCard.classList.remove('hidden');
         }
+
         function calcularTraspaso() {
-            const valorFiscalInput = document.getElementById('valorFiscal');
+            const valorFiscal = parseFloat(document.getElementById('valorFiscal').value);
             const resultadoEl = document.getElementById('resultadoTraspaso');
-            if (!valorFiscalInput || !resultadoEl) return;
-            const valorFiscal = parseFloat(valorFiscalInput.value);
-            if (!valorFiscal || valorFiscal <= 0) { showToast('Ingrese un valor fiscal válido', 'error'); resultadoEl.textContent = 'Ingrese valor fiscal válido'; resultadoEl.style.color = '#dc2626'; return; }
+            if (!valorFiscal || valorFiscal <= 0) {
+                showToast('Ingrese un valor fiscal válido', 'error'); 
+                resultadoEl.textContent = 'Ingrese un valor fiscal válido'; 
+                resultadoEl.style.color = '#dc2626';
+                return;
+            }
             const timbres = valorFiscal * PORCENTAJE_TIMBRES;
             const total = timbres + HONORARIOS_TRASPASO;
             resultadoEl.style.color = '#1f2937';
-            resultadoEl.innerHTML = `<div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div> <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div> <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
+            resultadoEl.innerHTML = `
+                <div class="detail-row"><span class="detail-label">Timbres (3.5%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
+                <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
+                <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
         }
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() {
-            if (!calculoActual) { showToast('Primero debes calcular un vehículo', 'error'); return; }
+        function guardarHistorial() { 
+            if (!calculoActual) {
+                showToast('Primero debes calcular un vehículo', 'error');
+                return;
+            } 
+
+            // Asegurarse de que el objeto currentVinInfo tenga datos relevantes para el historial
+            // Si el usuario escribió el año manualmente, currentVinInfo.year estará vacío.
             let infoAno = document.getElementById('ano').value || 'N/D';
-            calculoActual.vinInfo = { make: document.getElementById('vinMake').textContent || 'N/D', model: document.getElementById('vinModel').textContent || 'N/D', year: infoAno };
-            historial.unshift({id: Date.now(), ...calculoActual });
-            localStorage.setItem('impuestosHistorial', JSON.stringify(historial));
-            showToast('✅ Cálculo guardado', 'success');
-            actualizarHistorialUI();
+            
+            calculoActual.vinInfo = { 
+                make: document.getElementById('vinMake').textContent || 'N/D',
+                model: document.getElementById('vinModel').textContent || 'N/D',
+                year: infoAno
+            };
+
+            historial.unshift({id: Date.now(), ...calculoActual }); 
+            localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
+            showToast('✅ Cálculo guardado con éxito', 'success'); 
+            actualizarHistorialUI(); 
         }
-        function actualizarHistorialUI() {
-            const card = document.getElementById('historialCard');
-            const content = document.getElementById('historialContent');
-            if (!card || !content) return;
-            if (historial.length === 0) { card.classList.add('hidden'); return; }
-            card.classList.remove('hidden');
-            let html = '';
-            historial.forEach(item => {
-                const isSelected = vehiculosSeleccionados.has(item.id);
-                const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card';
+
+        function actualizarHistorialUI() { 
+            const card = document.getElementById('historialCard'); 
+            const content = document.getElementById('historialContent'); 
+            if (historial.length === 0) { 
+                card.classList.add('hidden'); 
+                return; 
+            } 
+            card.classList.remove('hidden'); 
+            let html = ''; 
+            historial.forEach(item => { 
+                const isSelected = vehiculosSeleccionados.has(item.id); 
+                const cardClass = isSelected ? 'comparison-card selected' : 'comparison-card'; 
+                
                 let vehicleInfoText = '';
-                if (item.vinInfo && item.vinInfo.make !== 'N/D' && item.vinInfo.model !== 'N/D') { vehicleInfoText = `${item.vinInfo.year} ${item.vinInfo.make} ${item.vinInfo.model}`; }
-                else if (item.ano) { vehicleInfoText = `Año: ${item.ano}`; }
-                else { vehicleInfoText = "Vehículo (sin info)"; }
-                html += `<div class="${cardClass}" data-id="${item.id}"><div style="display: flex; justify-content: space-between; align-items: center;"><div class="historial-vehicle-info">${vehicleInfoText}</div><div style="font-weight: bold; color: #2563eb;">${formatCRC(item.totalColones)}</div></div><div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Valor: ${formatUSD(item.valor)} + Flete: ${formatUSD(item.flete)}</div><div style="font-size: 11px; color: #6b7280; margin-top: 4px;">${item.fecha}</div>${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}</div>`;
-            });
-            content.innerHTML = html;
-            content.querySelectorAll('.comparison-card').forEach(cardElem => { cardElem.addEventListener('click', () => seleccionarComparacion(Number(cardElem.dataset.id))); });
+                if (item.vinInfo && item.vinInfo.make !== 'N/D' && item.vinInfo.model !== 'N/D') {
+                    vehicleInfoText = `${item.vinInfo.year} ${item.vinInfo.make} ${item.vinInfo.model}`;
+                } else if (item.ano) { 
+                    vehicleInfoText = `Año: ${item.ano}`;
+                } else {
+                    vehicleInfoText = "Vehículo (sin info)";
+                }
+
+
+                html += `
+                    <div class="${cardClass}" data-id="${item.id}">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="historial-vehicle-info">${vehicleInfoText}</div>
+                            <div style="font-weight: bold; color: #2563eb;">${formatCRC(item.totalColones)}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Valor: ${formatUSD(item.valor)} + Flete: ${formatUSD(item.flete)}</div>
+                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">${item.fecha}</div>
+                        ${isSelected ? '<div style="font-size: 11px; color: #2563eb; margin-top: 4px;">Seleccionado</div>' : ''}
+                    </div>`; 
+            }); 
+            content.innerHTML = html; 
+            content.querySelectorAll('.comparison-card').forEach(card => { 
+                card.addEventListener('click', () => seleccionarComparacion(Number(card.dataset.id))); 
+            }); 
         }
-        function seleccionarComparacion(id) {
-             if (!modoComparacion) return;
-             if (vehiculosSeleccionados.has(id)) { vehiculosSeleccionados.delete(id); }
-             else if (vehiculosSeleccionados.size < 2) { vehiculosSeleccionados.add(id); }
-             actualizarHistorialUI();
-             mostrarComparacion();
+
+        function seleccionarComparacion(id) { 
+            if (!modoComparacion) return; 
+            if (vehiculosSeleccionados.has(id)) { 
+                vehiculosSeleccionados.delete(id); 
+            } else if (vehiculosSeleccionados.size < 2) { 
+                vehiculosSeleccionados.add(id); 
+            } 
+            actualizarHistorialUI(); 
+            mostrarComparacion(); 
         }
-        function mostrarComparacion() {
-            const comp = document.getElementById('comparador');
-            const content = document.getElementById('comparacionContent');
-            if (!comp || !content || vehiculosSeleccionados.size < 2) { if(comp) comp.classList.add('hidden'); return; }
-            const sel = historial.filter(v => vehiculosSeleccionados.has(v.id));
-            let html = '';
-            sel.forEach((v, idx) => { /* ... (lógica interna sin cambios) ... */ });
-            if (sel.length === 2) { /* ... (lógica interna sin cambios) ... */ }
-            content.innerHTML = html;
+        function mostrarComparacion() { 
+            const comp = document.getElementById('comparador'); 
+            if (vehiculosSeleccionados.size < 2) { 
+                comp.classList.add('hidden'); 
+                return; 
+            } 
+            const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); 
+            let html = ''; 
+            sel.forEach((v, idx) => { 
+                let vehicleInfoText = 'Vehículo';
+                if (v.vinInfo && v.vinInfo.make !== 'N/D' && v.vinInfo.model !== 'N/D') {
+                    vehicleInfoText = `${v.vinInfo.year} ${v.vinInfo.make} ${v.vinInfo.model}`;
+                } else if (v.ano) {
+                    vehicleInfoText = `Año: ${v.ano}`;
+                }
+                html += `<div style="border: none; margin-bottom: 12px;"><div style="font-weight: bold; color: #1e40af; margin-bottom: 8px;">${vehicleInfoText}</div><div style="font-size: 12px; padding: 8px; background: #f3f4f6; border-radius: 6px;">Valor: ${formatUSD(v.valor)}<br>Flete: ${formatUSD(v.flete)}<br><br><strong>${formatCRC(v.totalColones)}</strong></div></div>`; 
+            }); 
+            if (sel.length === 2) { 
+                const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
+                html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af;">Diferencia: ${formatCRC(diff)}</div>`; 
+            } 
+            document.getElementById('comparacionContent').innerHTML = html; 
             comp.classList.remove('hidden');
         }
-        function toggleComparacion() {
-            modoComparacion = !modoComparacion;
-            const btnComp = document.getElementById('btnComparar');
-            const compCard = document.getElementById('comparador');
-            if(btnComp) btnComp.classList.toggle('active', modoComparacion);
-            vehiculosSeleccionados.clear();
-            if (!modoComparacion && compCard) compCard.classList.add('hidden');
-            actualizarHistorialUI();
+        function toggleComparacion() { 
+            modoComparacion = !modoComparacion; 
+            document.getElementById('btnComparar').classList.toggle('active', modoComparacion); 
+            vehiculosSeleccionados.clear(); 
+            if (!modoComparacion) document.getElementById('comparador').classList.add('hidden'); 
+            actualizarHistorialUI(); 
         }
-        function toggleHistorial() { const card = document.getElementById('historialCard'); if (card) card.classList.toggle('hidden'); }
-        function limpiarHistorial() {
-            if (confirm('¿Borrar historial?')) {
-                historial = []; vehiculosSeleccionados.clear(); localStorage.removeItem('impuestosHistorial');
-                actualizarHistorialUI(); const compCard = document.getElementById('comparador'); if (compCard) compCard.classList.add('hidden');
+        function toggleHistorial() { document.getElementById('historialCard').classList.toggle('hidden'); }
+        function limpiarHistorial() { 
+            if (confirm('¿Estás seguro de que deseas borrar todo el historial?')) { 
+                historial = []; 
+                vehiculosSeleccionados.clear(); 
+                localStorage.removeItem('impuestosHistorial'); 
+                actualizarHistorialUI(); 
+                document.getElementById('comparador').classList.add('hidden'); 
                 showToast('Historial limpiado', 'info');
-            }
+            } 
         }
 
         // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
+        
         function handleVinInput() {
             clearTimeout(vinDecodeTimeout);
+            
+            const vin = this.value.toUpperCase().trim(); 
             const vinStatus = document.getElementById('vinStatus');
-            const vin = this.value.toUpperCase().trim();
             limpiarFichaVIN();
-            currentVinInfo = { make: '', model: '', year: '' };
-            if (!vinStatus) return;
-            if (vin.length === 0) { vinStatus.innerHTML = ''; return; }
-            if (vin.length < 17) { vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`; return; }
+            currentVinInfo = { make: '', model: '', year: '' }; 
+
+            if (vin.length === 0) {
+                vinStatus.innerHTML = '';
+                return;
+            }
+            if (vin.length < 17) {
+                vinStatus.innerHTML = `<span>VIN debe tener 17 caracteres (${vin.length}/17)</span>`;
+                return;
+            }
+
             if (vin.length === 17) {
                 vinStatus.innerHTML = `<div class="spinner"></div><span>Decodificando VIN...</span>`;
-                vinDecodeTimeout = setTimeout(() => { fetchVinData(vin); }, 500);
+                vinDecodeTimeout = setTimeout(() => {
+                    fetchVinData(vin);
+                }, 500);
             }
         }
+        
         async function fetchVinData(vin) {
             const vinStatus = document.getElementById('vinStatus');
-            if (!vinStatus) return;
             try {
                 const apiUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
                 const response = await fetch(apiUrl);
-                if (!response.ok) { throw new Error(`Respuesta red no OK (${response.status})`); }
+                if (!response.ok) {
+                    throw new Error(`Respuesta de red no fue OK (${response.status})`);
+                }
                 const data = await response.json();
+
                 if (data && data.Results && data.Results[0]) {
-                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) {
+                    if (data.Results[0].ErrorCode === "0" && data.Results[0].Make && data.Results[0].Model) { 
                         const vehicleInfo = data.Results[0];
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(vehicleInfo);
-                        currentVinInfo = { make: vehicleInfo.Make || 'N/D', model: vehicleInfo.Model || 'N/D', year: vehicleInfo.ModelYear || 'N/D' };
-                        if (vehicleInfo.ModelYear) { const anoEl = document.getElementById('ano'); if (anoEl) { anoEl.value = vehicleInfo.ModelYear; anoEl.dispatchEvent(new Event('change')); }}
+                        
+                        currentVinInfo = {
+                            make: vehicleInfo.Make || 'N/D',
+                            model: vehicleInfo.Model || 'N/D',
+                            year: vehicleInfo.ModelYear || 'N/D'
+                        };
+
+                        if (vehicleInfo.ModelYear) {
+                            document.getElementById('ano').value = vehicleInfo.ModelYear;
+                            document.getElementById('ano').dispatchEvent(new Event('change')); 
+                        }
                     } else {
-                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado"}</span>`;
-                        limpiarFichaVIN(); currentVinInfo = { make: '', model: '', year: '' };
+                        vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${data.Results[0].ErrorText || "VIN no encontrado o inválido"}</span>`;
+                        limpiarFichaVIN();
+                        currentVinInfo = { make: '', model: '', year: '' }; 
                     }
-                } else { throw new Error("Respuesta API inesperada."); }
+                } else {
+                    throw new Error("Formato de respuesta inesperado de la API o VIN no encontrado.");
+                }
             } catch (error) {
-                console.error('Error fetch VIN:', error);
-                vinStatus.innerHTML = `<span style="color: #dc2626;">Error decodificando: ${error.message}</span>`;
-                limpiarFichaVIN(); currentVinInfo = { make: '', model: '', year: '' };
+                console.error('Error fetching VIN data:', error);
+                vinStatus.innerHTML = `<span style="color: #dc2626;">Error al decodificar: ${error.message}. Revisa conexión o formato del VIN.</span>`;
+                limpiarFichaVIN();
+                currentVinInfo = { make: '', model: '', year: '' }; 
             }
         }
         async function fetchTipoDeCambio() {
             const tcInput = document.getElementById('tipoCambio');
             const tcHelp = document.getElementById('tipoCambioHelp');
-            const tcFooter = document.getElementById('tcFooter');
-            if (!tcInput || !tcHelp || !tcFooter) return;
-            tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC...</span>`;
+            tcHelp.innerHTML = `<div class="spinner"></div><span>Actualizando TC desde BCCR...</span>`;
             const url = `https://api.hacienda.go.cr/indicadores/tc`;
             try {
                 const response = await fetch(url);
-                if (!response.ok) throw new Error('Error red Hacienda');
+                if (!response.ok) throw new Error('Error de red al consultar la API de Hacienda');
                 const data = await response.json();
                 const valorVenta = data?.dolar?.venta?.valor;
                 if (valorVenta) {
                     tcInput.value = parseFloat(valorVenta).toFixed(2);
                     const fecha = new Date(data.dolar.venta.fecha).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' });
-                    tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR): ${fecha}</span>`;
-                    tcFooter.textContent = parseFloat(valorVenta).toFixed(2);
-                } else { throw new Error('Formato API inesperado.'); }
+                    tcHelp.innerHTML = `<span style="color:#059669">✓ Actualizado (BCCR Ref.): ${fecha}</span>`;
+                    document.getElementById('tcFooter').textContent = parseFloat(valorVenta).toFixed(2);
+                } else {
+                    throw new Error('La respuesta de la API no contiene el formato esperado.');
+                }
             } catch (error) {
-                console.error("Error fetch TC:", error);
-                tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC.</span>`;
-                tcFooter.textContent = 'Error';
+                console.error("Error fetching TC:", error);
+                tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
+                document.getElementById('tcFooter').textContent = 'Error';
             }
         }
         function displayVinData(data) {
             let engineInfo = data.EngineCylinders ? `${data.EngineCylinders} Cilindros` : '';
             if (data.DisplacementL) engineInfo += ` ${data.DisplacementL}L`;
-            const makeEl = document.getElementById('vinMake'); if(makeEl) makeEl.textContent = data.Make || 'N/D';
-            const modelEl = document.getElementById('vinModel'); if(modelEl) modelEl.textContent = data.Model || 'N/D';
-            const trimEl = document.getElementById('vinTrim'); if(trimEl) trimEl.textContent = data.Trim || 'N/D';
-            const engineEl = document.getElementById('vinEngine'); if(engineEl) engineEl.textContent = engineInfo.trim() || 'N/D';
-            const countryEl = document.getElementById('vinCountry'); if(countryEl) countryEl.textContent = data.PlantCountry || 'N/D';
-            const cardEl = document.getElementById('vinInfoCard'); if(cardEl) cardEl.classList.remove('hidden');
+            document.getElementById('vinMake').textContent = data.Make || 'N/D';
+            document.getElementById('vinModel').textContent = data.Model || 'N/Code';
+            document.getElementById('vinTrim').textContent = data.Trim || 'N/D';
+            document.getElementById('vinEngine').textContent = engineInfo.trim() || 'N/D';
+            document.getElementById('vinCountry').textContent = data.PlantCountry || 'N/D';
+            document.getElementById('vinInfoCard').classList.remove('hidden');
         }
 
         // --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
-        function generarTextoDesglose(esParaWhatsapp = false) { /* ... (código v5 sin cambios) ... */ }
-        function descargarPDF() { /* ... (código v5 sin cambios) ... */ }
-        function enviarWhatsApp() { /* ... (código v5 sin cambios) ... */ }
+        function generarTextoDesglose(esParaWhatsapp = false) {
+            if (!calculoActual) return "";
+            const d = calculoActual;
+            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
+            const b = esParaWhatsapp ? '*' : '';
+            const line = '---------------------------------';
+            const doubleLine = '=====================';
+            
+            let vinDisplay = '';
+            if (d.vinInfo && d.vinInfo.make !== 'N/D' && d.vinInfo.model !== 'N/D') {
+                vinDisplay = `Vehículo: ${d.vinInfo.year} ${d.vinInfo.make} ${d.vinInfo.model}\n`;
+            } else if (d.ano) {
+                vinDisplay = `Año: ${d.ano}\n`;
+            }
+
+            const texto = `
+${b}CÁLCULO IMPUESTOS VEHÍCULO CR${b}
+${vinDisplay}TC: ${d.tc}
+${doubleLine}
+
+${b}Base (USD):${b}
+Valor: ${formatUSD(d.valor)}
+Flete: ${formatUSD(d.flete)}
+*Subtotal USD:* ${formatUSD(d.valor + d.flete)}
+${line}
+
+${b}Costos (CRC):${b}
+Vehículo+Flete: ${formatCRC((d.valor + d.flete) * d.tc)}
+Impuestos: ${formatCRC(d.impuestosUSD * d.tc)}
+Gastos Admin.: ${formatCRC(gastosAdminColones)}
+${doubleLine}
+${b}TOTAL APROX.: ${formatCRC(d.totalColones)}${b}
+${doubleLine}
+Fecha cálculo: ${d.fecha}
+            `.trim().split('\n').map(line => line.trim()).join('\n');
+            return texto;
+        }
+        function descargarPDF() {
+            if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
+            try {
+                if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+                    throw new Error("La librería jsPDF no está cargada.");
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const contenido = generarTextoDesglose();
+                doc.setFont("Courier", "normal");
+                doc.setFontSize(10);
+                doc.text(contenido, 15, 20);
+                doc.save(`Nacionalizacion-${calculoActual.ano}-${Date.now()}.pdf`);
+            } catch (e) {
+                console.error("Error al generar PDF:", e);
+                showToast(`❌ No se pudo generar el PDF: ${e.message}`, 'error', 5000);
+            }
+        }
+        function enviarWhatsApp() {
+            if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
+            const mensaje = generarTextoDesglose(true);
+            const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
+            window.open(whatsappURL, '_blank');
+        }
 
         // --- FUNCIONES DE LIMPIEZA ---
-        function limpiarFichaVIN() { const card = document.getElementById('vinInfoCard'); if (card) card.classList.add('hidden'); }
+        function limpiarFichaVIN() { document.getElementById('vinInfoCard').classList.add('hidden'); }
         function limpiarFormulario() {
-            console.log("Limpiando formulario...");
-            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => { const el = document.getElementById(id); if (el) { if (id === 'tcFooter') el.textContent = 'N/A'; else el.innerHTML = ''; } });
-            ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('hidden'); });
-            calculoActual = null; currentVinInfo = { make: '', model: '', year: '' };
-            const vinInput = document.getElementById('vin'); if (vinInput) handleVinInput.call(vinInput);
-            // fetchTipoDeCambio(); // No recargar TC
+            ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.value = '';
+            });
+            ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent', 'tcFooter'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.innerHTML = '';
+                if (id === 'tcFooter') element.textContent = 'N/A';
+            });
+            ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.add('hidden');
+            });
+            calculoActual = null;
+            currentVinInfo = { make: '', model: '', year: '' }; 
+            
+            handleVinInput.call(document.getElementById('vin'));
+
+            fetchTipoDeCambio();
         }
+        
         function limpiarVIN() {
             const vinInput = document.getElementById('vin');
-            if (vinInput) { vinInput.value = ''; handleVinInput.call(vinInput); }
+            vinInput.value = '';
+
+            handleVinInput.call(vinInput);
         }
 
-        // --- CÓDIGO DEL SCANNER ---
+        // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
+
         async function iniciarScanner() {
-             const videoElement = document.getElementById('videoElement');
-             const scannerContainer = document.getElementById('scanner-container');
-             if(!videoElement || !scannerContainer) return;
+            const videoElement = document.getElementById('videoElement');
+            const scannerContainer = document.getElementById('scanner-container');
 
-             detenerScanner();
-             try {
-                 if (typeof screen.orientation?.lock === 'function') { try { await screen.orientation.lock('landscape'); } catch (err) { console.warn("No se pudo bloquear orientación:", err); }}
-                 if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) { throw new Error('Librería ZXing no cargada.'); }
-                 const hints = new Map(); const formats = [ZXingBrowser.BarcodeFormat.CODE_39, ZXingBrowser.BarcodeFormat.CODE_128, ZXingBrowser.BarcodeFormat.QR_CODE, ZXingBrowser.BarcodeFormat.DATA_MATRIX, ZXingBrowser.BarcodeFormat.EAN_13, ZXingBrowser.BarcodeFormat.UPC_A, ZXingBrowser.BarcodeFormat.ITF, ZXingBrowser.BarcodeFormat.PDF_417];
-                 if (ZXingBrowser.DecodeHintType) { hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats); hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true); }
-                 else { hints.set(1, formats); }
-                 const constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } };
-                 codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-                 scannerContainer.classList.remove('hidden');
+            detenerScanner(); 
 
-                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
-                     if (result) {
-                         const scannedVin = result.text.toUpperCase().trim();
-                         const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
-                         if (scannedVin.length === 17 && vinRegex.test(scannedVin)) {
-                             if (navigator.vibrate) { navigator.vibrate(100); }
-                             const vinInput = document.getElementById('vin'); if(vinInput) vinInput.value = scannedVin;
-                             handleVinInput.call(vinInput);
-                             setTimeout(detenerScanner, 100);
-                         } else {
-                             console.warn("VIN escaneado inválido:", scannedVin);
-                             showToast('Lectura incorrecta. Intenta de nuevo.', 'error', 2500);
-                             if (navigator.vibrate) { navigator.vibrate([100, 50, 100]); }
-                         }
-                     }
-                     if (err && err.name !== 'NotFoundException') { console.error("Error escaneo:", err); }
-                 }).catch(err => { console.error("Error INICIAR scanner:", err); handleScannerError(err); detenerScanner(); });
+            try {
+                if (typeof screen.orientation?.lock === 'function') {
+                    try {
+                        await screen.orientation.lock('landscape');
+                    } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
+                }
 
-                 videoElement.addEventListener('loadedmetadata', () => { /* ... código linterna ... */ });
-             } catch (error) { console.error("Error general scanner:", error); handleScannerError(error); detenerScanner(); }
+                if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
+                    throw new Error('Librería ZXingBrowser no cargada.');
+                }
+
+                const hints = new Map();
+                const formats = [
+                    ZXingBrowser.BarcodeFormat.CODE_39,
+                    ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.QR_CODE,
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.EAN_13,
+                    ZXingBrowser.BarcodeFormat.UPC_A,
+                    ZXingBrowser.BarcodeFormat.ITF,
+                    ZXingBrowser.BarcodeFormat.PDF_417
+                ];
+                
+                if (ZXingBrowser.DecodeHintType) {
+                    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+                    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
+                } else {
+                    hints.set(1, formats); 
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+
+                scannerContainer.classList.remove('hidden');
+
+                codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
+                    if (result) {
+                        if (navigator.vibrate) { navigator.vibrate(100); }
+                        
+                        const vinInput = document.getElementById('vin');
+                        vinInput.value = result.text; 
+                        
+                        handleVinInput.call(vinInput); 
+                        
+                        setTimeout(detenerScanner, 100); 
+                    }
+                    
+                    if (err && err.name !== 'NotFoundException') {
+                         console.error("Error durante escaneo continuo:", err); 
+                    }
+                }).catch(err => {
+                    console.error("Error al INICIAR decodeFromConstraints:", err);
+                    handleScannerError(err);
+                    detenerScanner(); 
+                });
+
+                videoElement.addEventListener('loadedmetadata', () => {
+                    if (videoElement.srcObject) {
+                        const track = videoElement.srcObject.getVideoTracks()[0];
+                        if (track && 'torch' in track.getCapabilities()) {
+                            track.applyConstraints({ advanced: [{ torch: true }] })
+                                .then(() => console.log("Linterna encendida."))
+                                .catch(e => console.warn("No se pudo encender la linterna:", e));
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error general en iniciarScanner:", error);
+                handleScannerError(error);
+                detenerScanner(); 
+            }
         }
+
         function handleScannerError(error) {
-             let errorMsg = `Error scanner: ${error.message}`;
-             if (error.name === 'NotAllowedError') { errorMsg = "Permiso de cámara denegado."; }
-             else if (error.name === 'NotFoundError') { errorMsg = "No se encontró cámara."; }
-             else if (error.name === 'NotReadableError') { errorMsg = "Cámara en uso."; }
-             else if (error.message.includes("ZXing")) { errorMsg = "Error librería escaneo."; }
-             const scannerContainer = document.getElementById('scanner-container'); if (scannerContainer) scannerContainer.classList.add('hidden');
-             showToast(`❌ ${errorMsg}`, 'error', 5000);
+            let errorMsg = `Error con el scanner: ${error.message}`;
+            if (error.name === 'NotAllowedError') {
+                errorMsg = "Debes permitir el uso de la cámara para continuar";
+            } else if (error.name === 'NotFoundError') {
+                errorMsg = "No se encontró una cámara compatible.";
+            } else if (error.name === 'NotReadableError') {
+                errorMsg = "La cámara está en uso o bloqueada.";
+            } else if (error.message.includes("ZXingBrowser no cargada")) {
+                errorMsg = "Error al cargar librería de escaneo.";
+            }
+            const scannerContainer = document.getElementById('scanner-container');
+            if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
+                scannerContainer.classList.add('hidden');
+            }
+            showToast(`❌ ${errorMsg}`, 'error', 5000); 
         }
+
         function detenerScanner() {
-             if (codeReader) { try { codeReader.reset(); } catch (e) { console.error("Error reset:", e); } codeReader = null; }
-             const videoElement = document.getElementById('videoElement');
-             if (videoElement && videoElement.srcObject) { try { videoElement.srcObject.getTracks().forEach(track => { if (track && 'torch' in track.getCapabilities()) { /* ... apagar linterna ... */ } track.stop(); }); } catch (e) { console.warn("Error stop tracks:", e); } videoElement.srcObject = null; }
-             if (videoElement) { videoElement.pause(); videoElement.removeAttribute('src'); videoElement.load(); }
-             const scannerContainer = document.getElementById('scanner-container'); if (scannerContainer) scannerContainer.classList.add('hidden');
-             if (typeof screen.orientation?.unlock === 'function') { try { screen.orientation.unlock(); } catch (e) { console.warn("Error unlock orientation:", e); } }
+            if (codeReader) {
+                try {
+                    codeReader.reset();
+                } catch (resetError) { console.error("Error al resetear CodeReader:", resetError); }
+                codeReader = null;
+            }
+
+            const videoElement = document.getElementById('videoElement');
+            if (videoElement && videoElement.srcObject) {
+                try {
+                    const tracks = videoElement.srcObject.getVideoTracks();
+                    tracks.forEach(track => {
+                        if (track && 'torch' in track.getCapabilities()) {
+                           const capabilities = track.getCapabilities();
+                           const settings = track.getSettings();
+                           if(capabilities.torch && settings.torch){ 
+                                track.applyConstraints({ advanced: [{ torch: false }] })
+                                    .then(() => console.log("Linterna apagada."))
+                                    .catch(e => console.warn("No se pudo apagar la linterna:", e));
+                           }
+                        }
+                        track.stop();
+                    });
+                }
+                catch (e) { console.warn("Error menor al detener tracks:", e); }
+                videoElement.srcObject = null;
+            }
+            if (videoElement) {
+                videoElement.pause();
+                videoElement.removeAttribute('src');
+                videoElement.load();
+            }
+
+
+            const scannerContainer = document.getElementById('scanner-container');
+            if (scannerContainer) scannerContainer.classList.add('hidden');
+
+            if (typeof screen.orientation?.unlock === 'function') {
+                try { screen.orientation.unlock(); }
+                catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
+            }
         }
+        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     </script>
-
+    
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
