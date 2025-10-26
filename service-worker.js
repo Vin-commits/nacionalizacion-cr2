@@ -1,15 +1,19 @@
 // Nombre de la caché
-const CACHE_NAME = 'nacionalizacion-cr-cache-v9'; // CAMBIO V4
+const CACHE_NAME = 'nacionalizacion-cr-cache-v10'; // CAMBIO V4
 
 // Archivos para guardar en caché (el "App Shell")
 const CACHE_FILES = [
-  '.', // Esto cachea el index.html (o la página raíz)
+  '.',
   'manifest.json',
   'icon-192.png',
   'icon-512.png',
-  'new-logo.png', // AÑADIDO V4
+  'new-logo.png',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js'
+  'https/cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js',
+  // --- AÑADIR ESTAS LÍNEAS ---
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js'
+  // --- FIN LÍNEAS AÑADIDAS ---
 ];
 
 // Evento "install": Se dispara cuando el Service Worker se instala
