@@ -292,6 +292,41 @@
         </div>
     </div>
     <div class="container">
+        <div id="auth-section" class="card">
+            <div id="login-form">
+                <div class="card-title">Iniciar Sesión</div>
+                <div class="form-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" placeholder="usuario@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword">
+                </div>
+                <button id="btnLogin" class="btn-primary" style="width: 100%;">Ingresar</button>
+                <p id="loginError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
+                </div>
+
+            <div id="create-account-form" style="display: none;">
+                 <div class="card-title">Crear Nueva Cuenta (Admin)</div>
+                 <div class="form-group">
+                     <label for="createEmail">Correo Electrónico Cliente</label>
+                     <input type="email" id="createEmail" placeholder="cliente@ejemplo.com">
+                 </div>
+                 <div class="form-group">
+                     <label for="createPassword">Contraseña Temporal</label>
+                     <input type="password" id="createPassword">
+                 </div>
+                 <button id="btnCreateAccount" class="btn-secondary" style="width: 100%;">Crear Cuenta</button>
+                 <p id="createError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
+            </div>
+        </div>
+        <div id="app-content" style="display: none;"> <div id="comparador" class="card hidden">...</div>
+            <div id="historialCard" class="card hidden">...</div>
+            <div class="card">... (Tu formulario principal) ...</div>
+            <div id="resultado" class="hidden">...</div>
+            <button id="btnLogout" class="btn-danger-light" style="width: 100%; padding: 12px; margin-top: 20px;">Cerrar Sesión</button>
+        </div>
         <div id="comparador" class="card hidden">
             <div class="card-title">Comparar Vehículos</div>
             <div id="comparacionContent"></div>
@@ -436,6 +471,143 @@
     </div>
     <div id="toast" class="toast"></div>
     <script>
+        // --- FUNCIONES DE AUTENTICACIÓN ---
+
+    // Función para crear cuenta (TÚ la usas manualmente)
+    function crearCuenta() {
+        const email = document.getElementById('createEmail').value;
+        const password = document.getElementById('createPassword').value;
+        const errorElement = document.getElementById('createError');
+        errorElement.textContent = ''; // Limpiar errores previos
+
+        if (!email || !password) {
+            errorElement.textContent = 'Ingresa correo y contraseña.';
+            return;
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Cuenta creada exitosamente
+                const user = userCredential.user;
+                console.log('Cuenta creada:', user.email);
+                showToast(`✅ Cuenta creada para ${user.email}`, 'success');
+                // Aquí podrías guardar info inicial en Firestore si quisieras
+                document.getElementById('createEmail').value = ''; // Limpiar campos
+                document.getElementById('createPassword').value = '';
+            })
+            .catch((error) => {
+                console.error("Error al crear cuenta:", error);
+                errorElement.textContent = `Error: ${error.message}`;
+                showToast(`❌ Error al crear cuenta`, 'error');
+            });
+    }
+
+    // Listener para el botón de crear cuenta
+    // Asegúrate de que este botón solo sea accesible/visible para ti
+    const btnCreate = document.getElementById('btnCreateAccount');
+    if (btnCreate) { // Verificar si el botón existe en la interfaz actual
+      btnCreate.addEventListener('click', crearCuenta);
+    }
+
+    // (Aquí irán las funciones de login, logout y manejo de estado)
+    // ...
+    ```
+    * **Seguridad:** Piensa cómo vas a acceder a este formulario/botón de creación. No debería estar visible para usuarios normales. Podrías tener una versión "admin" de la página o protegerla de alguna manera simple inicialmente.
+
+---
+
+### 5. ✅ Implementar Inicio de Sesión (Para el Cliente)
+
+Añade la función para que tus clientes puedan ingresar.
+
+```javascript
+    // Función para iniciar sesión
+    function iniciarSesion() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorElement = document.getElementById('loginError');
+        errorElement.textContent = ''; // Limpiar errores
+
+        if (!email || !password) {
+            errorElement.textContent = 'Ingresa correo y contraseña.';
+            return;
+        }
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Inicio de sesión exitoso
+                const user = userCredential.user;
+                console.log('Usuario inició sesión:', user.email);
+                // No mostramos toast aquí, el cambio de UI lo indicará
+            })
+            .catch((error) => {
+                console.error("Error al iniciar sesión:", error);
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                     errorElement.textContent = 'Correo o contraseña incorrectos.';
+                } else {
+                     errorElement.textContent = `Error: ${error.message}`;
+                }
+            });
+    }
+
+    // Listener para el botón de login
+    document.getElementById('btnLogin').addEventListener('click', iniciarSesion);
+
+        // Función para cerrar sesión
+    function cerrarSesion() {
+        auth.signOut().then(() => {
+            console.log('Usuario cerró sesión');
+            showToast('Sesión cerrada', 'info');
+        }).catch((error) => {
+            console.error('Error al cerrar sesión:', error);
+            showToast('Error al cerrar sesión', 'error');
+        });
+    }
+// --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN ---
+    auth.onAuthStateChanged((user) => {
+        const authSection = document.getElementById('auth-section');
+        const appContent = document.getElementById('app-content');
+
+        if (user) {
+            // Usuario está logueado
+            console.log('Estado: Logueado como', user.email);
+            authSection.style.display = 'none'; // Ocultar login
+            appContent.style.display = 'block'; // Mostrar app principal
+
+            // Aquí podrías leer de Firestore para verificar la suscripción
+            // y quizás mostrar un mensaje de bienvenida o info de la cuenta.
+
+        } else {
+            // Usuario está deslogueado
+            console.log('Estado: Deslogueado');
+            authSection.style.display = 'block'; // Mostrar login
+            appContent.style.display = 'none'; // Ocultar app principal
+            limpiarFormulario(); // Limpiar datos si cierra sesión
+        }
+    });
+    // Listener para el botón de logout (asegúrate que el botón exista en el HTML)
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) { // Si el botón está en el DOM
+        btnLogout.addEventListener('click', cerrarSesion);
+    }
+       // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
+  authDomain: "calculos-cr.firebaseapp.com",
+  projectId: "calculos-cr",
+  storageBucket: "calculos-cr.firebasestorage.app",
+  messagingSenderId: "502237422177",
+  appId: "1:502237422177:web:6974139fc782d52a1e8020"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+        
         // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
@@ -1158,7 +1330,14 @@ Fecha cálculo: ${d.fecha}
             }
         }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
+    </script>
 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        // ...código del service worker...
+      }
     </script>
 </body>
 </html>
