@@ -37,6 +37,10 @@
         .btn-header.active { background: #fbbf24; color: #1f2937; }
         .btn-secondary { background: #e5e7eb; color: #374151; padding: 12px; }
         .btn-secondary:active { background: #d1d5db; }
+        .btn-secondary:hover {
+        background: #d1d5db; /* Mismo color que :active o uno ligeramente más oscuro */
+        cursor: pointer; /* Asegura que el cursor sea una mano */
+    }
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         .btn-primary:disabled { background: #d1d5db; cursor: not-allowed; }
         .btn-result { background: rgba(255,255,255,0.2); color: white; padding: 12px; font-size: 12px; font-weight: 600; }
@@ -343,17 +347,38 @@
                 else { console.warn("Elemento #btnLogout no encontrado (normal si no está logueado)."); }
 
                 // Listeners Colapsables
-                document.querySelectorAll('.collapsible-header').forEach(header => {
-                     header.addEventListener('click', () => { /* ... código colapsable ... */ });
-                });
+                // --- INICIO: LISTENERS COLAPSABLES (ASEGÚRATE QUE ESTÉ ASÍ) ---
+        console.log("Adjuntando listeners colapsables...");
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            console.log("Encontrado header colapsable:", header); // Log
+            header.addEventListener('click', () => {
+                const targetId = header.dataset.target;
+                console.log("Clic en colapsable, target ID:", targetId); // Log
+                const content = document.getElementById(targetId);
+                if (content) {
+                    header.classList.toggle('open');
+                    content.classList.toggle('open');
+                    console.log("Clases 'open' añadidas/quitadas a:", header.id, content.id); // Log
+                    if (content.classList.contains('open')) {
+                        // Scroll suave para mostrar el contenido
+                        setTimeout(() => content.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+                    }
+                } else {
+                    console.error("No se encontró el contenido colapsable con ID:", targetId);
+                }
+            });
+        });
+        // --- FIN: LISTENERS COLAPSABLES ---
 
-                // Configuración inicial
-                // El max del año se pone antes, los demás dependen de datos o estado auth
-                actualizarHistorialUI();
-                fetchTipoDeCambio();
-                console.log("Listeners y config inicial completados.");
 
-            } catch (error) {
+        // Configuración inicial
+        const anoInput = document.getElementById('ano'); // Mover la referencia aquí
+        if(anoInput) anoInput.max = anoActual + 1;
+        actualizarHistorialUI();
+        fetchTipoDeCambio();
+        console.log("Listeners y config inicial completados.");
+
+    } catch (error) {
                 console.error("Error CRÍTICO al adjuntar listeners:", error);
                  const loginError = document.getElementById('loginError');
                  if(loginError) loginError.textContent = 'Error grave al iniciar. Refresca.';
