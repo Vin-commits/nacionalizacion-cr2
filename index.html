@@ -479,6 +479,25 @@
                     <p id="createError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
                 </div>
             </div>
+
+<div id="admin-dashboard-card" class="card" style="display: none;">
+    <div class="card-title">Dashboard de Administrador</div>
+    
+    <div class="form-group">
+        <label for="adminSearch">Buscar usuario por email</label>
+        <input type="text" id="adminSearch" placeholder="cliente@ejemplo.com">
+    </div>
+    
+    <div id="admin-user-list-loading" style="text-align: center; padding: 20px; color: #6b7280;">
+        <div class="spinner" style="margin: 0 auto;"></div>
+        Cargando usuarios...
+    </div>
+    
+    <div id="admin-user-list" style="max-height: 400px; overflow-y: auto;">
+        </div>
+</div>
+<button id="btnLogout" class="btn-danger-light" ...>Cerrar Sesión</button>
+            </div>
             <button id="btnLogout" class="btn-danger-light" style="width: 100%; padding: 12px; margin-top: 20px; font-size: 14px;">Cerrar Sesión</button>
         
         </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
@@ -798,6 +817,33 @@ if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
                         createAccountWrapper.style.display = 'none';
                     }
                 }
+                // ... dentro de onAuthStateChanged ...
+// ... dentro de userDocRef.get().then(doc => { ... }) ...
+
+                // --- MEJORA 1: LÓGICA DEL PANEL DE ADMIN (MODIFICADA) ---
+                const createAccountWrapper = document.getElementById('create-account-form-wrapper');
+                
+                // --- INICIO: NUEVA LÓGICA DEL DASHBOARD ---
+                const adminDashboard = document.getElementById('admin-dashboard-card');
+                // --- FIN: NUEVA LÓGICA DEL DASHBOARD ---
+
+                if(createAccountWrapper && adminDashboard) { // Asegurarse que ambos existan
+                    // CAMBIADO A GMAIL SEGÚN TU PETICIÓN
+                    if (user.email === 'edwin.valverdeg@gmail.com') { 
+                        createAccountWrapper.style.display = 'block';
+                        
+                        // --- INICIO: NUEVA LÓGICA DEL DASHBOARD ---
+                        adminDashboard.style.display = 'block';
+                        cargarDashboardAdmin(); // Llama a la función que carga los usuarios
+                        setupAdminSearch(); // Activa la barra de búsqueda
+                        // --- FIN: NUEVA LÓGICA DEL DASHBOARD ---
+
+                    } else {
+                        createAccountWrapper.style.display = 'none';
+                        adminDashboard.style.display = 'none'; // (NUEVO)
+                    }
+                }
+              
                 // --- FIN MEJORA 1 ---
 
                 // --- VERIFICACIÓN DE FECHA AÑADIDA ---
@@ -1404,7 +1450,169 @@ Fecha cálculo: ${d.fecha}
             vinInput.value = '';
             handleVinInput.call(vinInput);
         }
+// --- *** INICIO: CÓDIGO DEL DASHBOARD ADMIN *** ---
 
+// Variable global para guardar los usuarios y no recargarlos
+let adminUserCache = [];
+
+// 1. Función principal que carga todos los usuarios
+async function cargarDashboardAdmin() {
+    const listContainer = document.getElementById('admin-user-list');
+    const loadingEl = document.getElementById('admin-user-list-loading');
+    if (!listContainer || !loadingEl) return;
+
+    listContainer.innerHTML = '';
+    loadingEl.style.display = 'block';
+
+    try {
+        // Esta consulta AHORA FUNCIONA gracias a nuestras Reglas de Seguridad
+        const snapshot = await db.collection('usuarios').get();
+        
+        adminUserCache = []; // Limpiar caché
+        snapshot.forEach(doc => {
+            adminUserCache.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Ordenar por email
+        adminUserCache.sort((a, b) => a.email.localeCompare(b.email));
+        
+        loadingEl.style.display = 'none';
+        renderizarListaUsuarios(adminUserCache); // Llama a la función que dibuja
+
+    } catch (error) {
+        console.error("Error cargando usuarios (Admin):", error);
+        loadingEl.innerHTML = `<span style="color:#dc2626">Error al cargar: ${error.message}</span>`;
+        showToast('Error al cargar dashboard', 'error');
+    }
+}
+
+// 2. Función que "dibuja" la lista en el HTML
+function renderizarListaUsuarios(usuarios) {
+    const listContainer = document.getElementById('admin-user-list');
+    listContainer.innerHTML = ''; // Limpiar lista
+    
+    if (usuarios.length === 0) {
+        listContainer.innerHTML = '<p style="text-align:center; color: #6b7280; font-size: 14px;">No se encontraron usuarios.</p>';
+        return;
+    }
+    
+    const hoy = new Date();
+    
+    usuarios.forEach(user => {
+        // No mostrar al propio admin en la lista de clientes
+        if (user.rol === 'admin') return; 
+
+        let diasRestantes = 'N/D';
+        let colorVigencia = '#1f2937';
+        
+        if (user.fechaExpiracionSuscripcion) {
+            const fechaExp = user.fechaExpiracionSuscripcion.toDate();
+            const diffTime = fechaExp.getTime() - hoy.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (!user.suscripcionActiva) {
+                diasRestantes = 'Desactivada';
+                colorVigencia = '#dc2626';
+            } else if (diffDays <= 0) {
+                diasRestantes = 'Vencida';
+                colorVigencia = '#dc2626';
+            } else {
+                diasRestantes = `${diffDays} días`;
+                if (diffDays <= 7) colorVigencia = '#f59e0b'; // Amarillo
+            }
+        }
+
+        const userCardHTML = `
+            <div class="card" style="margin-bottom: 12px; background: #f9fafb; padding: 12px;">
+                <p style="font-weight: 600; font-size: 14px; color: #1f2937;">${user.email || 'Sin email'}</p>
+                <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                    Vigencia: <strong style="color: ${colorVigencia};">${diasRestantes}</strong>
+                </p>
+                
+                <div class="button-group" style="margin-top: 10px; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+                    <button class="btn-update-tc" onclick="adminActualizarSuscripcion('${user.id}', 30)">+30 días</button>
+                    <button class="btn-update-tc" onclick="adminActualizarSuscripcion('${user.id}', 365)">+1 Año</button>
+                    
+                    ${user.suscripcionActiva ?
+                        `<button class="btn-danger-light" style="padding: 6px 10px;" onclick="adminAlternarSuscripcion('${user.id}', false)">Desactivar</button>` :
+                        `<button class="btn-success-light" style="padding: 6px 10px;" onclick="adminAlternarSuscripcion('${user.id}', true)">Activar</button>`
+                    }
+                </div>
+            </div>
+        `;
+        listContainer.innerHTML += userCardHTML;
+    });
+}
+
+// 3. Función de BÚSQUEDA
+function setupAdminSearch() {
+    const searchInput = document.getElementById('adminSearch');
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        if (query === '') {
+            renderizarListaUsuarios(adminUserCache); // Mostrar todos
+        } else {
+            const filtrados = adminUserCache.filter(user => user.email.toLowerCase().includes(query));
+            renderizarListaUsuarios(filtrados);
+        }
+    });
+}
+
+// 4. Funciones de ACCIÓN (Actualizar suscripción)
+async function adminActualizarSuscripcion(userId, diasParaAnadir) {
+    if (!confirm(`¿Seguro que quieres añadir ${diasParaAnadir} días a este usuario?`)) return;
+
+    const userDoc = db.collection('usuarios').doc(userId);
+    let nuevaFecha;
+    
+    try {
+        const doc = await userDoc.get();
+        const data = doc.data();
+        const hoy = new Date();
+        let fechaInicio = hoy;
+        
+        // Si la suscripción aún está activa y vigente, añadir días al final de esa fecha
+        if (data.fechaExpiracionSuscripcion && data.fechaExpiracionSuscripcion.toDate() > hoy) {
+            fechaInicio = data.fechaExpiracionSuscripcion.toDate();
+        }
+        
+        nuevaFecha = new Date(fechaInicio);
+        nuevaFecha.setDate(nuevaFecha.getDate() + diasParaAnadir);
+        
+        // Esta actualización AHORA FUNCIONA gracias a nuestras Reglas de Seguridad
+        await userDoc.update({
+            fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(nuevaFecha),
+            suscripcionActiva: true // Re-activar por si estaba vencida
+        });
+        
+        showToast('Suscripción actualizada', 'success');
+        cargarDashboardAdmin(); // Recargar la lista
+        
+    } catch (error) {
+        console.error("Error al actualizar suscripción:", error);
+        showToast('Error al actualizar', 'error');
+    }
+}
+
+// 5. Función de ACCIÓN (Activar/Desactivar)
+async function adminAlternarSuscripcion(userId, nuevoEstado) {
+    const accion = nuevoEstado ? 'Activar' : 'Desactivar';
+    if (!confirm(`¿Seguro que quieres ${accion} esta cuenta?`)) return;
+
+    try {
+        await db.collection('usuarios').doc(userId).update({
+            suscripcionActiva: nuevoEstado
+        });
+        showToast(`Cuenta ${accion.toLowerCase()}da`, 'success');
+        cargarDashboardAdmin(); // Recargar la lista
+    } catch (error) {
+        console.error(`Error al ${accion} cuenta:`, error);
+        showToast('Error al actualizar', 'error');
+    }
+}
+
+// --- *** FIN: CÓDIGO DEL DASHBOARD ADMIN *** ---
+        
         // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
         async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
