@@ -19,10 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -419,28 +416,28 @@
                     </svg>
                 </div>
                 <div id="collapsible-traspaso" class="collapsible-content">
-                    <div class="form-group">
-    <label for="valorFiscal">Valor Fiscal (₡)</label>
-    <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
-</div>
-<hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
-<div class="form-group">
-    <label for="consultaPlacaInput">Consultar Valor Fiscal por Placa (RNP)</label>
-    <input type="text" id="consultaPlacaInput" placeholder="Ej: ABC123" maxlength="10" autocapitalize="characters" style="margin-bottom: 8px;">
-    <button id="btnConsultarPlaca" class="btn-secondary" style="width: 100%;">Consultar Placa</button>
-    <pre id="resultadoConsultaPlaca" style="margin-top: 10px; font-size: 11px; color: #4b5563; background: #f3f4f6; padding: 8px; border-radius: 4px; min-height: 40px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+    <div class="form-group">
+        <label for="valorFiscal">Valor Fiscal (₡)</label>
+        <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
+    </div>
+    <hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
+    <div class="form-group">
+        <label for="consultaPlacaInput">Consultar Valor Fiscal por Placa (RNP)</label>
+        <input type="text" id="consultaPlacaInput" placeholder="Ej: ABC123" maxlength="10" autocapitalize="characters" style="margin-bottom: 8px;">
+        <button id="btnConsultarPlaca" class="btn-secondary" style="width: 100%;">Consultar Placa</button>
+        <pre id="resultadoConsultaPlaca" style="margin-top: 10px; font-size: 11px; color: #4b5563; background: #f3f4f6; padding: 8px; border-radius: 4px; min-height: 40px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+    </div>
+    <hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
+    <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+    <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
 </div>
 <hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
 <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
                     <div class="form-group">
                         <label for="valorFiscal">Valor Fiscal (₡)</label>
                         <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
-                    </div>
-                    <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
-                    <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
-                    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                </div>
-                
+                                   
 
                 <div class="form-group">
                     <label for="valor">Valor (USD)</label>
