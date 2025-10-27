@@ -19,6 +19,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -416,6 +420,19 @@
                 </div>
                 <div id="collapsible-traspaso" class="collapsible-content">
                     <div class="form-group">
+    <label for="valorFiscal">Valor Fiscal (₡)</label>
+    <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
+</div>
+<hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
+<div class="form-group">
+    <label for="consultaPlacaInput">Consultar Valor Fiscal por Placa (RNP)</label>
+    <input type="text" id="consultaPlacaInput" placeholder="Ej: ABC123" maxlength="10" autocapitalize="characters" style="margin-bottom: 8px;">
+    <button id="btnConsultarPlaca" class="btn-secondary" style="width: 100%;">Consultar Placa</button>
+    <pre id="resultadoConsultaPlaca" style="margin-top: 10px; font-size: 11px; color: #4b5563; background: #f3f4f6; padding: 8px; border-radius: 4px; min-height: 40px; white-space: pre-wrap; word-wrap: break-word;"></pre>
+</div>
+<hr style="border:none; border-top: 1px dashed #cbd5e1; margin: 16px 0;">
+<button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+                    <div class="form-group">
                         <label for="valorFiscal">Valor Fiscal (₡)</label>
                         <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
                     </div>
@@ -504,6 +521,185 @@
     
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
+        let auth;
+let db;
+let functions; // <-- ✅ Declara la variable functions aquí
+try {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    functions = firebase.functions(); // <-- ✅ Inicializa functions aquí
+    console.log("Firebase inicializado correctamente.");
+} catch (e) {
+    // ... tu manejo de errores ...
+}
+// ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
+
+// --- VARIABLES GLOBALES Y CONSTANTES ---
+// ... tu código ...
+
+// ✅ AÑADE ESTA LÍNEA PARA REFERENCIAR LA FUNCIÓN 👇
+let consultarFn;
+if (typeof functions !== 'undefined') {
+    consultarFn = functions.httpsCallable('consultaPlacaRNP');
+} else {
+    console.error("Firebase Functions no se pudo inicializar.");
+    // Podrías deshabilitar el botón de consulta aquí si falla la inicialización
+}
+
+
+// --- MANEJO DE EVENTOS ---
+document.addEventListener('DOMContentLoaded', () => {
+    // ... tus otros listeners ...
+
+    // ✅ AÑADE ESTE LISTENER PARA EL NUEVO BOTÓN 👇
+    const btnConsultarPlaca = document.getElementById('btnConsultarPlaca');
+    if (btnConsultarPlaca) {
+        btnConsultarPlaca.addEventListener('click', consultarPlacaRNP);
+    } else {
+        console.warn("Elemento #btnConsultarPlaca no encontrado.");
+    }
+
+    // ... resto de tu código DOMContentLoaded ...
+});
+
+// --- FUNCIONES DE AUTENTICACIÓN ---
+// ... tu código ...
+
+// --- FUNCIONES DE FORMATO ---
+// ... tu código ...
+
+// --- FUNCIÓN DEL TOAST ---
+// ... tu código ...
+
+// --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
+// ... tu código ...
+
+// --- FUNCIONES (HERRAMIENTAS) ---
+// ... tu código ...
+
+// --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
+// ... tu código ...
+
+// --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
+// ... tu código ...
+
+// --- FUNCIONES DE EXPORTACIÓN Y AYUDA ---
+// ... tu código ...
+
+// --- FUNCIONES DE LIMPIEZA ---
+// ... tu código ...
+
+// --- DASHBOARD ADMIN ---
+// ... tu código ...
+
+// --- SCANNER ---
+// ... tu código ...
+
+// ✅ ==== INICIO: NUEVA FUNCIÓN PARA LLAMAR A LA CLOUD FUNCTION ====
+async function consultarPlacaRNP() {
+    if (typeof consultarFn === 'undefined') {
+        showToast("Error: Servicio de consulta no disponible.", "error");
+        return;
+    }
+
+    const placaInput = document.getElementById('consultaPlacaInput');
+    const resultadoEl = document.getElementById('resultadoConsultaPlaca');
+    const btnConsultar = document.getElementById('btnConsultarPlaca');
+    const valorFiscalInput = document.getElementById('valorFiscal'); // Para autocompletar
+
+    if (!placaInput || !resultadoEl || !btnConsultar || !valorFiscalInput) {
+        showToast("Error interno: Faltan elementos de UI para consulta.", "error");
+        return;
+    }
+
+    const placa = placaInput.value.trim().toUpperCase();
+    if (!placa) {
+        showToast("Por favor, ingresa una placa.", "info");
+        placaInput.focus();
+        return;
+    }
+
+    // 1. Asegurar usuario autenticado en Firebase
+    if (!auth || !auth.currentUser) {
+        showToast("Debes iniciar sesión para usar esta función.", "error");
+        // Opcional: podrías redirigir al login o mostrar el form de login
+        return;
+    }
+
+    // 2. Mostrar estado de carga
+    resultadoEl.textContent = "Consultando RNP...";
+    btnConsultar.disabled = true;
+    btnConsultar.textContent = 'Consultando...'; // Cambiar texto del botón
+
+    try {
+        // 3. Llamar a la Cloud Function (¡SOLO enviamos la placa!)
+        console.log(`Llamando a consultaPlacaRNP con placa: ${placa}`);
+        const resp = await consultarFn({ placa: placa });
+        console.log("Respuesta de la función:", resp);
+
+        // 4. Procesar la respuesta
+        if (resp.data && resp.data.ok && resp.data.data) {
+            const d = resp.data.data;
+            resultadoEl.textContent = JSON.stringify(d, null, 2); // Mostrar todo el JSON
+
+            // Intentar extraer y autocompletar el valor fiscal
+            if (d.valorFiscal) {
+                // Limpiar el valor fiscal (quitar '₡', comas, espacios)
+                const valorNumerico = parseFloat(String(d.valorFiscal).replace(/[₡,\s]/g, ''));
+                if (!isNaN(valorNumerico)) {
+                    valorFiscalInput.value = valorNumerico.toFixed(0); // Poner en el campo de traspaso
+                    showToast(`Valor fiscal ${formatCRC(valorNumerico)} encontrado.`, "success");
+                } else {
+                    showToast(`Valor fiscal encontrado, pero formato no reconocido: ${d.valorFiscal}`, "info");
+                }
+            } else {
+                showToast("Consulta exitosa, pero no se encontró valor fiscal.", "info");
+            }
+             if (d.gravamen) {
+                showToast(`¡Alerta! Se detectó indicio de gravamen/anotación. Detalles: ${d.detallesGravamen || 'Revisar RNP'}`, "error", 6000);
+            }
+
+        } else if (resp.data && resp.data.message) {
+             // Errores controlados devueltos por la función (ej: "Selectores no encontrados")
+             resultadoEl.textContent = `Error del servidor: ${resp.data.message}`;
+             showToast("Error en la consulta RNP (Servidor)", "error");
+        }
+         else {
+             // Respuesta inesperada
+            resultadoEl.textContent = "Respuesta inesperada del servidor: " + JSON.stringify(resp.data);
+            showToast("Respuesta inesperada del servidor", "error");
+        }
+
+    } catch (err) {
+        // 5. Manejar errores (de red, permisos de Firebase, etc.)
+        console.error("Error al llamar la Cloud Function:", err);
+        let errorMsg = err.message || JSON.stringify(err);
+
+        // Firebase suele devolver mensajes más claros en err.message
+        if (err.code === 'unauthenticated') {
+            errorMsg = "No autenticado. Por favor, inicia sesión de nuevo.";
+        } else if (err.code === 'permission-denied') {
+            errorMsg = "Permiso denegado.";
+        } else if (err.message.includes("credenciales")) {
+             errorMsg = "Error con las credenciales del RNP guardadas."; // No mostrar detalles sensibles
+        } else if (err.message.includes("Selectores")) {
+             errorMsg = "Error interno del servidor al procesar la página del RNP (Selectores).";
+        } else if (err.message.includes("timeout")) {
+             errorMsg = "Tiempo de espera agotado consultando al RNP. Intenta de nuevo.";
+        }
+
+        resultadoEl.textContent = `Error: ${errorMsg}`;
+        showToast(`Error en la consulta: ${errorMsg}`, 'error', 5000);
+
+    } finally {
+        // 6. Restablecer UI
+        btnConsultar.disabled = false;
+        btnConsultar.textContent = 'Consultar Placa'; // Restaurar texto del botón
+    }
+}
+// ✅ ==== FIN: NUEVA FUNCIÓN PARA LLAMAR A LA CLOUD FUNCTION ====
+        
         const firebaseConfig = {
             apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
             authDomain: "calculos-cr.firebaseapp.com",
