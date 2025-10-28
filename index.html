@@ -697,31 +697,7 @@ async function consultarPlacaRNP() {
 }
 // ✅ ==== FIN: NUEVA FUNCIÓN PARA LLAMAR A LA CLOUD FUNCTION ====
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
-            authDomain: "calculos-cr.firebaseapp.com",
-            projectId: "calculos-cr",
-            storageBucket: "calculos-cr.appspot.com",
-            messagingSenderId: "502237422177",
-            appId: "1:502237422177:web:6974139fc782d52a1e8020"
-        };
-        let auth;
-        let db;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.firestore();
-            console.log("Firebase inicializado correctamente.");
-        } catch (e) {
-            console.error("Error inicializando Firebase:", e);
-             document.addEventListener('DOMContentLoaded', () => {
-                 const loginError = document.getElementById('loginError');
-                 if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
-             });
-        }
-        // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
-
-        // --- VARIABLES GLOBALES Y CONSTANTES ---
+               // --- VARIABLES GLOBALES Y CONSTANTES ---
         let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
         let modoComparacion = false;
         let vehiculosSeleccionados = new Set();
