@@ -1373,15 +1373,16 @@ const app = initializeApp(firebaseConfig);
             } else if (v.ano) {
                 vehicleInfoText = `Año: ${v.ano}`;
             }
-            html += `<div style="border: 1px solid #dbeafe; border-radius: 8px; padding: 10px;">
-                     <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 8px; min-height: 2.5em;">${vehicleInfoText.trim()}</div>
-                     <div style="font-size: 11px; padding: 8px; background: #f3f4f6; border-radius: 6px;">
-                         Valor: ${formatUSD(v.valor || 0)}<br>
-                         Flete: ${formatUSD(v.flete || 0)}<br><br>
-                         <strong style="font-size: 13px;">${formatCRC(v.totalColones || 0)}</strong>
-                     </div>
-                   </div>`; 
-        }); 
+            html += `
+            <div style="border: 1px solid #dbeafe; border-radius: 8px; padding: 10px;">
+                <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 8px; min-height: 2.5em;">${vehicleInfoText.trim()}</div>
+                <div style="font-size: 11px; padding: 8px; background: #f3f4f6; border-radius: 6px;">
+                    Valor: ${formatUSD(v.valor || 0)}<br>
+                    Flete: ${formatUSD(v.flete || 0)}<br><br>
+                    <strong style="font-size: 13px;">${formatCRC(v.totalColones || 0)}</strong>
+                </div>
+            </div>
+        `; 
         html += '</div>'; 
 
         const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
