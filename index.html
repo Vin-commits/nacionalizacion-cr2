@@ -991,6 +991,8 @@ async function consultarPlacaRNP() {
         // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN (CORREGIDO) ---
         if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
             auth.onAuthStateChanged(user => {
+                console.log("onAuthStateChanged disparado. Usuario:", user);
+                
                 const authSection = document.getElementById('auth-section');
                 const appContent = document.getElementById('app-content');
                 const loginError = document.getElementById('loginError');
@@ -1004,15 +1006,19 @@ async function consultarPlacaRNP() {
                     console.error("Elementos UI Auth cruciales no encontrados."); 
                     if (document.body) document.body.innerHTML = "Error crítico de UI.";
                     return; 
-                }
+                } else {
+             console.log("Elementos UI Auth encontrados.");
 
                 if (user) { // Usuario Logueado
+                    console.log("Usuario detectado:", user.email);
                     loginError.textContent = 'Verificando suscripción...';
                     headerButtons.style.display = 'none'; // Ocultar botones hasta verificar
                     
                     const userDocRef = db.collection('usuarios').doc(user.uid);
-                    
+
+                    console.log("Obteniendo documento de Firestore para UID:", user.uid);
                     userDocRef.get().then(doc => {
+                        console.log("Respuesta de Firestore recibida. Doc existe:", doc.exists);
                         const datosUsuario = doc.exists ? doc.data() : null; // Obtener datos solo si existe
                         let esAdmin = datosUsuario && datosUsuario.rol === 'admin'; // Verificar si es admin
                         
@@ -1053,12 +1059,18 @@ async function consultarPlacaRNP() {
 
                         // Mostrar Contenido o Login según validez
                         if (suscripcionValida) {
-                            console.log("Suscripción activa y vigente. Mostrando app.");
+                            console.log("Suscripción válida. Mostrando app-content.");
                             authSection.style.display = 'none';
                             appContent.style.display = 'block';
                             headerButtons.style.display = 'flex';
                             loginError.textContent = '';
-
+                            } else {
+                    console.log("Suscripción NO válida o expirada. Mostrando auth-section.");
+                            authSection.style.display = 'none';
+                            appContent.style.display = 'block';
+                            headerButtons.style.display = 'flex';
+                            loginError.textContent = '';
+                            
                             // Mostrar Info Usuario
                             const userInfoEmail = document.getElementById('userInfoEmail');
                             const userInfoExpiry = document.getElementById('userInfoExpiry');
@@ -1111,7 +1123,7 @@ async function consultarPlacaRNP() {
                         // auth.signOut(); // Desloguear si hay error crítico
                     });
                 } else { // Usuario Deslogueado
-                    console.log('Estado: Deslogueado');
+                    console.log("No hay usuario logueado. Mostrando auth-section.");
                     authSection.style.display = 'block';
                     appContent.style.display = 'none';
                     headerButtons.style.display = 'none';
@@ -1128,7 +1140,7 @@ async function consultarPlacaRNP() {
                 }
             });
         } else {
-            console.error("Firebase Auth o Firestore no definidos globalmente.");
+     console.error("CRÍTICO: Firebase Auth o Firestore no definidos globalmente al inicio.");
             document.addEventListener('DOMContentLoaded', () => {
                 const loginError = document.getElementById('loginError');
                 if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
