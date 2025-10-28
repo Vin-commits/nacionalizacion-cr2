@@ -968,8 +968,9 @@
         }
 
         // --- FUNCIONES DE FORMATO ---
-        function formatUSD(num) { return '$' + Math.round(num).toLocaleString('en-US'); }
-        function formatCRC(num) { return '₡' + Math.round(num).toLocaleString('es-CR'); }
+        // CÓDIGO CORREGIDO
+function formatUSD(num) { return '$' + Math.round(num).toLocaleString("en-US"); }
+function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR"); }
 
         // --- FUNCIÓN DEL TOAST ---
         function showToast(message, type = 'info', duration = 3000) {
