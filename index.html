@@ -526,18 +526,19 @@
             appId: "1:502237422177:web:6974139fc782d52a1e8020"
         };
         // CÓDIGO CORREGIDO
-// CÓDIGO CORREGIDO (Pasando la instancia de la app)
+// CÓDIGO CORREGIDO (Explícito)
 let auth;
 let db;
 let functions;
 let app; // <-- Añadimos variable para la app
 try {
     app = firebase.initializeApp(firebaseConfig); // <-- Capturamos la app
-    auth = firebase.auth(app); // <-- (Buena práctica)
-    db = firebase.firestore(app); // <-- (Buena práctica)
-    functions = firebase.functions(app); // <-- ¡Pasamos la app!
+    auth = firebase.auth(app); // <-- Pasamos la app
+    db = firebase.firestore(app); // <-- Pasamos la app
+    functions = app.functions('us-central1'); // <-- Pasamos la app y la REGIÓN
     console.log("Firebase inicializado correctamente.");
 } catch (e) {
+// ... (copia el resto de tu bloque catch aquí) ...
 // ... (copia el resto de tu bloque catch aquí) ...
     console.error("Error inicializando Firebase:", e);
      document.addEventListener('DOMContentLoaded', () => {
@@ -2042,17 +2043,7 @@ Cálculo por: Calculadora CR
         
 // --- *** INICIO: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
     
-    // Definir la función callable una vez
-    let consultaPlacaRNP;
-    if (typeof functions !== 'undefined') {
-        try {
-            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP');
-        } catch (e) {
-            console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
-        }
-    }
-
-   async function llamarConsultaPlacaRNP() {
+       async function llamarConsultaPlacaRNP() {
     const placaInput = document.getElementById('placaRNP');
     const placaStatus = document.getElementById('placaRNPStatus');
     const valorFiscalInput = document.getElementById('valorFiscal');
@@ -2063,14 +2054,28 @@ Cálculo por: Calculadora CR
         return;
     }
 
-    if (!consultaPlacaRNP) {
-         console.error("Error: La función callable de Firebase no está inicializada.");
+    // --- INICIO DE CAMBIO ---
+    // Verificar si 'functions' se inicializó
+    if (typeof functions === 'undefined') {
+         console.error("Error: El servicio Firebase Functions no está inicializado.");
          placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
          return;
     }
 
+    // Crear el callable CADA VEZ, para asegurar que vea al usuario logueado
+    let consultaPlacaRNP;
+    try {
+        consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP');
+    } catch (e) {
+        console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
+        placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Fallo al crear la llamada.</span>`;
+        return;
+    }
+    // --- FIN DE CAMBIO ---
+
     const placa = placaInput.value.trim().toUpperCase();
     if (!placa) {
+// ... (el resto de la función continúa igual) ...
         placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
         placaInput.focus();
         return;
