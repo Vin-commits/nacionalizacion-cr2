@@ -532,7 +532,7 @@ try {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
-    functions = firebase.functions(); // <-- AÑADE ESTA LÍNEA
+    functions = firebase.functions('us-central1'); // <-- AÑADE ESTA LÍNEA
     console.log("Firebase inicializado correctamente.");
 } catch (e) {
             console.error("Error inicializando Firebase:", e);
