@@ -2038,8 +2038,8 @@ Cálculo por: Calculadora CR
             }
         }
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
-        
-// --- *** INICIO: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
+    
+    // --- *** INICIO: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
     
     async function llamarConsultaPlacaRNP() {
         const placaInput = document.getElementById('placaRNP');
@@ -2052,7 +2052,6 @@ Cálculo por: Calculadora CR
             return;
         }
 
-        // --- INICIO DE CAMBIO ---
         // Verificar si 'functions' se inicializó
         if (typeof functions === 'undefined') {
              console.error("Error: El servicio Firebase Functions no está inicializado.");
@@ -2060,7 +2059,6 @@ Cálculo por: Calculadora CR
              return;
         }
 
-        // Crear el callable CADA VEZ, para asegurar que vea al usuario logueado
         let consultaPlacaRNP;
         try {
             consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP');
@@ -2069,7 +2067,6 @@ Cálculo por: Calculadora CR
             placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Fallo al crear la llamada.</span>`;
             return;
         }
-        // --- FIN DE CAMBIO ---
 
         const placa = placaInput.value.trim().toUpperCase();
         if (!placa) {
@@ -2079,13 +2076,16 @@ Cálculo por: Calculadora CR
         }
 
         // Mostrar estado de carga
-        placaStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Consultando RNP... (puede tardar 30s)</span>`;
+        placaStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Consultando RNP... (puede tardar 90s)</span>`;
         btn.disabled = true;
         btn.textContent = '...';
 
         try {
-            // Llamar a la Cloud Function
-            const result = await consultaPlacaRNP({ placa: placa });
+            // =================================================================
+            // ¡CAMBIO CLAVE! Añadimos un timeout de 100 segundos (100000 ms)
+            // Esto es MÁS que el timeout de 90s del servidor.
+            // =================================================================
+            const result = await consultaPlacaRNP({ placa: placa }, { timeout: 100000 });
 
             console.log("Respuesta de la Cloud Function:", result);
             const data = result.data;
@@ -2094,23 +2094,17 @@ Cálculo por: Calculadora CR
                 const resultado = data.data;
                 placaStatus.innerHTML = `<span style="color: #059669;">✓ Valor fiscal encontrado.</span>`;
                 
-                // Limpiar y rellenar el campo de Valor Fiscal
                 let valorLimpio = null;
-                if (resultado.valorFiscal) {
-                    valorLimpio = parseFloat(resultado.valorFiscal.replace(/[^0-9.-]+/g,""));
+                if (resultado.valorContrato) {
+                    valorLimpio = parseFloat(resultado.valorContrato.replace(/[^0-9.-]+/g,""));
                 }
 
                 if (valorLimpio && !isNaN(valorLimpio)) {
                     valorFiscalInput.value = Math.round(valorLimpio);
                     showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
                 } else {
-                     placaStatus.innerHTML = `<span style="color: #f59e0b;">Valor fiscal no encontrado en RNP.</span>`;
+                     placaStatus.innerHTML = `<span style="color: #f59e0b;">Valor fiscal no numérico en RNP.</span>`;
                      showToast('Valor fiscal no numérico devuelto por RNP', 'error');
-                }
-
-                // Opcional: Mostrar info de gravamen
-                if (resultado.gravamen) {
-                    showToast(`¡Atención! Gravamen encontrado: ${resultado.detallesGravamen || 'Revisar'}`, 'error', 5000);
                 }
 
             } else {
@@ -2122,16 +2116,22 @@ Cálculo por: Calculadora CR
         } catch (error) {
             // Manejar errores lanzados por la Cloud Function
             console.error("Error al llamar la Cloud Function:", error);
+            
+            // AHORA el error.message vendrá del servidor (ej: "Timeout 50s")
+            // o será "deadline-exceeded" si los 100s del cliente fallan.
             const errorMsg = error.message || "Error desconocido.";
             placaStatus.innerHTML = `<span style="color: #dc2626;">Error: ${errorMsg}</span>`;
             showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
+            
         } finally {
             // Reactivar el botón
             btn.disabled = false;
             btn.textContent = 'Buscar';
         }
     }
+
 // --- *** FIN: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
+        
     </script>
     
     <script>
