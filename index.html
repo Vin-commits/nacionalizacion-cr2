@@ -2061,10 +2061,10 @@ Cálculo por: Calculadora CR
         let consultaPlacaRNP;
         try {
             // =================================================================
-            // ¡CAMBIO CLAVE 1!
-            // Añadimos el timeout al CREAR la referencia de la función
+            // ¡CAMBIO CLAVE!
+            // Aumentamos el timeout del CLIENTE a 190 segundos (190000 ms)
             // =================================================================
-            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 100000 });
+            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 190000 });
 
         } catch (e) {
             console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
@@ -2079,15 +2079,12 @@ Cálculo por: Calculadora CR
             return;
         }
 
-        placaStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Consultando RNP... (puede tardar 90s)</span>`;
+        // Actualizamos el mensaje de espera
+        placaStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Consultando RNP... (puede tardar 2-3 min)</span>`;
         btn.disabled = true;
         btn.textContent = '...';
 
         try {
-            // =================================================================
-            // ¡CAMBIO CLAVE 2!
-            // Ahora la llamada solo lleva los datos, sin el objeto de options
-            // =================================================================
             const result = await consultaPlacaRNP({ placa: placa });
 
             console.log("Respuesta de la Cloud Function:", result);
@@ -2117,9 +2114,6 @@ Cálculo por: Calculadora CR
 
         } catch (error) {
             console.error("Error al llamar la Cloud Function:", error);
-            
-            // Ahora el error.message vendrá del servidor (ej: "Timeout 50s")
-            // o será "deadline-exceeded" si los 100s del cliente fallan.
             const errorMsg = error.message || "Error desconocido.";
             placaStatus.innerHTML = `<span style="color: #dc2626;">Error: ${errorMsg}</span>`;
             showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
