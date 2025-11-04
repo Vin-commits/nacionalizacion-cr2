@@ -566,13 +566,19 @@ let db;
 let functions;
 let app; // <-- Añadimos variable para la app
 try {
-    app = firebase.initializeApp(firebaseConfig); // <-- Capturamos la app
-    auth = firebase.auth(app); // <-- Pasamos la app
-    db = firebase.firestore(app); // <-- Pasamos la app
-    functions = app.functions('us-central1'); // <-- Pasamos la app y la REGIÓN
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth(app);
+    db = firebase.firestore(app);
+    
+    // ⚠️ CONFIGURACIÓN CORRECTA DE FUNCTIONS
+    functions = firebase.functions(app);
+    // NO uses useFunctionsEmulator en producción
+    
     console.log("Firebase inicializado correctamente.");
 } catch (e) {
     console.error("Error inicializando Firebase:", e);
+    // ... tu código de error
+}
      document.addEventListener('DOMContentLoaded', () => {
          const loginError = document.getElementById('loginError');
          if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
@@ -2137,7 +2143,7 @@ async function llamarConsultaPlacaRNP() {
             // ¡CAMBIO CLAVE!
             // Aumentamos el timeout del CLIENTE a 190 segundos (190000 ms)
             // =================================================================
-            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 300000 });
+            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 540000 });
 
         } catch (e) {
             console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
