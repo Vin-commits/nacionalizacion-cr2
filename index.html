@@ -557,65 +557,67 @@
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
         
-        let consultaRNPListener = null; // Para el listener de Firestore
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
-            authDomain: "calculos-cr.firebaseapp.com",
-            projectId: "calculos-cr",
-            storageBucket: "calculos-cr.appspot.com",
-            messagingSenderId: "502237422177",
-            appId: "1:502237422177:web:6974139fc782d52a1e8020"
-        };
-        
-        let auth;
-        let db;
-        let functions;
-        let app;
-        
-        try {
-            app = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth(app);
-            db = firebase.firestore(app);
-            functions = firebase.functions(app);
-            
-            console.log("Firebase inicializado correctamente.");
-        } catch (e) {
-            console.error("Error inicializando Firebase:", e);
-            document.addEventListener('DOMContentLoaded', () => {
-                const loginError = document.getElementById('loginError');
-                if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
-            });
-        }
-        
-        // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
+     let consultaRNPListener = null; // Para el listener de Firestore
+let progressInterval = null; // Para animación de progreso
 
-        // --- VARIABLES GLOBALES Y CONSTANTES ---
-        let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
-        let modoComparacion = false;
-        let vehiculosSeleccionados = new Set();
-        let calculoActual = null;
-        let vinDecodeTimeout;
-        let codeReader = null; 
-        let toastTimeout; 
+const firebaseConfig = {
+    apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
+    authDomain: "calculos-cr.firebaseapp.com",
+    projectId: "calculos-cr",
+    storageBucket: "calculos-cr.appspot.com",
+    messagingSenderId: "502237422177",
+    appId: "1:502237422177:web:6974139fc782d52a1e8020"
+};
 
-        let currentVinInfo = { make: '', model: '', year: '' }; 
+let auth;
+let db;
+let functions;
+let app;
 
-        const anoActual = new Date().getFullYear();
+try {
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth(app);
+    db = firebase.firestore(app);
+    functions = firebase.functions(app); // ✅ SIN región
+    
+    console.log("Firebase inicializado correctamente.");
+} catch (e) {
+    console.error("Error inicializando Firebase:", e);
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginError = document.getElementById('loginError');
+        if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
+    });
+}
 
-        const COSTOS_FIJOS = {
-            SEGURO_1: 0.011, SEGURO_2: 0.007, PAPELEO_USA: 250,
-            DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
-        };
+// ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
-        const MILLAS_POR_KM = 0.621371;
-        const KM_POR_MILLA = 1.60934;
-        const PROMEDIO_MILLAS_ANO = 15000;
-        const PROMEDIO_KMS_ANO = 17000;
-        const PORCENTAJE_TIMBRES = 0.035;
-        const HONORARIOS_TRASPASO = 65000;
+// --- VARIABLES GLOBALES Y CONSTANTES ---
+let historial = JSON.parse(localStorage.getItem('impuestosHistorial')) || [];
+let modoComparacion = false;
+let vehiculosSeleccionados = new Set();
+let calculoActual = null;
+let vinDecodeTimeout;
+let codeReader = null; 
+let toastTimeout; 
+
+let currentVinInfo = { make: '', model: '', year: '' }; 
+
+const anoActual = new Date().getFullYear();
+
+const COSTOS_FIJOS = {
+    SEGURO_1: 0.011, SEGURO_2: 0.007, PAPELEO_USA: 250,
+    DECLARACION_CR: 106000, DEKRA: 45000, ALMACENAMIENTO: 65000
+};
+
+const MILLAS_POR_KM = 0.621371;
+const KM_POR_MILLA = 1.60934;
+const PROMEDIO_MILLAS_ANO = 15000;
+const PROMEDIO_KMS_ANO = 17000;
+const PORCENTAJE_TIMBRES = 0.035;
+const HONORARIOS_TRASPASO = 65000;
 
         // --- MANEJO DE EVENTOS ---
+        
         document.addEventListener('DOMContentLoaded', () => {
             // Asegurarse de que los elementos existen antes de añadir listeners
             const anoInput = document.getElementById('ano');
@@ -1998,245 +2000,251 @@ Cálculo por: Calculadora CR
             }
         }
 
-        // --- FUNCIONES CONSULTA RNP ---
-        async function llamarConsultaPlacaRNP() {
-            const placaInput = document.getElementById('placaRNP');
-            const placaStatus = document.getElementById('placaRNPStatus');
-            const valorFiscalInput = document.getElementById('valorFiscal');
-            const btn = document.getElementById('btnConsultarRNP');
+    // --- FUNCIÓN CONSULTA RNP MEJORADA (REEMPLAZAR LA TUYA) ---
+async function llamarConsultaPlacaRNP() {
+    const placaInput = document.getElementById('placaRNP');
+    const placaStatus = document.getElementById('placaRNPStatus');
+    const valorFiscalInput = document.getElementById('valorFiscal');
+    const btn = document.getElementById('btnConsultarRNP');
 
-            if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
-                console.error("Error: Faltan elementos del DOM");
-                return;
-            }
+    if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
+        console.error("Error: Faltan elementos del DOM");
+        return;
+    }
 
-            if (typeof functions === 'undefined' || typeof db === 'undefined') {
-                console.error("Error: Firebase no inicializado");
-                placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
-                return;
-            }
+    if (typeof functions === 'undefined' || typeof db === 'undefined') {
+        console.error("Error: Firebase no inicializado");
+        placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
+        return;
+    }
 
-            const placa = placaInput.value.trim().toUpperCase();
-            if (!placa) {
-                placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
-                placaInput.focus();
-                return;
-            }
+    const placa = placaInput.value.trim().toUpperCase();
+    if (!placa) {
+        placaStatus.innerHTML = `<span style="color: #dc2626;">⚠️ Ingrese una placa.</span>`;
+        placaInput.focus();
+        return;
+    }
 
-            if (consultaRNPListener) {
-                consultaRNPListener();
-                consultaRNPListener = null;
-            }
+    // Verificar credenciales ANTES de continuar
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showToast("Debes iniciar sesión", "error");
+            return;
+        }
+        
+        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
+        const credSnap = await credRef.get();
+        
+        if (!credSnap.exists) {
+            showToast("⚠️ Debes guardar tus credenciales RNP primero", "error", 4000);
+            // Aquí podrías abrir automáticamente el modal de credenciales:
+            // mostrarFormularioCredencialesRNP();
+            placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Configura tus credenciales RNP primero</span>`;
+            return;
+        }
+        
+        const credData = credSnap.data();
+        if (!credData.username || !credData.password) {
+            showToast("❌ Credenciales RNP incompletas", "error");
+            placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Credenciales RNP incompletas</span>`;
+            return;
+        }
+    } catch (error) {
+        console.error("Error verificando credenciales:", error);
+        showToast("Error al verificar credenciales", "error");
+        return;
+    }
 
-            btn.disabled = true;
-            btn.textContent = 'Consultando...';
-            placaStatus.innerHTML = `
-                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                <span style="vertical-align: middle;">Creando solicitud...</span>
-            `;
+    // Limpiar listeners anteriores
+    if (consultaRNPListener) {
+        consultaRNPListener();
+        consultaRNPListener = null;
+    }
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
 
-            try {
-                const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
-                
-                const result = await solicitarConsultaRNP({ placa: placa });
-                console.log("Solicitud creada:", result);
+    // UI: Deshabilitar y mostrar cargando
+    btn.disabled = true;
+    btn.textContent = '⏳ Consultando...';
+    
+    placaStatus.innerHTML = `
+        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+        <span style="vertical-align: middle;">Creando solicitud...</span>
+    `;
 
-                const data = result.data;
-                if (!data || !data.ok || !data.consultaId) {
-                    throw new Error(data?.message || "Error al crear solicitud");
-                }
-
-                const consultaId = data.consultaId;
-                
-                placaStatus.innerHTML = `
-                    <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                    <span style="vertical-align: middle; color: #2563eb;">
-                        Consultando RNP en tiempo real... (puede tardar 2-3 min)
-                    </span>
-                `;
-
-                showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
-
-                consultaRNPListener = db.collection('consultas_rnp_queue')
-                    .doc(consultaId)
-                    .onSnapshot(
-                        (docSnapshot) => {
-                            if (!docSnapshot.exists) {
-                                console.warn("Documento no existe");
-                                return;
-                            }
-
-                            const consultaData = docSnapshot.data();
-                            console.log("Estado actualizado:", consultaData.estado, consultaData);
-
-                            switch (consultaData.estado) {
-                                case 'pendiente':
-                                    placaStatus.innerHTML = `
-                                        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                                        <span style="vertical-align: middle; color: #f59e0b;">
-                                            En cola... Esperando procesamiento
-                                        </span>
-                                    `;
-                                    break;
-
-                                case 'procesando':
-                                    const progreso = consultaData.progreso || 'Procesando consulta...';
-                                    placaStatus.innerHTML = `
-                                        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                                        <span style="vertical-align: middle; color: #2563eb;">
-                                            ${progreso}
-                                        </span>
-                                    `;
-                                    break;
-
-                                case 'completado':
-                                    const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
-                                    const duracion = consultaData.duracionSegundos || '?';
-                                    
-                                    valorFiscalInput.value = Math.round(valorContrato);
-                                    placaStatus.innerHTML = `
-                                        <span style="color: #059669;">
-                                            ✅ Valor fiscal encontrado (${duracion}s)
-                                        </span>
-                                    `;
-                                    
-                                    showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
-                                    
-                                    if (consultaRNPListener) {
-                                        consultaRNPListener();
-                                        consultaRNPListener = null;
-                                    }
-                                    
-                                    btn.disabled = false;
-                                    btn.textContent = 'Buscar';
-                                    break;
-
-                                case 'error':
-                                    const errorMsg = consultaData.error || 'Error desconocido';
-                                    placaStatus.innerHTML = `
-                                        <span style="color: #dc2626;">
-                                            ❌ Error: ${errorMsg}
-                                        </span>
-                                    `;
-                                    
-                                    showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
-                                    
-                                    if (consultaRNPListener) {
-                                        consultaRNPListener();
-                                        consultaRNPListener = null;
-                                    }
-                                    
-                                    btn.disabled = false;
-                                    btn.textContent = 'Buscar';
-                                    break;
-
-                                default:
-                                    console.warn("Estado desconocido:", consultaData.estado);
-                            }
-                        },
-                        (error) => {
-                            console.error("Error en listener:", error);
-                            placaStatus.innerHTML = `
-                                <span style="color: #dc2626;">
-                                    ❌ Error de conexión: ${error.message}
-                                </span>
-                            `;
-                            showToast('Error de conexión con Firebase', 'error');
-                            
-                            btn.disabled = false;
-                            btn.textContent = 'Buscar';
-                        }
-                    );
-
-            } catch (error) {
-                console.error("Error al llamar la Cloud Function:", error);
-                const errorMsg = error.message || "Error desconocido";
-                
-                placaStatus.innerHTML = `
-                    <span style="color: #dc2626;">❌ Error: ${errorMsg}</span>
-                `;
-                
-                showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
-                
-                btn.disabled = false;
-                btn.textContent = 'Buscar';
-            }
+    try {
+        const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
+        const result = await solicitarConsultaRNP({ placa: placa });
+        
+        const data = result.data;
+        if (!data || !data.ok || !data.consultaId) {
+            throw new Error(data?.message || "Error al crear solicitud");
         }
 
-        window.addEventListener('beforeunload', () => {
-            if (consultaRNPListener) {
-                consultaRNPListener();
-                consultaRNPListener = null;
-            }
-        });
+        const consultaId = data.consultaId;
+        
+        placaStatus.innerHTML = `
+            <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+            <span style="vertical-align: middle; color: #2563eb;">
+                🔄 Consultando RNP en tiempo real... (2-3 min aprox)
+            </span>
+        `;
 
-        async function cargarHistorialConsultasRNP() {
-            const user = firebase.auth().currentUser;
-            if (!user) {
-                console.warn("Usuario no logueado");
-                return;
-            }
+        showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
 
-            try {
-                const snapshot = await db.collection('consultas_rnp_queue')
-                    .where('usuario', '==', user.uid)
-                    .where('estado', '==', 'completado')
-                    .orderBy('completedAt', 'desc')
-                    .limit(10)
-                    .get();
-
-                console.log("📋 Historial de consultas RNP:");
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    console.log(`  • ${data.placa}: ₡${data.valorContrato} (${data.duracionSegundos}s)`);
-                });
-
-            } catch (error) {
-                console.error("Error cargando historial RNP:", error);
-            }
-        }
-
-        function mostrarFormularioCredencialesRNP() {
-            const modal = document.getElementById('rnp-credentials-modal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function cerrarCredencialesRNP() {
-            const modal = document.getElementById('rnp-credentials-modal');
-            if (modal) modal.classList.add('hidden');
-            document.getElementById('rnpUsername').value = '';
-            document.getElementById('rnpPassword').value = '';
-        }
-
-        async function guardarCredencialesRNP() {
-            const username = document.getElementById('rnpUsername').value.trim();
-            const password = document.getElementById('rnpPassword').value.trim();
-            const errorEl = document.getElementById('rnpCredError');
-            
-            if (!username || !password) {
-                errorEl.textContent = 'Completa usuario y contraseña';
-                return;
-            }
-            
-            try {
-                const user = firebase.auth().currentUser;
-                if (!user) {
-                    errorEl.textContent = 'Debes iniciar sesión';
+        // LISTENER EN TIEMPO REAL
+        consultaRNPListener = db.collection('consultas_rnp_queue')
+            .doc(consultaId)
+            .onSnapshot((docSnapshot) => {
+                if (!docSnapshot.exists) {
+                    console.warn("Documento no existe");
                     return;
                 }
-                
-                const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
-                await credRef.set({ username, password }, { merge: true });
-                
-                showToast('✅ Credenciales RNP guardadas', 'success');
-                cerrarCredencialesRNP();
-                
-            } catch (error) {
-                console.error("Error guardando credenciales:", error);
-                errorEl.textContent = `Error: ${error.message}`;
-                showToast('Error al guardar credenciales', 'error');
-            }
+
+                const consultaData = docSnapshot.data();
+                console.log("Estado actualizado:", consultaData.estado);
+
+                switch (consultaData.estado) {
+                    case 'pendiente':
+                        placaStatus.innerHTML = `
+                            <div class="spinner"></div>
+                            <span style="color: #f59e0b;">⏳ En cola. Esperando procesamiento...</span>
+                        `;
+                        break;
+
+                    case 'procesando':
+                        const progreso = consultaData.progreso || 'Procesando consulta...';
+                        placaStatus.innerHTML = `
+                            <div class="spinner"></div>
+                            <span style="color: #2563eb;">🔄 ${progreso}</span>
+                        `;
+                        break;
+
+                    case 'completado':
+                        // Limpiar intervalos
+                        if (progressInterval) clearInterval(progressInterval);
+                        
+                        const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
+                        const duracion = consultaData.duracionSegundos || '?';
+                        
+                        valorFiscalInput.value = Math.round(valorContrato);
+                        
+                        placaStatus.innerHTML = `
+                            <span style="color: #059669; font-weight: bold;">
+                                ✅ Valor fiscal: ₡${Math.round(valorContrato).toLocaleString('es-CR')} (${duracion}s)
+                            </span>
+                        `;
+                        
+                        showToast(`✅ Valor Fiscal: ₡${Math.round(valorContrato).toLocaleString('es-CR')}`, 'success', 4000);
+                        
+                        // Limpiar listener
+                        if (consultaRNPListener) {
+                            consultaRNPListener();
+                            consultaRNPListener = null;
+                        }
+                        
+                        btn.disabled = false;
+                        btn.textContent = 'Buscar';
+                        break;
+
+                    case 'error':
+                        if (progressInterval) clearInterval(progressInterval);
+                        
+                        const errorMsg = consultaData.error || 'Error desconocido';
+                        placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${errorMsg}</span>`;
+                        showToast(`❌ ${errorMsg}`, 'error', 5000);
+                        
+                        if (consultaRNPListener) {
+                            consultaRNPListener();
+                            consultaRNPListener = null;
+                        }
+                        
+                        btn.disabled = false;
+                        btn.textContent = 'Buscar';
+                        break;
+
+                    default:
+                        console.warn("Estado desconocido:", consultaData.estado);
+                }
+            }, (error) => {
+                console.error("Error en listener:", error);
+                if (progressInterval) clearInterval(progressInterval);
+                placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Error de conexión</span>`;
+                btn.disabled = false;
+                btn.textContent = 'Buscar';
+            });
+
+    } catch (error) {
+        console.error("Error:", error);
+        if (progressInterval) clearInterval(progressInterval);
+        
+        placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${error.message}</span>`;
+        showToast(`❌ ${error.message}`, 'error', 5000);
+        
+        btn.disabled = false;
+        btn.textContent = 'Buscar';
+    }
+}
+
+// Limpiar al cerrar
+window.addEventListener('beforeunload', () => {
+    if (consultaRNPListener) {
+        consultaRNPListener();
+        consultaRNPListener = null;
+    }
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+});
+
+// --- CREDENCIALES RNP ---
+function mostrarFormularioCredencialesRNP() {
+    const modal = document.getElementById('rnp-credentials-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function cerrarCredencialesRNP() {
+    const modal = document.getElementById('rnp-credentials-modal');
+    if (modal) modal.classList.add('hidden');
+    document.getElementById('rnpUsername').value = '';
+    document.getElementById('rnpPassword').value = '';
+    const errorEl = document.getElementById('rnpCredError');
+    if (errorEl) errorEl.textContent = '';
+}
+
+async function guardarCredencialesRNP() {
+    const username = document.getElementById('rnpUsername').value.trim();
+    const password = document.getElementById('rnpPassword').value.trim();
+    const errorEl = document.getElementById('rnpCredError');
+    
+    if (!username || !password) {
+        errorEl.textContent = 'Completa usuario y contraseña';
+        return;
+    }
+    
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            errorEl.textContent = 'Debes iniciar sesión';
+            return;
         }
+        
+        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
+        await credRef.set({ username, password }, { merge: true });
+        
+        showToast('✅ Credenciales RNP guardadas', 'success');
+        cerrarCredencialesRNP();
+        
+    } catch (error) {
+        console.error("Error guardando credenciales:", error);
+        errorEl.textContent = `Error: ${error.message}`;
+        showToast('Error al guardar credenciales', 'error');
+    }
+}
     </script>
     
     <script>
