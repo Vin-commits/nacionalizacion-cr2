@@ -336,7 +336,41 @@
             <div id="userInfoDisplay" class="card" style="display: none; background-color: #f3f4f6; border: 1px solid #d1d5db; margin-bottom: 16px; padding: 12px;">
                  <div style="font-size: 14px; color: #374151;">Usuario: <strong id="userInfoEmail" style="color: #1f2937;"></strong></div>
                  <div style="font-size: 14px; color: #374151; margin-top: 4px;">Vigencia: <strong id="userInfoExpiry" style="color: #15803d;"></strong></div>
-            </div>
+           
+            <div id="rnp-credentials-modal" class="hidden" style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+">
+    <div class="card" style="max-width: 400px; padding: 24px;">
+        <div class="card-title" style="color: #1e40af; margin-bottom: 16px;">
+            🔐 Credenciales RNP
+        </div>
+        <div class="form-group">
+            <label for="rnpUsername">Usuario RNP</label>
+            <input type="text" id="rnpUsername" placeholder="Tu usuario del RNP" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="rnpPassword">Contraseña RNP</label>
+            <input type="password" id="rnpPassword" placeholder="Tu contraseña del RNP" autocomplete="new-password">
+        </div>
+        <div class="help-text" style="color: #f59e0b; margin-bottom: 12px;">
+            ⚠️ Se guardará encriptada en Firebase Firestore
+        </div>
+        <div class="button-group">
+            <button class="btn-secondary" onclick="cerrarCredencialesRNP()">Cancelar</button>
+            <button class="btn-primary" onclick="guardarCredencialesRNP()">Guardar</button>
+        </div>
+        <p id="rnpCredError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
+    </div>
+</div>
             <div id="comparador" class="card hidden">
                 <div class="card-title">Comparar Vehículos</div>
                 <div id="comparacionContent"></div>
@@ -2040,6 +2074,45 @@ Cálculo por: Calculadora CR
         // --- *** FIN: CÓDIGO DEL SCANNER *** ---
     
     // --- *** INICIO: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
+
+        async function verificarCredencialesRNP() {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showToast("Debes iniciar sesión", "error");
+            return false;
+        }
+        
+        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
+        const credSnap = await credRef.get();
+        
+        if (!credSnap.exists) {
+            showToast("⚠️ Debes guardar tus credenciales RNP primero", "error");
+            // Mostrar formulario para guardar credenciales
+            mostrarFormularioCredencialesRNP();
+            return false;
+        }
+        
+        const credData = credSnap.data();
+        if (!credData.username || !credData.password) {
+            showToast("❌ Credenciales RNP incompletas", "error");
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error("Error verificando credenciales:", error);
+        showToast("Error al verificar credenciales", "error");
+        return false;
+    }
+}
+
+// Modificar llamarConsultaPlacaRNP:
+async function llamarConsultaPlacaRNP() {
+    // Verificar credenciales ANTES
+    if (!(await verificarCredencialesRNP())) {
+        return;
+    }
     
     async function llamarConsultaPlacaRNP() {
         const placaInput = document.getElementById('placaRNP');
@@ -2124,7 +2197,48 @@ Cálculo por: Calculadora CR
         }
     }
 // --- *** FIN: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
+
+    function mostrarFormularioCredencialesRNP() {
+    const modal = document.getElementById('rnp-credentials-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function cerrarCredencialesRNP() {
+    const modal = document.getElementById('rnp-credentials-modal');
+    if (modal) modal.classList.add('hidden');
+    document.getElementById('rnpUsername').value = '';
+    document.getElementById('rnpPassword').value = '';
+}
+
+async function guardarCredencialesRNP() {
+    const username = document.getElementById('rnpUsername').value.trim();
+    const password = document.getElementById('rnpPassword').value.trim();
+    const errorEl = document.getElementById('rnpCredError');
+    
+    if (!username || !password) {
+        errorEl.textContent = 'Completa usuario y contraseña';
+        return;
+    }
+    
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            errorEl.textContent = 'Debes iniciar sesión';
+            return;
+        }
         
+        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
+        await credRef.set({ username, password }, { merge: true });
+        
+        showToast('✅ Credenciales RNP guardadas', 'success');
+        cerrarCredencialesRNP();
+        
+    } catch (error) {
+        console.error("Error guardando credenciales:", error);
+        errorEl.textContent = `Error: ${error.message}`;
+        showToast('Error al guardar credenciales', 'error');
+    }
+}       
     </script>
     
     <script>
