@@ -2137,7 +2137,7 @@ async function llamarConsultaPlacaRNP() {
             // ¡CAMBIO CLAVE!
             // Aumentamos el timeout del CLIENTE a 190 segundos (190000 ms)
             // =================================================================
-            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 190000 });
+            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 300000 });
 
         } catch (e) {
             console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
