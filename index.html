@@ -16,21 +16,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@latest/umd/zxing-browser.min.js"></script>
     
-   ...
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
     <style>
-...
-
-    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(to bottom right, #e0f2fe, #e0e7ff); }
         .header { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .header-title { display: flex; align-items: center; gap: 8px; }
-        .header-logo { width: 36px; height: 36px; } /* SVG o IMG. */
+        .header-logo { width: 36px; height: 36px; }
         .header-title h1 {
             font-size: 18px;
             font-weight: bold;
@@ -62,7 +58,6 @@
 
         .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: white; grid-column: 1 / -1; padding: 12px; }
         
-        /* --- ESTILO MODIFICADO PARA ESTADO DE CARGA/DESHABILITADO --- */
         .btn-primary:disabled { 
             background: #d1d5db; 
             cursor: not-allowed; 
@@ -138,7 +133,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- CSS SCANNER --- */
+        /* CSS SCANNER */
         #scanner-container {
             position: fixed;
             top: 0;
@@ -210,9 +205,8 @@
         #btnStopScan:active {
             background: rgba(255,255,255,0.3);
         }
-        /* --- FIN CSS SCANNER --- */
 
-        /* ==== INICIO: CSS DEL TOAST ==== */
+        /* CSS DEL TOAST */
         #toast {
             position: fixed;
             bottom: 20px;
@@ -241,9 +235,8 @@
         #toast.success { background: #059669; }
         #toast.error   { background: #dc2626; }
         #toast.info    { background: #2563eb; }
-        /* ==== FIN: CSS DEL TOAST ==== */
 
-        /* ==== INICIO: CSS PARA SECCIONES COLAPSABLES ==== */
+        /* CSS PARA SECCIONES COLAPSABLES */
         .collapsible-header {
             display: flex;
             justify-content: space-between;
@@ -277,7 +270,24 @@
             opacity: 1;
             margin-bottom: 12px; 
         }
-        /* ==== FIN: CSS PARA SECCIONES COLAPSABLES ==== */
+
+        /* MODAL CREDENCIALES RNP */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            max-width: 400px;
+            width: 90%;
+        }
     </style>
 </head>
 <body>
@@ -328,49 +338,15 @@
                 
                 <p id="loginError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center; min-height: 16px;"></p>
             </div>
-            
         </div>
 
         <div id="app-content" style="display: none;">
 
             <div id="userInfoDisplay" class="card" style="display: none; background-color: #f3f4f6; border: 1px solid #d1d5db; margin-bottom: 16px; padding: 12px;">
-                 <div style="font-size: 14px; color: #374151;">Usuario: <strong id="userInfoEmail" style="color: #1f2937;"></strong></div>
-                 <div style="font-size: 14px; color: #374151; margin-top: 4px;">Vigencia: <strong id="userInfoExpiry" style="color: #15803d;"></strong></div>
-           
-            <div id="rnp-credentials-modal" class="hidden" style="
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-">
-    <div class="card" style="max-width: 400px; padding: 24px;">
-        <div class="card-title" style="color: #1e40af; margin-bottom: 16px;">
-            🔐 Credenciales RNP
-        </div>
-        <div class="form-group">
-            <label for="rnpUsername">Usuario RNP</label>
-            <input type="text" id="rnpUsername" placeholder="Tu usuario del RNP" autocomplete="off">
-        </div>
-        <div class="form-group">
-            <label for="rnpPassword">Contraseña RNP</label>
-            <input type="password" id="rnpPassword" placeholder="Tu contraseña del RNP" autocomplete="new-password">
-        </div>
-        <div class="help-text" style="color: #f59e0b; margin-bottom: 12px;">
-            ⚠️ Se guardará encriptada en Firebase Firestore
-        </div>
-        <div class="button-group">
-            <button class="btn-secondary" onclick="cerrarCredencialesRNP()">Cancelar</button>
-            <button class="btn-primary" onclick="guardarCredencialesRNP()">Guardar</button>
-        </div>
-        <p id="rnpCredError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
-    </div>
-</div>
+                <div style="font-size: 14px; color: #374151;">Usuario: <strong id="userInfoEmail" style="color: #1f2937;"></strong></div>
+                <div style="font-size: 14px; color: #374151; margin-top: 4px;">Vigencia: <strong id="userInfoExpiry" style="color: #15803d;"></strong></div>
+            </div>
+
             <div id="comparador" class="card hidden">
                 <div class="card-title">Comparar Vehículos</div>
                 <div id="comparacionContent"></div>
@@ -455,13 +431,13 @@
                 </div>
                 <div id="collapsible-traspaso" class="collapsible-content">
                     <div class="form-group" style="background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #dbeafe;">
-    <label for="placaRNP" style="font-weight: bold; color: #1e40af;">Consultar Valor Fiscal (RNP)</label>
-    <div style="display: flex; gap: 8px; margin-top: 8px;">
-        <input type="text" id="placaRNP" placeholder="ABC123" style="flex-grow: 1;" autocapitalize="characters">
-        <button id="btnConsultarRNP" class="btn-primary" style="padding: 10px 15px; width: auto; flex-shrink: 0;">Buscar</button>
-    </div>
-    <div class="help-text" id="placaRNPStatus" style="margin-top: 8px; min-height: 16px;"></div>
-</div>
+                        <label for="placaRNP" style="font-weight: bold; color: #1e40af;">Consultar Valor Fiscal (RNP)</label>
+                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                            <input type="text" id="placaRNP" placeholder="ABC123" style="flex-grow: 1;" autocapitalize="characters">
+                            <button id="btnConsultarRNP" class="btn-primary" style="padding: 10px 15px; width: auto; flex-shrink: 0;">Buscar</button>
+                        </div>
+                        <div class="help-text" id="placaRNPStatus" style="margin-top: 8px; min-height: 16px;"></div>
+                    </div>
                     <div class="form-group">
                         <label for="valorFiscal">Valor Fiscal (₡)</label>
                         <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
@@ -471,7 +447,6 @@
                     <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
                 </div>
                 
-
                 <div class="form-group">
                     <label for="valor">Valor (USD)</label>
                     <input type="number" id="valor" placeholder="25000" inputmode="numeric">
@@ -522,10 +497,13 @@
                     <div class="card-title">Crear Nueva Cuenta (Admin)</div>
                     <div class="form-group"><label for="createEmail">Correo Electrónico Cliente</label><input type="email" id="createEmail" placeholder="cliente@ejemplo.com"></div>
                     <div class="form-group"><label for="createPassword">Contraseña Temporal</label><input type="password" id="createPassword"></div>
-                    <button id="btnCreateAccount" class="btn-secondary" style="width: 100%;">Crear Cuenta</button>
+                    <button id="
+                        btnCreateAccount" class="btn-secondary" style="width: 100%;">Crear Cuenta</button>
                     <p id="createError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
                 </div>
-            </div> <div id="admin-dashboard-card" class="card" style="display: none;">
+            </div>
+            
+            <div id="admin-dashboard-card" class="card" style="display: none;">
                 <div class="card-title">Dashboard de Administrador</div>
                 
                 <div class="form-group">
@@ -538,24 +516,50 @@
                     Cargando usuarios...
                 </div>
                 
-                <div id="admin-user-list" style="max-height: 400px; overflow-y: auto;">
-                    </div>
+                <div id="admin-user-list" style="max-height: 400px; overflow-y: auto;"></div>
             </div>
+            
             <button id="btnLogout" class="btn-danger-light" style="width: 100%; padding: 12px; margin-top: 20px; font-size: 14px;">Cerrar Sesión</button>
+        </div>
         
-        </div> <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
+        <div style="text-align: center; font-size: 11px; color: #6b7280; margin-top: 20px; margin-bottom: 20px;">
             <p>TC Venta BCCR: <span id="tcFooter">N/A</span></p>
         </div>
-
-    </div> <div id="toast" class="toast"></div>
+    </div>
+    
+    <!-- MODAL CREDENCIALES RNP -->
+    <div id="rnp-credentials-modal" class="hidden modal-overlay">
+        <div class="card modal-content">
+            <div class="card-title" style="color: #1e40af; margin-bottom: 16px;">
+                🔐 Credenciales RNP
+            </div>
+            <div class="form-group">
+                <label for="rnpUsername">Usuario RNP</label>
+                <input type="text" id="rnpUsername" placeholder="Tu usuario del RNP" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="rnpPassword">Contraseña RNP</label>
+                <input type="password" id="rnpPassword" placeholder="Tu contraseña del RNP" autocomplete="new-password">
+            </div>
+            <div class="help-text" style="color: #f59e0b; margin-bottom: 12px;">
+                ⚠️ Se guardará encriptada en Firebase Firestore
+            </div>
+            <div class="button-group">
+                <button class="btn-secondary" onclick="cerrarCredencialesRNP()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarCredencialesRNP()">Guardar</button>
+            </div>
+            <p id="rnpCredError" style="color: red; font-size: 12px; margin-top: 8px; text-align: center;"></p>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
     
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
         
         let consultaRNPListener = null; // Para el listener de Firestore
-let progressInterval = null; // Para la animación de progreso
-        const firebaseConfig = {
         
+        const firebaseConfig = {
             apiKey: "AIzaSyBF4CP3vGJ-aJveo93QKR4kbYjDkxQYrVY",
             authDomain: "calculos-cr.firebaseapp.com",
             projectId: "calculos-cr",
@@ -563,28 +567,27 @@ let progressInterval = null; // Para la animación de progreso
             messagingSenderId: "502237422177",
             appId: "1:502237422177:web:6974139fc782d52a1e8020"
         };
-        // CÓDIGO CORREGIDO
-// (reemplaza desde la línea 523 hasta la 539)
-let auth;
-let db;
-let functions;
-let app; // <-- Añadimos variable para la app
-try {
-    app = firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth(app);
-    db = firebase.firestore(app);
-    functions = firebase.functions(app); // ⚠️ SIN parámetro de región
-    
-    console.log("Firebase inicializado correctamente.");
-} catch (e) {
-    console.error("Error inicializando Firebase:", e);
-    // Tu código de error...
-}
-     document.addEventListener('DOMContentLoaded', () => {
-         const loginError = document.getElementById('loginError');
-         if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
-     });
-}
+        
+        let auth;
+        let db;
+        let functions;
+        let app;
+        
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth(app);
+            db = firebase.firestore(app);
+            functions = firebase.functions(app);
+            
+            console.log("Firebase inicializado correctamente.");
+        } catch (e) {
+            console.error("Error inicializando Firebase:", e);
+            document.addEventListener('DOMContentLoaded', () => {
+                const loginError = document.getElementById('loginError');
+                if(loginError) loginError.textContent = 'Error al cargar servicios. Refresca la página.';
+            });
+        }
+        
         // ==== FIN: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
 
         // --- VARIABLES GLOBALES Y CONSTANTES ---
@@ -665,15 +668,13 @@ try {
             const btnKmsAMillas = document.getElementById('btnKmsAMillas');
             if (btnKmsAMillas) btnKmsAMillas.addEventListener('click', convertirMillaje);
             
-           const btnCalcularTraspaso = document.getElementById('btnCalcularTraspaso');
-        if (btnCalcularTraspaso) btnCalcularTraspaso.addEventListener('click', calcularTraspaso);
+            const btnCalcularTraspaso = document.getElementById('btnCalcularTraspaso');
+            if (btnCalcularTraspaso) btnCalcularTraspaso.addEventListener('click', calcularTraspaso);
 
-        // --- AÑADE ESTE BLOQUE NUEVO ---
-        const btnConsultarRNP = document.getElementById('btnConsultarRNP');
-        if (btnConsultarRNP) {
-            btnConsultarRNP.addEventListener('click', llamarConsultaPlacaRNP);
-        }
-        // --- FIN BLOQUE NUEVO ---
+            const btnConsultarRNP = document.getElementById('btnConsultarRNP');
+            if (btnConsultarRNP) {
+                btnConsultarRNP.addEventListener('click', llamarConsultaPlacaRNP);
+            }
             
             const btnScanVIN = document.getElementById('btnScanVIN');
             if (btnScanVIN) btnScanVIN.addEventListener('click', iniciarScanner);
@@ -722,10 +723,6 @@ try {
                     if (content) {
                         header.classList.toggle('open');
                         content.classList.toggle('open');
-                        if (content.classList.contains('open')) {
-                            // Opcional: Desplazarse suavemente al contenido abierto
-                            // content.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }
                     }
                 });
             });
@@ -771,7 +768,7 @@ try {
                        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
                        fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(fechaExpiracion), 
                        metodoPago: 'manual_admin',
-                       rol: 'cliente' // Añadir rol por defecto
+                       rol: 'cliente'
                    });
                })
                .then(() => {
@@ -779,7 +776,6 @@ try {
                    showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
                    emailInput.value = ''; 
                    passwordInput.value = '';
-                   // Opcional: Recargar dashboard si está visible para mostrar nuevo usuario
                    const adminDashboard = document.getElementById('admin-dashboard-card');
                    if (adminDashboard && adminDashboard.style.display !== 'none') {
                        cargarDashboardAdmin();
@@ -885,7 +881,7 @@ try {
            });
         }
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN (CORREGIDO) ---
+        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
         if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
             auth.onAuthStateChanged(user => {
                 const authSection = document.getElementById('auth-section');
@@ -896,24 +892,22 @@ try {
                 const createAccountWrapper = document.getElementById('create-account-form-wrapper');
                 const adminDashboard = document.getElementById('admin-dashboard-card');
                 
-                // Elementos cruciales
                 if (!authSection || !appContent || !loginError || !headerButtons || !userInfoDisplay || !createAccountWrapper || !adminDashboard) { 
                     console.error("Elementos UI Auth cruciales no encontrados."); 
                     if (document.body) document.body.innerHTML = "Error crítico de UI.";
                     return; 
                 }
 
-                if (user) { // Usuario Logueado
+                if (user) {
                     loginError.textContent = 'Verificando suscripción...';
-                    headerButtons.style.display = 'none'; // Ocultar botones hasta verificar
+                    headerButtons.style.display = 'none';
                     
                     const userDocRef = db.collection('usuarios').doc(user.uid);
                     
                     userDocRef.get().then(doc => {
-                        const datosUsuario = doc.exists ? doc.data() : null; // Obtener datos solo si existe
-                        let esAdmin = datosUsuario && datosUsuario.rol === 'admin'; // Verificar si es admin
+                        const datosUsuario = doc.exists ? doc.data() : null;
+                        let esAdmin = datosUsuario && datosUsuario.rol === 'admin';
                         
-                        // Mostrar/Ocultar Paneles de Admin
                         if (esAdmin) {
                             createAccountWrapper.style.display = 'block';
                             adminDashboard.style.display = 'block';
@@ -924,12 +918,17 @@ try {
                             adminDashboard.style.display = 'none';
                         }
                        
-                        // Verificar Suscripción
                         const hoy = new Date();
+                        hoy.setHours(0,0,0,0);
                         let suscripcionValida = false;
                         if (datosUsuario && datosUsuario.suscripcionActiva === true && datosUsuario.fechaExpiracionSuscripcion) {
-                            const fechaExpiracion = datosUsuario.fechaExpiracionSuscripcion.toDate();
-                            if (fechaExpiracion >= hoy) { // Usar >= para incluir el último día
+                            const fechaExp = datosUsuario.fechaExpiracionSuscripcion.toDate();
+                            fechaExp.setHours(0,0,0,0);
+                            
+                            const diffTime = fechaExp.getTime() - hoy.getTime();
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                            
+                            if (diffDays >= 0) {
                                 suscripcionValida = true;
                             } else {
                                 console.log("Suscripción expirada.");
@@ -938,8 +937,6 @@ try {
                         } else if (!datosUsuario) {
                              console.log("Documento de usuario no existe en Firestore.");
                              loginError.textContent = 'Error de configuración de cuenta (No Doc). Contacta al admin.';
-                             // Considerar desloguear si el documento no existe y no es admin creando cuenta
-                             // auth.signOut(); 
                         } else if (datosUsuario.suscripcionActiva !== true) {
                              console.log("Suscripción NO activa.");
                              loginError.textContent = 'Necesitas una suscripción activa.';
@@ -948,7 +945,6 @@ try {
                              loginError.textContent = 'Error de configuración de cuenta (No Date). Contacta al admin.';
                         }
 
-                        // Mostrar Contenido o Login según validez
                         if (suscripcionValida) {
                             console.log("Suscripción activa y vigente. Mostrando app.");
                             authSection.style.display = 'none';
@@ -956,7 +952,6 @@ try {
                             headerButtons.style.display = 'flex';
                             loginError.textContent = '';
 
-                            // Mostrar Info Usuario
                             const userInfoEmail = document.getElementById('userInfoEmail');
                             const userInfoExpiry = document.getElementById('userInfoExpiry');
                             if (userInfoEmail && userInfoExpiry && datosUsuario.fechaExpiracionSuscripcion) {
@@ -967,36 +962,33 @@ try {
                                 const diffTime = fechaExp.getTime() - hoyMedianoche.getTime();
                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                                 
-                                if (diffDays < 0) { // Ya vencida
+                                if (diffDays < 0) {
                                      userInfoExpiry.textContent = `Vencida`;
                                      userInfoExpiry.style.color = '#dc2626';
-                                } else if (diffDays === 0) { // Vence hoy
+                                } else if (diffDays === 0) {
                                     userInfoExpiry.textContent = `Vence Hoy`;
                                     userInfoExpiry.style.color = '#dc2626';
-                                } else if (diffDays === 1) { // Vence mañana
+                                } else if (diffDays === 1) {
                                     userInfoExpiry.textContent = `1 día restante`;
                                      userInfoExpiry.style.color = '#f59e0b';
                                 } else {
                                     userInfoExpiry.textContent = `${diffDays} días restantes`;
                                      if (diffDays <= 7) {
-                                        userInfoExpiry.style.color = '#f59e0b'; // Amarillo si expira pronto
+                                        userInfoExpiry.style.color = '#f59e0b';
                                     } else {
-                                        userInfoExpiry.style.color = '#15803d'; // Verde
+                                        userInfoExpiry.style.color = '#15803d';
                                     }
                                 }
                                 userInfoDisplay.style.display = 'block';
                             } else {
-                                userInfoDisplay.style.display = 'none'; // Ocultar si falta info
+                                userInfoDisplay.style.display = 'none';
                             }
 
                         } else {
-                            // Suscripción Inválida o Expirada (o error)
                             authSection.style.display = 'block'; 
                             appContent.style.display = 'none';
                             headerButtons.style.display = 'none';
-                            userInfoDisplay.style.display = 'none'; // Asegurarse de ocultar
-                            // Considerar desloguear si la suscripción es inválida
-                            // auth.signOut(); 
+                            userInfoDisplay.style.display = 'none';
                         }
                     }).catch(error => {
                         console.error("Error al verificar Firestore:", error);
@@ -1005,9 +997,8 @@ try {
                         headerButtons.style.display = 'none';
                         userInfoDisplay.style.display = 'none';
                         loginError.textContent = 'Error verificando suscripción.';
-                        // auth.signOut(); // Desloguear si hay error crítico
                     });
-                } else { // Usuario Deslogueado
+                } else {
                     console.log('Estado: Deslogueado');
                     authSection.style.display = 'block';
                     appContent.style.display = 'none';
@@ -1034,14 +1025,13 @@ try {
         }
 
         // --- FUNCIONES DE FORMATO ---
-        // CÓDIGO CORREGIDO
-function formatUSD(num) { return '$' + Math.round(num).toLocaleString("en-US"); }
-function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR"); }
+        function formatUSD(num) { return '$' + Math.round(num).toLocaleString("en-US"); }
+        function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR"); }
 
         // --- FUNCIÓN DEL TOAST ---
         function showToast(message, type = 'info', duration = 3000) {
             const toast = document.getElementById('toast');
-            if (!toast) return; // Salir si el toast no existe
+            if (!toast) return;
             clearTimeout(toastTimeout);
             toast.textContent = message;
             toast.className = 'toast'; 
@@ -1137,7 +1127,6 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             resultadoTotalEl.textContent = formatCRC(totalColones);
             resultadoDiv.classList.remove('hidden');
             tcFooterEl.textContent = tc.toFixed(2);
-            // Ocultar detalle si estaba visible
             const detalleDiv = document.getElementById('detalle');
             if(detalleDiv) detalleDiv.classList.add('hidden');
         }
@@ -1185,28 +1174,19 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             const valorInput = parseFloat(millajeInput.value);
             const ano = parseInt(anoInput.value);
 
-            function mostrarError(mensaje) {
-                resultadoCard.classList.remove('hidden');
-                resultadoLabel.textContent = 'Error';
-                resultadoValor.textContent = '-';
-                promedioLabel.textContent = 'Error';
-                promedioValor.textContent = '-';
-                promedioStatus.textContent = mensaje;
-                promedioStatus.style.color = '#dc2626';
-            }
             if (isNaN(valorInput) || valorInput < 0) { 
                 showToast('Ingrese un valor de millaje válido', 'error'); 
                 if (event && event.target) event.target.classList.remove('active');
-                resultadoCard.classList.add('hidden'); // Ocultar si hay error
+                resultadoCard.classList.add('hidden');
                 return; 
             }
             if (isNaN(ano) || ano < 1980 || ano > anoActual + 1) { 
                 showToast('Ingrese un año de vehículo válido', 'error'); 
                 if (event && event.target) event.target.classList.remove('active');
-                resultadoCard.classList.add('hidden'); // Ocultar si hay error
+                resultadoCard.classList.add('hidden');
                 return; 
             }
-            const antiguedad = Math.max(1, anoActual - ano + 1); // +1 para incluir año actual
+            const antiguedad = Math.max(1, anoActual - ano + 1);
             let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
             let esMillasAKm = event.target.id === 'btnMillasAKm';
 
@@ -1219,7 +1199,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
                 resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
                 promedioLabel.textContent = `Promedio (${Math.round(PROMEDIO_MILLAS_ANO/1000)}k Millas/Año)`;
                 promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
-            } else { // Kms a Millas
+            } else {
                 resultadoNum = valorInput * MILLAS_POR_KM;
                 promedio = PROMEDIO_KMS_ANO * antiguedad;
                 esSobrePromedio = valorInput > promedio;
@@ -1247,13 +1227,12 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             }
             const timbres = valorFiscal * PORCENTAJE_TIMBRES;
             const total = timbres + HONORARIOS_TRASPASO;
-            resultadoEl.style.color = '#1f2937'; // Reset color
+            resultadoEl.style.color = '#1f2937';
             resultadoEl.innerHTML = `
                 <div class="detail-row"><span class="detail-label">Timbres (${(PORCENTAJE_TIMBRES * 100).toFixed(1)}%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
                 <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios Aprox.</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
                 <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
         }
-
 
         // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
         function guardarHistorial() { 
@@ -1274,8 +1253,6 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             };
             
             historial.unshift({id: Date.now(), ...calculoActual }); 
-            // Limitar historial si es necesario
-            // if (historial.length > 50) historial.pop(); 
             
             try {
                 localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
@@ -1294,13 +1271,8 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
 
             if (historial.length === 0) { 
                 content.innerHTML = '<p style="text-align:center; color:#6b7280; font-size:13px;">No hay cálculos guardados.</p>';
-                // Opcional: Ocultar el card si está vacío y no está en modo comparación
-                // if (!modoComparacion) card.classList.add('hidden');
                 return; 
             } 
-            
-            // Mostrar card si hay historial (asegurarse que esté visible si toggle lo ocultó)
-            // card.classList.remove('hidden'); 
             
             let html = ''; 
             historial.forEach(item => { 
@@ -1329,7 +1301,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
         }
 
         function seleccionarComparacion(id) { 
-            if (!modoComparacion) return; // Solo seleccionar si el modo está activo
+            if (!modoComparacion) return;
             if (vehiculosSeleccionados.has(id)) { 
                 vehiculosSeleccionados.delete(id); 
             } else if (vehiculosSeleccionados.size < 2) { 
@@ -1352,7 +1324,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             } 
             
             const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); 
-            if (sel.length < 2) { // Seguridad extra
+            if (sel.length < 2) {
                  compDiv.classList.add('hidden'); 
                  return;
             }
@@ -1374,7 +1346,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
                             </div>
                          </div>`; 
             }); 
-            html += '</div>'; // Cierre del grid
+            html += '</div>';
 
             const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
             html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af; margin-top: 12px;">Diferencia: ${formatCRC(diff)}</div>`; 
@@ -1390,13 +1362,13 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
 
             modoComparacion = !modoComparacion; 
             btnComparar.classList.toggle('active', modoComparacion); 
-            vehiculosSeleccionados.clear(); // Limpiar selección al activar/desactivar
+            vehiculosSeleccionados.clear();
             if (!modoComparacion) {
-                 compDiv.classList.add('hidden'); // Ocultar al desactivar
+                 compDiv.classList.add('hidden');
             } else {
                  showToast('Modo Comparación Activado: Selecciona 2 cálculos del historial', 'info', 4000);
             }
-            actualizarHistorialUI(); // Re-renderizar historial para quitar/poner clase 'selected'
+            actualizarHistorialUI();
         }
 
         function toggleHistorial() { 
@@ -1429,7 +1401,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             if (!vinInput || !vinStatus) return;
 
             const vin = vinInput.value.toUpperCase().trim(); 
-            limpiarFichaVIN(); // Limpiar siempre al cambiar input
+            limpiarFichaVIN();
             currentVinInfo = { make: '', model: '', year: '' }; 
 
             if (vin.length === 0) {
@@ -1440,7 +1412,6 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             }
             if (vin.length === 17) {
                 vinStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Decodificando VIN...</span>`;
-                // Debounce: esperar un poco antes de llamar a la API
                 vinDecodeTimeout = setTimeout(() => { fetchVinData(vin); }, 500);
             }
         }
@@ -1458,7 +1429,6 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
                 
                 if (data && data.Results && data.Results[0]) {
                     const result = data.Results[0];
-                    // Verificar que no sea VIN inválido (ErrorCode 0 y datos básicos)
                     if (result.ErrorCode === "0" && result.Make && result.Model && result.ModelYear) { 
                         vinStatus.innerHTML = '<span style="color: #059669;">✓ VIN decodificado</span>';
                         displayVinData(result);
@@ -1467,12 +1437,10 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
                             model: result.Model || 'N/D',
                             year: result.ModelYear || 'N/D'
                         };
-                        // Autocompletar y validar año
                         anoInput.value = result.ModelYear;
-                        validarAno(); // Llamar a validar para mostrar info del impuesto
+                        validarAno();
                         
                     } else {
-                        // Error específico de la API o VIN no encontrado
                         let errorText = result.ErrorText || "VIN no encontrado o inválido";
                         if (errorText.includes('(0 VINs decoded)')) errorText = "VIN no encontrado en la base de datos.";
                         vinStatus.innerHTML = `<span style="color: #dc2626;">Error: ${errorText}</span>`;
@@ -1497,7 +1465,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             if (!tcInput || !tcHelp || !tcFooterEl) return;
 
             tcHelp.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Actualizando TC...</span>`;
-            const url = `https://api.hacienda.go.cr/indicadores/tc`; // URL ya proporcionada
+            const url = `https://api.hacienda.go.cr/indicadores/tc`;
             
             try {
                 const response = await fetch(url);
@@ -1518,7 +1486,6 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
                 console.error("Error fetching TC:", error);
                 tcHelp.innerHTML = `<span style="color:#dc2626">Error al actualizar TC. Ingréselo manual.</span>`;
                 tcFooterEl.textContent = 'Error';
-                 // Opcional: Poner un valor por defecto si falla
                  if (!tcInput.value) tcInput.value = '520.00'; 
             }
         }
@@ -1548,7 +1515,7 @@ function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR")
             if (!calculoActual) return "Error: No hay cálculo para generar texto.";
             const d = calculoActual;
             const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            const b = esParaWhatsapp ? '*' : ''; // Negrita para WhatsApp
+            const b = esParaWhatsapp ? '*' : '';
             const line = '---------------------------------';
             const doubleLine = '=====================';
             let vinDisplay = '';
@@ -1577,31 +1544,29 @@ ${b}TOTAL ESTIMADO: ${formatCRC(d.totalColones)}${b}
 ${doubleLine}
 Fecha del cálculo: ${d.fecha}
 Cálculo por: Calculadora CR
-`.trim().split('\n').map(line => line.trim()).join('\n'); // Limpiar espacios extra
+`.trim().split('\n').map(line => line.trim()).join('\n');
             return texto;
         }
 
         function descargarPDF() {
             if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
             try {
-                // Verificar si jsPDF está cargado
                 if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
                     throw new Error("La librería jsPDF no está cargada.");
                 }
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({
-                    orientation: 'p', // portrait
-                    unit: 'pt', // points
-                    format: 'a4' // A4 size page
+                    orientation: 'p',
+                    unit: 'pt',
+                    format: 'a4'
                 });
                 
-                const contenido = generarTextoDesglose(false); // Texto plano
-                doc.setFont("Helvetica", "normal"); // Usar fuente más común
+                const contenido = generarTextoDesglose(false);
+                doc.setFont("Helvetica", "normal");
                 doc.setFontSize(10);
                 
-                // Dividir texto en líneas y añadir al PDF
-                const lines = doc.splitTextToSize(contenido, 500); // Ajustar ancho
-                doc.text(lines, 40, 60); // Márgenes (x, y)
+                const lines = doc.splitTextToSize(contenido, 500);
+                doc.text(lines, 40, 60);
                 
                 let fileName = 'Nacionalizacion';
                 if (calculoActual.vinInfo && calculoActual.vinInfo.year && calculoActual.vinInfo.make) {
@@ -1611,7 +1576,7 @@ Cálculo por: Calculadora CR
                 }
                 fileName += `-${Date.now()}.pdf`;
 
-                doc.save(fileName.replace(/ /g, '_')); // Reemplazar espacios en nombre
+                doc.save(fileName.replace(/ /g, '_'));
                 showToast('PDF generado', 'success');
 
             } catch (e) {
@@ -1622,60 +1587,45 @@ Cálculo por: Calculadora CR
 
         function enviarWhatsApp() {
             if (!calculoActual) { showToast('Primero calcula un vehículo', 'info'); return; }
-            const mensaje = generarTextoDesglose(true); // Con formato WhatsApp
+            const mensaje = generarTextoDesglose(true);
             const whatsappURL = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
-            // Abrir en nueva pestaña
             window.open(whatsappURL, '_blank', 'noopener,noreferrer');
         }
-
 
         // --- FUNCIONES DE LIMPIEZA ---
         function limpiarFichaVIN() { 
              const vinInfoCard = document.getElementById('vinInfoCard');
              if(vinInfoCard) vinInfoCard.classList.add('hidden'); 
-             // Opcional: Limpiar texto dentro de la ficha
-             // ['vinMake', 'vinModel', 'vinTrim', 'vinEngine', 'vinCountry'].forEach(id => {
-             //    const el = document.getElementById(id);
-             //    if(el) el.textContent = '';
-             // });
         }
         
         function limpiarFormulario() {
-            // Limpiar inputs
             ['vin', 'ano', 'valor', 'flete', 'tipoCambio', 'millaje', 'valorFiscal'].forEach(id => {
                 const element = document.getElementById(id);
                 if (element) element.value = '';
             });
-            // Limpiar textos de ayuda y resultados
             ['vinStatus', 'ayudaAno', 'tipoCambioHelp', 'resultadoTraspaso', 'detalleContent'].forEach(id => {
                 const element = document.getElementById(id);
                 if (element) element.innerHTML = '';
             });
-            // Limpiar footer TC
              const tcFooterEl = document.getElementById('tcFooter');
              if (tcFooterEl) tcFooterEl.textContent = 'N/A';
 
-            // Ocultar cards de resultado y detalle
             ['resultado', 'detalle', 'vinInfoCard', 'millajeInfoCard'].forEach(id => {
                 const element = document.getElementById(id);
                 if (element) element.classList.add('hidden');
             });
             
-            // Desactivar botones de conversión de millaje
             const btnMillas = document.getElementById('btnMillasAKm');
             const btnKms = document.getElementById('btnKmsAMillas');
             if (btnMillas) btnMillas.classList.remove('active');
             if (btnKms) btnKms.classList.remove('active');
             
-            // Resetear cálculo actual y VIN info
             calculoActual = null;
             currentVinInfo = { make: '', model: '', year: '' }; 
             
-            // Limpiar estado visual del input VIN
             const vinInput = document.getElementById('vin');
-            if (vinInput) handleVinInput.call(vinInput); // Llama a la función como si el input estuviera vacío
+            if (vinInput) handleVinInput.call(vinInput);
 
-            // Actualizar TC (opcional, o mantener el último cargado)
             fetchTipoDeCambio(); 
 
             showToast('Formulario limpiado', 'info');
@@ -1685,26 +1635,26 @@ Cálculo por: Calculadora CR
             const vinInput = document.getElementById('vin');
             if (vinInput) {
                 vinInput.value = '';
-                handleVinInput.call(vinInput); // Llama a la función para limpiar estado visual y ficha
+                handleVinInput.call(vinInput);
             }
         }
 
-        // --- *** INICIO: CÓDIGO DEL DASHBOARD ADMIN *** ---
-        let adminUserCache = []; // Variable global para guardar los usuarios
+        // --- DASHBOARD ADMIN ---
+        let adminUserCache = [];
 
         async function cargarDashboardAdmin() {
             const listContainer = document.getElementById('admin-user-list');
             const loadingEl = document.getElementById('admin-user-list-loading');
-            if (!listContainer || !loadingEl || !db) return; // Verificar que db esté definido
+            if (!listContainer || !loadingEl || !db) return;
 
             listContainer.innerHTML = '';
             loadingEl.style.display = 'block';
 
-            try {
+            try
+                {
                 const snapshot = await db.collection('usuarios').get();
                 adminUserCache = []; 
                 snapshot.forEach(doc => {
-                    // Incluir solo si tiene email y rol (evitar datos corruptos)
                     const data = doc.data();
                     if (data.email && data.rol) {
                          adminUserCache.push({ id: doc.id, ...data });
@@ -1727,7 +1677,7 @@ Cálculo por: Calculadora CR
             if (!listContainer) return;
             listContainer.innerHTML = ''; 
             
-            const usuariosFiltrados = usuarios.filter(user => user.rol !== 'admin'); // No mostrar al admin
+            const usuariosFiltrados = usuarios.filter(user => user.rol !== 'admin');
 
             if (usuariosFiltrados.length === 0) {
                 listContainer.innerHTML = '<p style="text-align:center; color: #6b7280; font-size: 14px;">No se encontraron clientes.</p>';
@@ -1735,41 +1685,39 @@ Cálculo por: Calculadora CR
             }
             
             const hoy = new Date();
-            hoy.setHours(0,0,0,0); // Para comparar solo fechas
+            hoy.setHours(0,0,0,0);
             
             usuariosFiltrados.forEach(user => {
                 let diasRestantes = 'N/D';
-                let colorVigencia = '#6b7280'; // Gris por defecto
+                let colorVigencia = '#6b7280';
                 
                 if (user.fechaExpiracionSuscripcion) {
                     const fechaExp = user.fechaExpiracionSuscripcion.toDate();
-                    fechaExp.setHours(0,0,0,0); // Comparar solo fechas
+                    fechaExp.setHours(0,0,0,0);
                     
                     const diffTime = fechaExp.getTime() - hoy.getTime();
-                    // Ceil para incluir hoy si expira hoy
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                     
                     if (!user.suscripcionActiva) {
                         diasRestantes = 'Desactivada';
-                        colorVigencia = '#dc2626'; // Rojo
+                        colorVigencia = '#dc2626';
                     } else if (diffDays < 0) {
                         diasRestantes = 'Vencida';
-                        colorVigencia = '#dc2626'; // Rojo
+                        colorVigencia = '#dc2626';
                     } else if (diffDays === 0) {
                          diasRestantes = 'Vence Hoy';
-                         colorVigencia = '#dc2626'; // Rojo
-                    }
-                     else {
+                         colorVigencia = '#dc2626';
+                    } else {
                         diasRestantes = `${diffDays} día${diffDays > 1 ? 's' : ''}`;
                         if (diffDays <= 7) {
-                             colorVigencia = '#f59e0b'; // Amarillo
+                             colorVigencia = '#f59e0b';
                         } else {
-                            colorVigencia = '#15803d'; // Verde
+                            colorVigencia = '#15803d';
                         }
                     }
                 } else {
                      diasRestantes = 'Sin Fecha';
-                     colorVigencia = '#f59e0b'; // Amarillo si falta fecha
+                     colorVigencia = '#f59e0b';
                 }
 
                 const userCardHTML = `
@@ -1801,7 +1749,7 @@ Cálculo por: Calculadora CR
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase().trim();
                 const filtrados = adminUserCache.filter(user => 
-                     user.rol !== 'admin' && // Siempre excluir admin de la búsqueda
+                     user.rol !== 'admin' && 
                      (user.email && user.email.toLowerCase().includes(query))
                 );
                 renderizarListaUsuarios(filtrados);
@@ -1823,15 +1771,14 @@ Cálculo por: Calculadora CR
                 }
                 const data = doc.data();
                 const hoy = new Date();
-                hoy.setHours(0,0,0,0); // Comparar desde inicio del día
-                let fechaInicio = hoy; // Por defecto, empezar desde hoy
+                hoy.setHours(0,0,0,0);
+                let fechaInicio = hoy;
                 
-                // Si la suscripción actual es válida y en el futuro, extender desde esa fecha
                 if (data.fechaExpiracionSuscripcion && data.suscripcionActiva) {
                      const fechaExpActual = data.fechaExpiracionSuscripcion.toDate();
                      fechaExpActual.setHours(0,0,0,0);
-                     if (fechaExpActual >= hoy) { // Si aún no ha vencido
-                         fechaInicio = data.fechaExpiracionSuscripcion.toDate(); // Mantener hora original
+                     if (fechaExpActual >= hoy) {
+                         fechaInicio = data.fechaExpiracionSuscripcion.toDate();
                      }
                 }
                 
@@ -1840,16 +1787,14 @@ Cálculo por: Calculadora CR
                 
                 await userDoc.update({
                     fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(nuevaFecha),
-                    suscripcionActiva: true // Asegurarse que esté activa
+                    suscripcionActiva: true
                 });
                 
                 showToast(`+${diasParaAnadir} días añadidos`, 'success');
-                // Actualizar caché local y re-renderizar para reflejar cambio inmediato
                 const userIndex = adminUserCache.findIndex(u => u.id === userId);
                 if (userIndex !== -1) {
                     adminUserCache[userIndex].fechaExpiracionSuscripcion = firebase.firestore.Timestamp.fromDate(nuevaFecha);
                     adminUserCache[userIndex].suscripcionActiva = true;
-                    // Re-renderizar usando el caché actualizado (filtrado si hay búsqueda activa)
                     const searchInput = document.getElementById('adminSearch');
                     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
                      const filtrados = adminUserCache.filter(user => 
@@ -1858,7 +1803,7 @@ Cálculo por: Calculadora CR
                      );
                     renderizarListaUsuarios(filtrados);
                 } else {
-                     cargarDashboardAdmin(); // Recargar todo si no se encontró en caché (menos eficiente)
+                     cargarDashboardAdmin();
                 }
                 
             } catch (error) {
@@ -1877,11 +1822,9 @@ Cálculo por: Calculadora CR
                     suscripcionActiva: nuevoEstado
                 });
                 showToast(`Cuenta ${nuevoEstado ? 'Activada' : 'Desactivada'}`, 'success');
-                 // Actualizar caché local y re-renderizar
                 const userIndex = adminUserCache.findIndex(u => u.id === userId);
                 if (userIndex !== -1) {
                     adminUserCache[userIndex].suscripcionActiva = nuevoEstado;
-                    // Re-renderizar usando el caché actualizado (filtrado si hay búsqueda activa)
                      const searchInput = document.getElementById('adminSearch');
                     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
                      const filtrados = adminUserCache.filter(user => 
@@ -1897,11 +1840,9 @@ Cálculo por: Calculadora CR
                 showToast(`Error al ${accion.toLowerCase()}: ${error.message}`, 'error');
             }
         }
-        // --- *** FIN: CÓDIGO DEL DASHBOARD ADMIN *** ---
-        
-        // --- *** INICIO: CÓDIGO DEL SCANNER *** ---
-        // (El código del scanner se mantiene igual que antes)
-         async function iniciarScanner() {
+
+        // --- CÓDIGO DEL SCANNER ---
+        async function iniciarScanner() {
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
             if (!videoElement || !scannerContainer) return;
@@ -1917,63 +1858,50 @@ Cálculo por: Calculadora CR
                 const hints = new Map();
                 const formats = [
                     ZXingBrowser.BarcodeFormat.CODE_39, ZXingBrowser.BarcodeFormat.CODE_128,
-                    // Añadir otros formatos si son necesarios para VIN
-                     ZXingBrowser.BarcodeFormat.DATA_MATRIX, // Común en algunos VINs/Stickers
-                     // ZXingBrowser.BarcodeFormat.QR_CODE, 
-                     // ZXingBrowser.BarcodeFormat.PDF_417 // Común en licencias USA
+                    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
                 ];
-                 // Usar constantes de la librería si están disponibles
                 const hintType = ZXingBrowser.DecodeHintType ? ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS : 1; 
                 hints.set(hintType, formats);
-                // Opcional: intentar más fuerte
-                 const tryHarderHint = ZXingBrowser.DecodeHintType ? ZXingBrowser.DecodeHintType.TRY_HARDER : 3; 
-                 hints.set(tryHarderHint, true);
+                const tryHarderHint = ZXingBrowser.DecodeHintType ? ZXingBrowser.DecodeHintType.TRY_HARDER : 3; 
+                hints.set(tryHarderHint, true);
 
                 const constraints = {
                     video: { 
-                        facingMode: 'environment', // Cámara trasera
-                        // Intentar resoluciones comunes para mejor compatibilidad
+                        facingMode: 'environment',
                         width: { ideal: 1280 }, 
                         height: { ideal: 720 } 
                     }
                 };
-                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints, 500); // 500ms entre escaneos
+                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints, 500);
                 
                 scannerContainer.classList.remove('hidden');
                 
-                // Usar decodeFromConstraints para seleccionar cámara
                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
                         console.log("VIN Scanned:", result.text);
                         if (navigator.vibrate) { navigator.vibrate(100); }
                         const vinInput = document.getElementById('vin');
                         if (vinInput) {
-                             // Validar si parece un VIN antes de ponerlo
-                             const potentialVin = result.text.toUpperCase().replace(/[^A-Z0-9]/g, ''); // Limpiar
-                             if (potentialVin.length >= 11 && potentialVin.length <= 17) { // Longitud VIN típica
-                                vinInput.value = potentialVin.substring(0, 17); // Truncar a 17 si es más largo
-                                handleVinInput.call(vinInput); // Disparar la validación y decodificación
+                             const potentialVin = result.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                             if (potentialVin.length >= 11 && potentialVin.length <= 17) {
+                                vinInput.value = potentialVin.substring(0, 17);
+                                handleVinInput.call(vinInput);
                                 showToast('VIN Escaneado', 'success', 1500);
-                                setTimeout(detenerScanner, 150); // Cerrar scanner un poco después
+                                setTimeout(detenerScanner, 150);
                              } else {
                                  console.warn("Código escaneado no parece un VIN:", result.text);
-                                 // Opcional: Mostrar un toast de "No es un VIN"
-                                 // showToast('Código leído no parece ser un VIN', 'info');
                              }
                         }
                     }
-                    // Ignorar NotFoundException, es normal entre escaneos
                     if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
                          console.error("Error durante escaneo continuo:", err); 
                     }
                 }).catch(err => {
-                    // Errores al iniciar la cámara
                     console.error("Error al INICIAR decodeFromConstraints:", err);
                     handleScannerError(err);
                     detenerScanner(); 
                 });
 
-                // Opcional: Encender linterna si es posible (puede no funcionar en todos los navegadores/dispositivos)
                 videoElement.addEventListener('loadedmetadata', async () => {
                     if (videoElement.srcObject) {
                         const stream = videoElement.srcObject;
@@ -2018,7 +1946,6 @@ Cálculo por: Calculadora CR
             }
             
             showToast(`❌ ${errorMsg}`, 'error', 6000); 
-            // Asegurarse de cerrar la UI del scanner si aún está abierta
             detenerScanner(); 
         }
 
@@ -2026,13 +1953,11 @@ Cálculo por: Calculadora CR
             const scannerContainer = document.getElementById('scanner-container');
             const videoElement = document.getElementById('videoElement');
 
-             // Apagar linterna si está encendida
              if (videoElement && videoElement.srcObject) {
                  const stream = videoElement.srcObject;
                  const track = stream.getVideoTracks()[0];
                  if (track && 'applyConstraints' in track) {
                      const capabilities = track.getCapabilities();
-                      // Verificar si torch es soportado y está encendido antes de intentar apagar
                      if (capabilities.torch) {
                          track.applyConstraints({ advanced: [{ torch: false }] })
                              .then(() => console.log("Linterna apagada."))
@@ -2041,7 +1966,6 @@ Cálculo por: Calculadora CR
                  }
              }
 
-            // Detener CodeReader
             if (codeReader) {
                 try { 
                     codeReader.reset(); 
@@ -2052,7 +1976,6 @@ Cálculo por: Calculadora CR
                 codeReader = null;
             }
             
-            // Detener tracks de video
             if (videoElement && videoElement.srcObject) {
                 try {
                     videoElement.srcObject.getTracks().forEach(track => track.stop());
@@ -2062,328 +1985,265 @@ Cálculo por: Calculadora CR
                 }
                 videoElement.srcObject = null;
             }
-            // Limpiar fuente del video
             if (videoElement) {
                 videoElement.pause();
                 videoElement.removeAttribute('src'); 
-                // videoElement.load(); // Puede ser innecesario
             }
             
-            // Ocultar UI del scanner
             if (scannerContainer) scannerContainer.classList.add('hidden');
             
-            // Desbloquear orientación
             if (typeof screen.orientation?.unlock === 'function') {
                 try { screen.orientation.unlock(); }
                 catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
             }
         }
-        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
-    
-    // --- *** INICIO: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
 
-        async function verificarCredencialesRNP() {
-    try {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            showToast("Debes iniciar sesión", "error");
-            return false;
-        }
-        
-        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
-        const credSnap = await credRef.get();
-        
-        if (!credSnap.exists) {
-            showToast("⚠️ Debes guardar tus credenciales RNP primero", "error");
-            // Mostrar formulario para guardar credenciales
-            mostrarFormularioCredencialesRNP();
-            return false;
-        }
-        
-        const credData = credSnap.data();
-        if (!credData.username || !credData.password) {
-            showToast("❌ Credenciales RNP incompletas", "error");
-            return false;
-        }
-        
-        return true;
-    } catch (error) {
-        console.error("Error verificando credenciales:", error);
-        showToast("Error al verificar credenciales", "error");
-        return false;
-    }
-}
+        // --- FUNCIONES CONSULTA RNP ---
+        async function llamarConsultaPlacaRNP() {
+            const placaInput = document.getElementById('placaRNP');
+            const placaStatus = document.getElementById('placaRNPStatus');
+            const valorFiscalInput = document.getElementById('valorFiscal');
+            const btn = document.getElementById('btnConsultarRNP');
 
-// ============================================
-// SISTEMA DE COLA RNP - CÓDIGO CLIENTE
-// ============================================
-// Reemplaza la función llamarConsultaPlacaRNP en tu HTML
+            if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
+                console.error("Error: Faltan elementos del DOM");
+                return;
+            }
 
-let consultaRNPListener = null; // Para guardar el listener de Firestore
+            if (typeof functions === 'undefined' || typeof db === 'undefined') {
+                console.error("Error: Firebase no inicializado");
+                placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
+                return;
+            }
 
-async function llamarConsultaPlacaRNP() {
-    const placaInput = document.getElementById('placaRNP');
-    const placaStatus = document.getElementById('placaRNPStatus');
-    const valorFiscalInput = document.getElementById('valorFiscal');
-    const btn = document.getElementById('btnConsultarRNP');
+            const placa = placaInput.value.trim().toUpperCase();
+            if (!placa) {
+                placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
+                placaInput.focus();
+                return;
+            }
 
-    if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
-        console.error("Error: Faltan elementos del DOM");
-        return;
-    }
+            if (consultaRNPListener) {
+                consultaRNPListener();
+                consultaRNPListener = null;
+            }
 
-    if (typeof functions === 'undefined' || typeof db === 'undefined') {
-        console.error("Error: Firebase no inicializado");
-        placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
-        return;
-    }
+            btn.disabled = true;
+            btn.textContent = 'Consultando...';
+            placaStatus.innerHTML = `
+                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                <span style="vertical-align: middle;">Creando solicitud...</span>
+            `;
 
-    const placa = placaInput.value.trim().toUpperCase();
-    if (!placa) {
-        placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
-        placaInput.focus();
-        return;
-    }
+            try {
+                const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
+                
+                const result = await solicitarConsultaRNP({ placa: placa });
+                console.log("Solicitud creada:", result);
 
-    // Limpiar listener anterior si existe
-    if (consultaRNPListener) {
-        consultaRNPListener();
-        consultaRNPListener = null;
-    }
+                const data = result.data;
+                if (!data || !data.ok || !data.consultaId) {
+                    throw new Error(data?.message || "Error al crear solicitud");
+                }
 
-    // Deshabilitar botón
-    btn.disabled = true;
-    btn.textContent = 'Consultando...';
-    placaStatus.innerHTML = `
-        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-        <span style="vertical-align: middle;">Creando solicitud...</span>
-    `;
+                const consultaId = data.consultaId;
+                
+                placaStatus.innerHTML = `
+                    <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                    <span style="vertical-align: middle; color: #2563eb;">
+                        Consultando RNP en tiempo real... (puede tardar 2-3 min)
+                    </span>
+                `;
 
-    try {
-        // Crear función callable (la nueva versión con cola)
-        const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
-        
-        // Enviar solicitud
-        const result = await solicitarConsultaRNP({ placa: placa });
-        console.log("Solicitud creada:", result);
+                showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
 
-        const data = result.data;
-        if (!data || !data.ok || !data.consultaId) {
-            throw new Error(data?.message || "Error al crear solicitud");
-        }
-
-        const consultaId = data.consultaId;
-        
-        // Mostrar mensaje de espera
-        placaStatus.innerHTML = `
-            <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-            <span style="vertical-align: middle; color: #2563eb;">
-                Consultando RNP en tiempo real... (puede tardar 2-3 min)
-            </span>
-        `;
-
-        showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
-
-        // ESCUCHAR CAMBIOS EN TIEMPO REAL
-        consultaRNPListener = db.collection('consultas_rnp_queue')
-            .doc(consultaId)
-            .onSnapshot(
-                (docSnapshot) => {
-                    if (!docSnapshot.exists) {
-                        console.warn("Documento no existe");
-                        return;
-                    }
-
-                    const consultaData = docSnapshot.data();
-                    console.log("Estado actualizado:", consultaData.estado, consultaData);
-
-                    switch (consultaData.estado) {
-                        case 'pendiente':
-                            placaStatus.innerHTML = `
-                                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                                <span style="vertical-align: middle; color: #f59e0b;">
-                                    En cola... Esperando procesamiento
-                                </span>
-                            `;
-                            break;
-
-                        case 'procesando':
-                            const progreso = consultaData.progreso || 'Procesando consulta...';
-                            placaStatus.innerHTML = `
-                                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-                                <span style="vertical-align: middle; color: #2563eb;">
-                                    ${progreso}
-                                </span>
-                            `;
-                            break;
-
-                        case 'completado':
-                            // ¡ÉXITO! Actualizar UI
-                            const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
-                            const duracion = consultaData.duracionSegundos || '?';
-                            
-                            valorFiscalInput.value = Math.round(valorContrato);
-                            placaStatus.innerHTML = `
-                                <span style="color: #059669;">
-                                    ✅ Valor fiscal encontrado (${duracion}s)
-                                </span>
-                            `;
-                            
-                            showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
-                            
-                            // Limpiar listener
-                            if (consultaRNPListener) {
-                                consultaRNPListener();
-                                consultaRNPListener = null;
+                consultaRNPListener = db.collection('consultas_rnp_queue')
+                    .doc(consultaId)
+                    .onSnapshot(
+                        (docSnapshot) => {
+                            if (!docSnapshot.exists) {
+                                console.warn("Documento no existe");
+                                return;
                             }
-                            
-                            // Rehabilitar botón
-                            btn.disabled = false;
-                            btn.textContent = 'Buscar';
-                            break;
 
-                        case 'error':
-                            const errorMsg = consultaData.error || 'Error desconocido';
+                            const consultaData = docSnapshot.data();
+                            console.log("Estado actualizado:", consultaData.estado, consultaData);
+
+                            switch (consultaData.estado) {
+                                case 'pendiente':
+                                    placaStatus.innerHTML = `
+                                        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                                        <span style="vertical-align: middle; color: #f59e0b;">
+                                            En cola... Esperando procesamiento
+                                        </span>
+                                    `;
+                                    break;
+
+                                case 'procesando':
+                                    const progreso = consultaData.progreso || 'Procesando consulta...';
+                                    placaStatus.innerHTML = `
+                                        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                                        <span style="vertical-align: middle; color: #2563eb;">
+                                            ${progreso}
+                                        </span>
+                                    `;
+                                    break;
+
+                                case 'completado':
+                                    const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
+                                    const duracion = consultaData.duracionSegundos || '?';
+                                    
+                                    valorFiscalInput.value = Math.round(valorContrato);
+                                    placaStatus.innerHTML = `
+                                        <span style="color: #059669;">
+                                            ✅ Valor fiscal encontrado (${duracion}s)
+                                        </span>
+                                    `;
+                                    
+                                    showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
+                                    
+                                    if (consultaRNPListener) {
+                                        consultaRNPListener();
+                                        consultaRNPListener = null;
+                                    }
+                                    
+                                    btn.disabled = false;
+                                    btn.textContent = 'Buscar';
+                                    break;
+
+                                case 'error':
+                                    const errorMsg = consultaData.error || 'Error desconocido';
+                                    placaStatus.innerHTML = `
+                                        <span style="color: #dc2626;">
+                                            ❌ Error: ${errorMsg}
+                                        </span>
+                                    `;
+                                    
+                                    showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
+                                    
+                                    if (consultaRNPListener) {
+                                        consultaRNPListener();
+                                        consultaRNPListener = null;
+                                    }
+                                    
+                                    btn.disabled = false;
+                                    btn.textContent = 'Buscar';
+                                    break;
+
+                                default:
+                                    console.warn("Estado desconocido:", consultaData.estado);
+                            }
+                        },
+                        (error) => {
+                            console.error("Error en listener:", error);
                             placaStatus.innerHTML = `
                                 <span style="color: #dc2626;">
-                                    ❌ Error: ${errorMsg}
+                                    ❌ Error de conexión: ${error.message}
                                 </span>
                             `;
+                            showToast('Error de conexión con Firebase', 'error');
                             
-                            showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
-                            
-                            // Limpiar listener
-                            if (consultaRNPListener) {
-                                consultaRNPListener();
-                                consultaRNPListener = null;
-                            }
-                            
-                            // Rehabilitar botón
                             btn.disabled = false;
                             btn.textContent = 'Buscar';
-                            break;
+                        }
+                    );
 
-                        default:
-                            console.warn("Estado desconocido:", consultaData.estado);
-                    }
-                },
-                (error) => {
-                    console.error("Error en listener:", error);
-                    placaStatus.innerHTML = `
-                        <span style="color: #dc2626;">
-                            ❌ Error de conexión: ${error.message}
-                        </span>
-                    `;
-                    showToast('Error de conexión con Firebase', 'error');
-                    
-                    btn.disabled = false;
-                    btn.textContent = 'Buscar';
-                }
-            );
+            } catch (error) {
+                console.error("Error al llamar la Cloud Function:", error);
+                const errorMsg = error.message || "Error desconocido";
+                
+                placaStatus.innerHTML = `
+                    <span style="color: #dc2626;">❌ Error: ${errorMsg}</span>
+                `;
+                
+                showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
+                
+                btn.disabled = false;
+                btn.textContent = 'Buscar';
+            }
+        }
 
-    } catch (error) {
-        console.error("Error al llamar la Cloud Function:", error);
-        const errorMsg = error.message || "Error desconocido";
-        
-        placaStatus.innerHTML = `
-            <span style="color: #dc2626;">❌ Error: ${errorMsg}</span>
-        `;
-        
-        showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
-        
-        btn.disabled = false;
-        btn.textContent = 'Buscar';
-    }
-}
-
-// ============================================
-// FUNCIÓN PARA LIMPIAR LISTENERS AL SALIR
-// ============================================
-window.addEventListener('beforeunload', () => {
-    if (consultaRNPListener) {
-        consultaRNPListener();
-        consultaRNPListener = null;
-    }
-});
-
-// ============================================
-// FUNCIÓN PARA VER HISTORIAL DE CONSULTAS RNP
-// ============================================
-async function cargarHistorialConsultasRNP() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        console.warn("Usuario no logueado");
-        return;
-    }
-
-    try {
-        const snapshot = await db.collection('consultas_rnp_queue')
-            .where('usuario', '==', user.uid)
-            .where('estado', '==', 'completado')
-            .orderBy('completedAt', 'desc')
-            .limit(10)
-            .get();
-
-        console.log("📋 Historial de consultas RNP:");
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            console.log(`  • ${data.placa}: ₡${data.valorContrato} (${data.duracionSegundos}s)`);
+        window.addEventListener('beforeunload', () => {
+            if (consultaRNPListener) {
+                consultaRNPListener();
+                consultaRNPListener = null;
+            }
         });
 
-    } catch (error) {
-        console.error("Error cargando historial RNP:", error);
-    }
-}
-// --- *** FIN: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
+        async function cargarHistorialConsultasRNP() {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                console.warn("Usuario no logueado");
+                return;
+            }
 
-    function mostrarFormularioCredencialesRNP() {
-    const modal = document.getElementById('rnp-credentials-modal');
-    if (modal) modal.classList.remove('hidden');
-}
+            try {
+                const snapshot = await db.collection('consultas_rnp_queue')
+                    .where('usuario', '==', user.uid)
+                    .where('estado', '==', 'completado')
+                    .orderBy('completedAt', 'desc')
+                    .limit(10)
+                    .get();
 
-function cerrarCredencialesRNP() {
-    const modal = document.getElementById('rnp-credentials-modal');
-    if (modal) modal.classList.add('hidden');
-    document.getElementById('rnpUsername').value = '';
-    document.getElementById('rnpPassword').value = '';
-}
+                console.log("📋 Historial de consultas RNP:");
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    console.log(`  • ${data.placa}: ₡${data.valorContrato} (${data.duracionSegundos}s)`);
+                });
 
-async function guardarCredencialesRNP() {
-    const username = document.getElementById('rnpUsername').value.trim();
-    const password = document.getElementById('rnpPassword').value.trim();
-    const errorEl = document.getElementById('rnpCredError');
-    
-    if (!username || !password) {
-        errorEl.textContent = 'Completa usuario y contraseña';
-        return;
-    }
-    
-    try {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            errorEl.textContent = 'Debes iniciar sesión';
-            return;
+            } catch (error) {
+                console.error("Error cargando historial RNP:", error);
+            }
         }
-        
-        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
-        await credRef.set({ username, password }, { merge: true });
-        
-        showToast('✅ Credenciales RNP guardadas', 'success');
-        cerrarCredencialesRNP();
-        
-    } catch (error) {
-        console.error("Error guardando credenciales:", error);
-        errorEl.textContent = `Error: ${error.message}`;
-        showToast('Error al guardar credenciales', 'error');
-    }
-}       
+
+        function mostrarFormularioCredencialesRNP() {
+            const modal = document.getElementById('rnp-credentials-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function cerrarCredencialesRNP() {
+            const modal = document.getElementById('rnp-credentials-modal');
+            if (modal) modal.classList.add('hidden');
+            document.getElementById('rnpUsername').value = '';
+            document.getElementById('rnpPassword').value = '';
+        }
+
+        async function guardarCredencialesRNP() {
+            const username = document.getElementById('rnpUsername').value.trim();
+            const password = document.getElementById('rnpPassword').value.trim();
+            const errorEl = document.getElementById('rnpCredError');
+            
+            if (!username || !password) {
+                errorEl.textContent = 'Completa usuario y contraseña';
+                return;
+            }
+            
+            try {
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    errorEl.textContent = 'Debes iniciar sesión';
+                    return;
+                }
+                
+                const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
+                await credRef.set({ username, password }, { merge: true });
+                
+                showToast('✅ Credenciales RNP guardadas', 'success');
+                cerrarCredencialesRNP();
+                
+            } catch (error) {
+                console.error("Error guardando credenciales:", error);
+                errorEl.textContent = `Error: ${error.message}`;
+                showToast('Error al guardar credenciales', 'error');
+            }
+        }
     </script>
     
     <script>
       // Service Worker Registration
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('service-worker.js') // Asegúrate que el nombre del archivo sea correcto
+          navigator.serviceWorker.register('service-worker.js')
             .then(registration => { 
                 console.log('✅ Service Worker registrado con alcance:', registration.scope); 
             })
@@ -2395,4 +2255,3 @@ async function guardarCredencialesRNP() {
     </script>
 </body>
 </html>
-
