@@ -2113,95 +2113,226 @@ Cálculo por: Calculadora CR
     }
 }
 
-// Modificar llamarConsultaPlacaRNP:
+// ============================================
+// SISTEMA DE COLA RNP - CÓDIGO CLIENTE
+// ============================================
+// Reemplaza la función llamarConsultaPlacaRNP en tu HTML
+
+let consultaRNPListener = null; // Para guardar el listener de Firestore
+
 async function llamarConsultaPlacaRNP() {
-    // Verificar credenciales ANTES
-    if (!(await verificarCredencialesRNP())) {
+    const placaInput = document.getElementById('placaRNP');
+    const placaStatus = document.getElementById('placaRNPStatus');
+    const valorFiscalInput = document.getElementById('valorFiscal');
+    const btn = document.getElementById('btnConsultarRNP');
+
+    if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
+        console.error("Error: Faltan elementos del DOM");
         return;
     }
-    
-    async function llamarConsultaPlacaRNP() {
-        const placaInput = document.getElementById('placaRNP');
-        const placaStatus = document.getElementById('placaRNPStatus');
-        const valorFiscalInput = document.getElementById('valorFiscal');
-        const btn = document.getElementById('btnConsultarRNP');
 
-        if (!placaInput || !placaStatus || !valorFiscalInput || !btn) {
-            console.error("Error: Faltan elementos del DOM para consulta RNP.");
-            return;
-        }
-
-        if (typeof functions === 'undefined') {
-             console.error("Error: El servicio Firebase Functions no está inicializado.");
-             placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
-             return;
-        }
-
-        let consultaPlacaRNP;
-        try {
-            // =================================================================
-            // ¡CAMBIO CLAVE!
-            // Aumentamos el timeout del CLIENTE a 190 segundos (190000 ms)
-            // =================================================================
-            consultaPlacaRNP = functions.httpsCallable('consultaPlacaRNP', { timeout: 540000 });
-
-        } catch (e) {
-            console.error("Error al inicializar la función callable 'consultaPlacaRNP':", e);
-            placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Fallo al crear la llamada.</span>`;
-            return;
-        }
-
-        const placa = placaInput.value.trim().toUpperCase();
-        if (!placa) {
-            placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
-            placaInput.focus();
-            return;
-        }
-
-        // Actualizamos el mensaje de espera
-        placaStatus.innerHTML = `<div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div><span style="vertical-align: middle;">Consultando RNP... (puede tardar 2-3 min)</span>`;
-        btn.disabled = true;
-        btn.textContent = '...';
-
-        try {
-            const result = await consultaPlacaRNP({ placa: placa });
-
-            console.log("Respuesta de la Cloud Function:", result);
-            const data = result.data;
-
-            if (data && data.ok) {
-                const resultado = data.data;
-                placaStatus.innerHTML = `<span style="color: #059669;">✓ Valor fiscal encontrado.</span>`;
-                
-                let valorLimpio = null;
-                if (resultado.valorContrato) {
-                    valorLimpio = parseFloat(resultado.valorContrato.replace(/[^0-9.-]+/g,""));
-                }
-
-                if (valorLimpio && !isNaN(valorLimpio)) {
-                    valorFiscalInput.value = Math.round(valorLimpio);
-                    showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
-                } else {
-                     placaStatus.innerHTML = `<span style="color: #f59e0b;">Valor fiscal no numérico en RNP.</span>`;
-                     showToast('Valor fiscal no numérico devuelto por RNP', 'error');
-                }
-
-            } else {
-                console.error("Error en la respuesta de la función:", data);
-                placaStatus.innerHTML = `<span style="color: #dc2626;">Error en respuesta de la función.</span>`;
-            }
-
-        } catch (error) {
-            console.error("Error al llamar la Cloud Function:", error);
-            const errorMsg = error.message || "Error desconocido.";
-            placaStatus.innerHTML = `<span style="color: #dc2626;">Error: ${errorMsg}</span>`;
-            showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
-            
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Buscar';
-        }
+    if (typeof functions === 'undefined' || typeof db === 'undefined') {
+        console.error("Error: Firebase no inicializado");
+        placaStatus.innerHTML = `<span style="color: #dc2626;">Error: Servicio no inicializado.</span>`;
+        return;
     }
+
+    const placa = placaInput.value.trim().toUpperCase();
+    if (!placa) {
+        placaStatus.innerHTML = `<span style="color: #dc2626;">Ingrese una placa.</span>`;
+        placaInput.focus();
+        return;
+    }
+
+    // Limpiar listener anterior si existe
+    if (consultaRNPListener) {
+        consultaRNPListener();
+        consultaRNPListener = null;
+    }
+
+    // Deshabilitar botón
+    btn.disabled = true;
+    btn.textContent = 'Consultando...';
+    placaStatus.innerHTML = `
+        <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+        <span style="vertical-align: middle;">Creando solicitud...</span>
+    `;
+
+    try {
+        // Crear función callable (la nueva versión con cola)
+        const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
+        
+        // Enviar solicitud
+        const result = await solicitarConsultaRNP({ placa: placa });
+        console.log("Solicitud creada:", result);
+
+        const data = result.data;
+        if (!data || !data.ok || !data.consultaId) {
+            throw new Error(data?.message || "Error al crear solicitud");
+        }
+
+        const consultaId = data.consultaId;
+        
+        // Mostrar mensaje de espera
+        placaStatus.innerHTML = `
+            <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+            <span style="vertical-align: middle; color: #2563eb;">
+                Consultando RNP en tiempo real... (puede tardar 2-3 min)
+            </span>
+        `;
+
+        showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
+
+        // ESCUCHAR CAMBIOS EN TIEMPO REAL
+        consultaRNPListener = db.collection('consultas_rnp_queue')
+            .doc(consultaId)
+            .onSnapshot(
+                (docSnapshot) => {
+                    if (!docSnapshot.exists) {
+                        console.warn("Documento no existe");
+                        return;
+                    }
+
+                    const consultaData = docSnapshot.data();
+                    console.log("Estado actualizado:", consultaData.estado, consultaData);
+
+                    switch (consultaData.estado) {
+                        case 'pendiente':
+                            placaStatus.innerHTML = `
+                                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                                <span style="vertical-align: middle; color: #f59e0b;">
+                                    En cola... Esperando procesamiento
+                                </span>
+                            `;
+                            break;
+
+                        case 'procesando':
+                            const progreso = consultaData.progreso || 'Procesando consulta...';
+                            placaStatus.innerHTML = `
+                                <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                                <span style="vertical-align: middle; color: #2563eb;">
+                                    ${progreso}
+                                </span>
+                            `;
+                            break;
+
+                        case 'completado':
+                            // ¡ÉXITO! Actualizar UI
+                            const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
+                            const duracion = consultaData.duracionSegundos || '?';
+                            
+                            valorFiscalInput.value = Math.round(valorContrato);
+                            placaStatus.innerHTML = `
+                                <span style="color: #059669;">
+                                    ✅ Valor fiscal encontrado (${duracion}s)
+                                </span>
+                            `;
+                            
+                            showToast('✅ Valor Fiscal actualizado desde RNP', 'success');
+                            
+                            // Limpiar listener
+                            if (consultaRNPListener) {
+                                consultaRNPListener();
+                                consultaRNPListener = null;
+                            }
+                            
+                            // Rehabilitar botón
+                            btn.disabled = false;
+                            btn.textContent = 'Buscar';
+                            break;
+
+                        case 'error':
+                            const errorMsg = consultaData.error || 'Error desconocido';
+                            placaStatus.innerHTML = `
+                                <span style="color: #dc2626;">
+                                    ❌ Error: ${errorMsg}
+                                </span>
+                            `;
+                            
+                            showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
+                            
+                            // Limpiar listener
+                            if (consultaRNPListener) {
+                                consultaRNPListener();
+                                consultaRNPListener = null;
+                            }
+                            
+                            // Rehabilitar botón
+                            btn.disabled = false;
+                            btn.textContent = 'Buscar';
+                            break;
+
+                        default:
+                            console.warn("Estado desconocido:", consultaData.estado);
+                    }
+                },
+                (error) => {
+                    console.error("Error en listener:", error);
+                    placaStatus.innerHTML = `
+                        <span style="color: #dc2626;">
+                            ❌ Error de conexión: ${error.message}
+                        </span>
+                    `;
+                    showToast('Error de conexión con Firebase', 'error');
+                    
+                    btn.disabled = false;
+                    btn.textContent = 'Buscar';
+                }
+            );
+
+    } catch (error) {
+        console.error("Error al llamar la Cloud Function:", error);
+        const errorMsg = error.message || "Error desconocido";
+        
+        placaStatus.innerHTML = `
+            <span style="color: #dc2626;">❌ Error: ${errorMsg}</span>
+        `;
+        
+        showToast(`❌ Error: ${errorMsg}`, 'error', 5000);
+        
+        btn.disabled = false;
+        btn.textContent = 'Buscar';
+    }
+}
+
+// ============================================
+// FUNCIÓN PARA LIMPIAR LISTENERS AL SALIR
+// ============================================
+window.addEventListener('beforeunload', () => {
+    if (consultaRNPListener) {
+        consultaRNPListener();
+        consultaRNPListener = null;
+    }
+});
+
+// ============================================
+// FUNCIÓN PARA VER HISTORIAL DE CONSULTAS RNP
+// ============================================
+async function cargarHistorialConsultasRNP() {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        console.warn("Usuario no logueado");
+        return;
+    }
+
+    try {
+        const snapshot = await db.collection('consultas_rnp_queue')
+            .where('usuario', '==', user.uid)
+            .where('estado', '==', 'completado')
+            .orderBy('completedAt', 'desc')
+            .limit(10)
+            .get();
+
+        console.log("📋 Historial de consultas RNP:");
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log(`  • ${data.placa}: ₡${data.valorContrato} (${data.duracionSegundos}s)`);
+        });
+
+    } catch (error) {
+        console.error("Error cargando historial RNP:", error);
+    }
+}
 // --- *** FIN: FUNCIÓN PARA LLAMAR A CLOUD FUNCTION RNP *** ---
 
     function mostrarFormularioCredencialesRNP() {
