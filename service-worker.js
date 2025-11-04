@@ -1,5 +1,5 @@
 // Nombre de la caché (Incrementa la versión si haces cambios)
-const CACHE_NAME = 'nacionalizacion-cr-cache-v53';
+const CACHE_NAME = 'nacionalizacion-cr-cache-v54';
 
 // Archivos CRÍTICOS del App Shell (solo cachear si existen)
 const CACHE_FILES = [
@@ -23,7 +23,8 @@ const CDN_URLS = [
 
 // ===== EVENTO: INSTALL =====
 self.addEventListener('install', (e) => {
-  console.log('[Service Worker] Instalando v34...');
+  // --- CORREGIDO ---
+  console.log('[Service Worker] Instalando v51...');
   
   e.waitUntil(
     caches.open(CACHE_NAME)
@@ -58,7 +59,8 @@ self.addEventListener('install', (e) => {
 
 // ===== EVENTO: ACTIVATE =====
 self.addEventListener('activate', (e) => {
-  console.log('[Service Worker] Activando v34...');
+  // --- CORREGIDO ---
+  console.log('[Service Worker] Activando v51...');
   
   e.waitUntil(
     caches.keys()
