@@ -422,7 +422,6 @@
                     </div>
                     <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
                 </div>
-                
                 <div class="collapsible-header" data-target="collapsible-traspaso">
     <span>Cálculo de Traspaso</span>
     <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
@@ -430,6 +429,7 @@
     </svg>
 </div>
 <div id="collapsible-traspaso" class="collapsible-content">
+    <!-- Componente de Consulta RNP -->
     <div class="form-group" style="background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #dbeafe;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <label for="placaRNP" style="font-weight: bold; color: #1e40af; margin: 0;">Consultar Valor Fiscal (RNP)</label>
@@ -445,6 +445,7 @@
         </div>
         <div class="help-text" id="placaRNPStatus" style="margin-top: 8px; min-height: 16px;"></div>
     </div>
+    <!-- Componente de Cálculo de Traspaso -->
     <div class="form-group">
         <label for="valorFiscal">Valor Fiscal (₡)</label>
         <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
@@ -452,35 +453,27 @@
     <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
     <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
     <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-</div>
+</div> <!-- CIERRA #collapsible-traspaso -->
 
+<!-- INICIA FORMULARIO DE IMPORTACIÓN -->
 <div class="form-group">
     <label for="valor">Valor (USD)</label>
     <input type="number" id="valor" placeholder="25000" inputmode="numeric">
 </div>
-                    <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
-                    <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
-                    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
-                </div>
-                
-                <div class="form-group">
-                    <label for="valor">Valor (USD)</label>
-                    <input type="number" id="valor" placeholder="25000" inputmode="numeric">
-                </div>
 
-                <div class="form-group">
-                    <label for="flete">Flete (USD)</label>
-                    <input type="number" id="flete" placeholder="1500" inputmode="numeric">
-                </div>
+<div class="form-group">
+    <label for="flete">Flete (USD)</label>
+    <input type="number" id="flete" placeholder="1500" inputmode="numeric">
+</div>
 
-                <div class="form-group">
-                    <div class="form-group-header">
-                        <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
-                        <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
-                    </div>
-                    <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric">
-                    <div class="help-text" id="tipoCambioHelp"></div>
-                </div>
+<div class="form-group">
+    <div class="form-group-header">
+        <label for="tipoCambio">Tipo de Cambio (₡/USD)</label>
+        <button id="btnActualizarTC" class="btn-update-tc">Actualizar TC</button>
+    </div>
+    <input type="number" id="tipoCambio" placeholder="520" inputmode="numeric">
+    <div class="help-text" id="tipoCambioHelp"></div>
+</div>
 
                 <div class="button-group">
                     <button class="btn-secondary" id="btnLimpiarFormulario">Limpiar</button>
