@@ -424,24 +424,40 @@
                 </div>
                 
                 <div class="collapsible-header" data-target="collapsible-traspaso">
-                    <span>Cálculo de Traspaso</span>
-                    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
-                        <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
-                    </svg>
-                </div>
-                <div id="collapsible-traspaso" class="collapsible-content">
-                    <div class="form-group" style="background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #dbeafe;">
-                        <label for="placaRNP" style="font-weight: bold; color: #1e40af;">Consultar Valor Fiscal (RNP)</label>
-                        <div style="display: flex; gap: 8px; margin-top: 8px;">
-                            <input type="text" id="placaRNP" placeholder="ABC123" style="flex-grow: 1;" autocapitalize="characters">
-                            <button id="btnConsultarRNP" class="btn-primary" style="padding: 10px 15px; width: auto; flex-shrink: 0;">Buscar</button>
-                        </div>
-                        <div class="help-text" id="placaRNPStatus" style="margin-top: 8px; min-height: 16px;"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="valorFiscal">Valor Fiscal (₡)</label>
-                        <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
-                    </div>
+    <span>Cálculo de Traspaso</span>
+    <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+        <path d="M207 416c11.3 0 22.1-4.3 30.2-12.3L400.2 248.2c12.1-12.1 12.1-31.7 0-43.8s-31.7-12.1-43.8 0L224 334.3 91.8 204.2c-12.1-12.1-31.7-12.1-43.8 0s-12.1 31.7 0 43.8L176.8 403.7c8.1 8 18.9 12.3 30.2 12.3z"/>
+    </svg>
+</div>
+<div id="collapsible-traspaso" class="collapsible-content">
+    <div class="form-group" style="background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #dbeafe;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label for="placaRNP" style="font-weight: bold; color: #1e40af; margin: 0;">Consultar Valor Fiscal (RNP)</label>
+            <!-- BOTÓN AÑADIDO PARA ABRIR MODAL DE CREDENCIALES -->
+            <button class="btn-info-light" style="padding: 4px 8px; font-size: 11px; font-weight: 500;" onclick="mostrarFormularioCredencialesRNP()">
+                Configurar RNP 🔐
+            </button>
+        </div>
+        
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <input type="text" id="placaRNP" placeholder="ABC123" style="flex-grow: 1;" autocapitalize="characters">
+            <button id="btnConsultarRNP" class="btn-primary" style="padding: 10px 15px; width: auto; flex-shrink: 0;">Buscar</button>
+        </div>
+        <div class="help-text" id="placaRNPStatus" style="margin-top: 8px; min-height: 16px;"></div>
+    </div>
+    <div class="form-group">
+        <label for="valorFiscal">Valor Fiscal (₡)</label>
+        <input type="number" id="valorFiscal" placeholder="10000000" inputmode="numeric">
+    </div>
+    <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
+    <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
+    <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+</div>
+
+<div class="form-group">
+    <label for="valor">Valor (USD)</label>
+    <input type="number" id="valor" placeholder="25000" inputmode="numeric">
+</div>
                     <button class="btn-primary" id="btnCalcularTraspaso" style="width: 100%;">Calcular Traspaso</button>
                     <div id="resultadoTraspaso" style="margin-top: 12px;"></div>
                     <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
@@ -552,7 +568,7 @@
         </div>
     </div>
     
-    <div id="toast" class="toast"></div>
+   <div id="toast" class="toast"></div>
     
     <script>
         // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
@@ -578,7 +594,8 @@ try {
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth(app);
     db = firebase.firestore(app);
-    functions = firebase.functions(app); // ✅ SIN región
+    // CORREGIDO: Llamada a functions sin argumento de región.
+    functions = firebase.functions(app); 
     
     console.log("Firebase inicializado correctamente.");
 } catch (e) {
