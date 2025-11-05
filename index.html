@@ -564,7 +564,7 @@
    <div id="toast" class="toast"></div>
     
     <script>
-        // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
+       // ==== INICIO: CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ====
         
      let consultaRNPListener = null; // Para el listener de Firestore
 let progressInterval = null; // Para animación de progreso
@@ -586,11 +586,18 @@ let app;
 try {
     app = firebase.initializeApp(firebaseConfig);
     auth = firebase.auth(app);
+    
+    // --- CORRECCIÓN CRÍTICA (V10) ---
+    // Forzar Long Polling para evitar errores QUIC en la red
     db = firebase.firestore(app);
-    // CORREGIDO: Llamada a functions sin argumento de región.
+    db.settings({
+        experimentalForceLongPolling: true,
+        merge: true 
+    });
+    
     functions = firebase.functions(app); 
     
-    console.log("Firebase inicializado correctamente.");
+    console.log("Firebase inicializado correctamente (con Long Polling).");
 } catch (e) {
     console.error("Error inicializando Firebase:", e);
     document.addEventListener('DOMContentLoaded', () => {
@@ -626,786 +633,786 @@ const PROMEDIO_KMS_ANO = 17000;
 const PORCENTAJE_TIMBRES = 0.035;
 const HONORARIOS_TRASPASO = 65000;
 
-        // --- MANEJO DE EVENTOS ---
+    // --- MANEJO DE EVENTOS ---
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los elementos existen antes de añadir listeners
+        const anoInput = document.getElementById('ano');
+        if (anoInput) {
+            anoInput.addEventListener('change', validarAno);
+            anoInput.addEventListener('input', validarInicioAno);
+            anoInput.max = anoActual + 1;
+        }
+
+        const vinInput = document.getElementById('vin');
+        if (vinInput) vinInput.addEventListener('input', handleVinInput);
         
-        document.addEventListener('DOMContentLoaded', () => {
-            // Asegurarse de que los elementos existen antes de añadir listeners
-            const anoInput = document.getElementById('ano');
-            if (anoInput) {
-                anoInput.addEventListener('change', validarAno);
-                anoInput.addEventListener('input', validarInicioAno);
-                anoInput.max = anoActual + 1;
-            }
+        // Añadir listeners para botones y otros elementos
+        const btnCalcular = document.getElementById('btnCalcular');
+        if (btnCalcular) btnCalcular.addEventListener('click', calcular);
+        
+        const btnLimpiarFormulario = document.getElementById('btnLimpiarFormulario');
+        if (btnLimpiarFormulario) btnLimpiarFormulario.addEventListener('click', limpiarFormulario);
 
-            const vinInput = document.getElementById('vin');
-            if (vinInput) vinInput.addEventListener('input', handleVinInput);
-            
-            // Añadir listeners para botones y otros elementos
-            const btnCalcular = document.getElementById('btnCalcular');
-            if (btnCalcular) btnCalcular.addEventListener('click', calcular);
-            
-            const btnLimpiarFormulario = document.getElementById('btnLimpiarFormulario');
-            if (btnLimpiarFormulario) btnLimpiarFormulario.addEventListener('click', limpiarFormulario);
+        const btnLimpiarVIN = document.getElementById('btnLimpiarVIN');
+        if (btnLimpiarVIN) btnLimpiarVIN.addEventListener('click', limpiarVIN);
+        
+        const btnVerDetalle = document.getElementById('btnVerDetalle');
+        if (btnVerDetalle) btnVerDetalle.addEventListener('click', mostrarDetalle);
+        
+        const btnGuardarHistorial = document.getElementById('btnGuardarHistorial');
+        if (btnGuardarHistorial) btnGuardarHistorial.addEventListener('click', guardarHistorial);
+        
+        const btnDescargar = document.getElementById('btnDescargar');
+        if (btnDescargar) btnDescargar.addEventListener('click', descargarPDF);
+        
+        const btnWhatsApp = document.getElementById('btnWhatsApp');
+        if (btnWhatsApp) btnWhatsApp.addEventListener('click', enviarWhatsApp);
+        
+        const btnHistorial = document.getElementById('btnHistorial');
+        if (btnHistorial) btnHistorial.addEventListener('click', toggleHistorial);
+        
+        const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
+        if (btnLimpiarHistorial) btnLimpiarHistorial.addEventListener('click', limpiarHistorial);
+        
+        const btnComparar = document.getElementById('btnComparar');
+        if (btnComparar) btnComparar.addEventListener('click', toggleComparacion);
+        
+        const btnActualizarTC = document.getElementById('btnActualizarTC');
+        if (btnActualizarTC) btnActualizarTC.addEventListener('click', fetchTipoDeCambio);
+        
+        const btnMillasAKm = document.getElementById('btnMillasAKm');
+        if (btnMillasAKm) btnMillasAKm.addEventListener('click', convertirMillaje);
+        
+        const btnKmsAMillas = document.getElementById('btnKmsAMillas');
+        if (btnKmsAMillas) btnKmsAMillas.addEventListener('click', convertirMillaje);
+        
+        const btnCalcularTraspaso = document.getElementById('btnCalcularTraspaso');
+        if (btnCalcularTraspaso) btnCalcularTraspaso.addEventListener('click', calcularTraspaso);
 
-            const btnLimpiarVIN = document.getElementById('btnLimpiarVIN');
-            if (btnLimpiarVIN) btnLimpiarVIN.addEventListener('click', limpiarVIN);
-            
-            const btnVerDetalle = document.getElementById('btnVerDetalle');
-            if (btnVerDetalle) btnVerDetalle.addEventListener('click', mostrarDetalle);
-            
-            const btnGuardarHistorial = document.getElementById('btnGuardarHistorial');
-            if (btnGuardarHistorial) btnGuardarHistorial.addEventListener('click', guardarHistorial);
-            
-            const btnDescargar = document.getElementById('btnDescargar');
-            if (btnDescargar) btnDescargar.addEventListener('click', descargarPDF);
-            
-            const btnWhatsApp = document.getElementById('btnWhatsApp');
-            if (btnWhatsApp) btnWhatsApp.addEventListener('click', enviarWhatsApp);
-            
-            const btnHistorial = document.getElementById('btnHistorial');
-            if (btnHistorial) btnHistorial.addEventListener('click', toggleHistorial);
-            
-            const btnLimpiarHistorial = document.getElementById('btnLimpiarHistorial');
-            if (btnLimpiarHistorial) btnLimpiarHistorial.addEventListener('click', limpiarHistorial);
-            
-            const btnComparar = document.getElementById('btnComparar');
-            if (btnComparar) btnComparar.addEventListener('click', toggleComparacion);
-            
-            const btnActualizarTC = document.getElementById('btnActualizarTC');
-            if (btnActualizarTC) btnActualizarTC.addEventListener('click', fetchTipoDeCambio);
-            
-            const btnMillasAKm = document.getElementById('btnMillasAKm');
-            if (btnMillasAKm) btnMillasAKm.addEventListener('click', convertirMillaje);
-            
-            const btnKmsAMillas = document.getElementById('btnKmsAMillas');
-            if (btnKmsAMillas) btnKmsAMillas.addEventListener('click', convertirMillaje);
-            
-            const btnCalcularTraspaso = document.getElementById('btnCalcularTraspaso');
-            if (btnCalcularTraspaso) btnCalcularTraspaso.addEventListener('click', calcularTraspaso);
+        const btnConsultarRNP = document.getElementById('btnConsultarRNP');
+        if (btnConsultarRNP) {
+            btnConsultarRNP.addEventListener('click', llamarConsultaPlacaRNP);
+        }
+        
+        const btnScanVIN = document.getElementById('btnScanVIN');
+        if (btnScanVIN) btnScanVIN.addEventListener('click', iniciarScanner);
+        
+        const btnStopScan = document.getElementById('btnStopScan');
+        if (btnStopScan) btnStopScan.addEventListener('click', detenerScanner);
 
-            const btnConsultarRNP = document.getElementById('btnConsultarRNP');
-            if (btnConsultarRNP) {
-                btnConsultarRNP.addEventListener('click', llamarConsultaPlacaRNP);
-            }
-            
-            const btnScanVIN = document.getElementById('btnScanVIN');
-            if (btnScanVIN) btnScanVIN.addEventListener('click', iniciarScanner);
-            
-            const btnStopScan = document.getElementById('btnStopScan');
-            if (btnStopScan) btnStopScan.addEventListener('click', detenerScanner);
+        // --- LISTENERS AUTH ---
+        const btnLogin = document.getElementById('btnLogin');
+        if (btnLogin) {
+            btnLogin.addEventListener('click', iniciarSesion);
+            console.log("Listener añadido a btnLogin.");
+        } else {
+            console.error("¡ERROR CRÍTICO! No se encontró el elemento #btnLogin.");
+        }
 
-            // --- LISTENERS AUTH ---
-            const btnLogin = document.getElementById('btnLogin');
-            if (btnLogin) {
-                btnLogin.addEventListener('click', iniciarSesion);
-                console.log("Listener añadido a btnLogin.");
-            } else {
-                console.error("¡ERROR CRÍTICO! No se encontró el elemento #btnLogin.");
-            }
+        const btnForgotPassword = document.getElementById('btnForgotPassword');
+        if (btnForgotPassword) {
+            btnForgotPassword.addEventListener('click', enviarResetPassword);
+            console.log("Listener añadido a btnForgotPassword.");
+        } else {
+            console.error("¡ERROR CRÍTICO! No se encontró el elemento #btnForgotPassword.");
+        }
 
-            const btnForgotPassword = document.getElementById('btnForgotPassword');
-            if (btnForgotPassword) {
-                btnForgotPassword.addEventListener('click', enviarResetPassword);
-                console.log("Listener añadido a btnForgotPassword.");
-            } else {
-                console.error("¡ERROR CRÍTICO! No se encontró el elemento #btnForgotPassword.");
-            }
+        const btnCreate = document.getElementById('btnCreateAccount');
+        if (btnCreate) {
+            btnCreate.addEventListener('click', crearCuenta);
+            console.log("Listener añadido a btnCreateAccount.");
+        } else {
+            console.warn("Elemento #btnCreateAccount no encontrado."); 
+        }
 
-            const btnCreate = document.getElementById('btnCreateAccount');
-            if (btnCreate) {
-                btnCreate.addEventListener('click', crearCuenta);
-                console.log("Listener añadido a btnCreateAccount.");
-            } else {
-                console.warn("Elemento #btnCreateAccount no encontrado."); 
-            }
-
-            const btnLogout = document.getElementById('btnLogout');
-            if (btnLogout) {
-                btnLogout.addEventListener('click', cerrarSesion);
-                console.log("Listener añadido a btnLogout.");
-            } else {
-                console.warn("Elemento #btnLogout no encontrado.");
-            }
-            
-            // --- LISTENERS COLAPSABLES ---
-            document.querySelectorAll('.collapsible-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const targetId = header.dataset.target;
-                    const content = document.getElementById(targetId);
-                    if (content) {
-                        header.classList.toggle('open');
-                        content.classList.toggle('open');
-                    }
-                });
+        const btnLogout = document.getElementById('btnLogout');
+        if (btnLogout) {
+            btnLogout.addEventListener('click', cerrarSesion);
+            console.log("Listener añadido a btnLogout.");
+        } else {
+            console.warn("Elemento #btnLogout no encontrado.");
+        }
+        
+        // --- LISTENERS COLAPSABLES ---
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const targetId = header.dataset.target;
+                const content = document.getElementById(targetId);
+                if (content) {
+                    header.classList.toggle('open');
+                    content.classList.toggle('open');
+                }
             });
-
-            // --- LÓGICA "RECORDAR USUARIO" ---
-            const rememberedEmail = localStorage.getItem('rememberedEmail');
-            if (rememberedEmail) {
-                const loginEmailInput = document.getElementById('loginEmail');
-                const rememberMeCheckbox = document.getElementById('rememberMe');
-                if (loginEmailInput) loginEmailInput.value = rememberedEmail;
-                if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
-            }
-
-            // Inicializar UI y datos
-            actualizarHistorialUI();
-            fetchTipoDeCambio();
         });
 
-        // --- FUNCIONES DE AUTENTICACIÓN ---
-        function crearCuenta() {
-           if (typeof auth === 'undefined' || typeof db === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
-           const emailInput = document.getElementById('createEmail');
-           const passwordInput = document.getElementById('createPassword');
-           const errorElement = document.getElementById('createError');
-           if (!emailInput || !passwordInput || !errorElement) return;
-           const email = emailInput.value;
-           const password = passwordInput.value;
-           errorElement.textContent = '';
-           if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
-           
-           auth.createUserWithEmailAndPassword(email, password)
-               .then(userCredential => {
-                   const user = userCredential.user;
-                   console.log('Cuenta creada en Auth:', user.uid);
-                   const userDocRef = db.collection('usuarios').doc(user.uid);
-                   const hoy = new Date();
-                   const fechaExpiracion = new Date(hoy);
-                   fechaExpiracion.setDate(hoy.getDate() + 30); 
-
-                   return userDocRef.set({ 
-                       email: user.email, 
-                       suscripcionActiva: true, 
-                       fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
-                       fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(fechaExpiracion), 
-                       metodoPago: 'manual_admin',
-                       rol: 'cliente'
-                   });
-               })
-               .then(() => {
-                   console.log("Doc Firestore creado con fecha de expiración y rol.");
-                   showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
-                   emailInput.value = ''; 
-                   passwordInput.value = '';
-                   const adminDashboard = document.getElementById('admin-dashboard-card');
-                   if (adminDashboard && adminDashboard.style.display !== 'none') {
-                       cargarDashboardAdmin();
-                   }
-               })
-               .catch(error => {
-                   console.error("Error al crear cuenta o doc Firestore:", error);
-                   if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
-                   else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
-                   else { errorElement.textContent = `Error: ${error.message}`; }
-                   showToast(`❌ Error al crear cuenta`, 'error');
-               });
-        }
-
-        function iniciarSesion() {
-           if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
-           const emailInput = document.getElementById('loginEmail');
-           const passwordInput = document.getElementById('loginPassword');
-           const errorElement = document.getElementById('loginError');
-           const btnLogin = document.getElementById('btnLogin'); 
-           const rememberMeCheckbox = document.getElementById('rememberMe');
-           const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
-           
-           if (!emailInput || !passwordInput || !errorElement || !btnLogin) return; 
-           
-           const email = emailInput.value;
-           const password = passwordInput.value;
-           errorElement.textContent = 'Verificando...';
-           if (!email || !password) { 
-               errorElement.textContent = 'Ingresa correo y contraseña.'; 
-               return; 
-           }
-           
-            if (rememberMe) {
-                localStorage.setItem('rememberedEmail', email);
-            } else {
-                localStorage.removeItem('rememberedEmail');
-            }
-
-           btnLogin.disabled = true;
-           btnLogin.textContent = 'Verificando...';
-           
-           auth.signInWithEmailAndPassword(email, password)
-               .then(userCredential => { 
-                   console.log('Usuario inició sesión:', userCredential.user.email); 
-               })
-               .catch(error => {
-                   console.error("Error al iniciar sesión:", error);
-                   if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { 
-                       errorElement.textContent = 'Correo o contraseña incorrectos.'; 
-                   }
-                   else { errorElement.textContent = `Error: ${error.message}`; }
-                   
-                   btnLogin.disabled = false;
-                   btnLogin.textContent = 'Ingresar';
-               });
-        }
-
-        function enviarResetPassword() {
-           if (typeof auth === 'undefined') { showToast("Error de servicio", "error"); return; }
-           const emailInput = document.getElementById('loginEmail');
-           const errorElement = document.getElementById('loginError');
-           if (!emailInput || !errorElement) return;
-           const email = emailInput.value;
-
-           if (!email) {
-               errorElement.textContent = 'Por favor, ingresa tu correo para restablecer la contraseña.';
-               emailInput.focus();
-               return;
-           }
-
-           errorElement.textContent = 'Enviando correo...';
-           
-           auth.sendPasswordResetEmail(email)
-               .then(() => {
-                   errorElement.textContent = ''; 
-                   showToast(`✅ Correo de reenvío enviado a ${email}`, 'success', 5000);
-               })
-               .catch((error) => {
-                   console.error("Error al enviar correo de reseteo:", error);
-                   if (error.code === 'auth/user-not-found') {
-                       errorElement.textContent = 'No se encontró un usuario con ese correo.';
-                   } else {
-                       errorElement.textContent = `Error: ${error.message}`;
-                   }
-               });
-        }
-
-        function cerrarSesion() {
-           if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); return; }
-            const emailInput = document.getElementById('loginEmail');
-            const passwordInput = document.getElementById('loginPassword');
+        // --- LÓGICA "RECORDAR USUARIO" ---
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        if (rememberedEmail) {
+            const loginEmailInput = document.getElementById('loginEmail');
             const rememberMeCheckbox = document.getElementById('rememberMe');
-            
-            if (rememberMeCheckbox && !rememberMeCheckbox.checked) {
-                 if (emailInput) emailInput.value = '';
-            }
-            if (passwordInput) passwordInput.value = '';
-
-           auth.signOut().catch(error => { 
-               console.error('Error al cerrar sesión:', error); 
-               showToast('Error al cerrar sesión', 'error'); 
-           });
+            if (loginEmailInput) loginEmailInput.value = rememberedEmail;
+            if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
         }
 
-        // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
-        if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
-            auth.onAuthStateChanged(user => {
-                const authSection = document.getElementById('auth-section');
-                const appContent = document.getElementById('app-content');
-                const loginError = document.getElementById('loginError');
-                const headerButtons = document.getElementById('main-header-buttons');
-                const userInfoDisplay = document.getElementById('userInfoDisplay'); 
-                const createAccountWrapper = document.getElementById('create-account-form-wrapper');
-                const adminDashboard = document.getElementById('admin-dashboard-card');
-                
-                if (!authSection || !appContent || !loginError || !headerButtons || !userInfoDisplay || !createAccountWrapper || !adminDashboard) { 
-                    console.error("Elementos UI Auth cruciales no encontrados."); 
-                    if (document.body) document.body.innerHTML = "Error crítico de UI.";
-                    return; 
-                }
+        // Inicializar UI y datos
+        actualizarHistorialUI();
+        fetchTipoDeCambio();
+    });
 
-                if (user) {
-                    loginError.textContent = 'Verificando suscripción...';
-                    headerButtons.style.display = 'none';
+    // --- FUNCIONES DE AUTENTICACIÓN ---
+    function crearCuenta() {
+       if (typeof auth === 'undefined' || typeof db === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
+       const emailInput = document.getElementById('createEmail');
+       const passwordInput = document.getElementById('createPassword');
+       const errorElement = document.getElementById('createError');
+       if (!emailInput || !passwordInput || !errorElement) return;
+       const email = emailInput.value;
+       const password = passwordInput.value;
+       errorElement.textContent = '';
+       if (!email || !password) { errorElement.textContent = 'Ingresa correo y contraseña.'; return; }
+       
+       auth.createUserWithEmailAndPassword(email, password)
+           .then(userCredential => {
+               const user = userCredential.user;
+               console.log('Cuenta creada en Auth:', user.uid);
+               const userDocRef = db.collection('usuarios').doc(user.uid);
+               const hoy = new Date();
+               const fechaExpiracion = new Date(hoy);
+               fechaExpiracion.setDate(hoy.getDate() + 30); 
+
+               return userDocRef.set({ 
+                   email: user.email, 
+                   suscripcionActiva: true, 
+                   fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(), 
+                   fechaExpiracionSuscripcion: firebase.firestore.Timestamp.fromDate(fechaExpiracion), 
+                   metodoPago: 'manual_admin',
+                   rol: 'cliente'
+               });
+           })
+           .then(() => {
+               console.log("Doc Firestore creado con fecha de expiración y rol.");
+               showToast(`✅ Cuenta creada y activada para ${email}`, 'success');
+               emailInput.value = ''; 
+               passwordInput.value = '';
+               const adminDashboard = document.getElementById('admin-dashboard-card');
+               if (adminDashboard && adminDashboard.style.display !== 'none') {
+                   cargarDashboardAdmin();
+               }
+           })
+           .catch(error => {
+               console.error("Error al crear cuenta o doc Firestore:", error);
+               if (error.code === 'auth/email-already-in-use') { errorElement.textContent = 'Este correo ya está registrado.'; }
+               else if (error.code === 'auth/weak-password'){ errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.'; }
+               else { errorElement.textContent = `Error: ${error.message}`; }
+               showToast(`❌ Error al crear cuenta`, 'error');
+           });
+    }
+
+    function iniciarSesion() {
+       if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); showToast("Error de servicio", "error"); return; }
+       const emailInput = document.getElementById('loginEmail');
+       const passwordInput = document.getElementById('loginPassword');
+       const errorElement = document.getElementById('loginError');
+       const btnLogin = document.getElementById('btnLogin'); 
+       const rememberMeCheckbox = document.getElementById('rememberMe');
+       const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
+       
+       if (!emailInput || !passwordInput || !errorElement || !btnLogin) return; 
+       
+       const email = emailInput.value;
+       const password = passwordInput.value;
+       errorElement.textContent = 'Verificando...';
+       if (!email || !password) { 
+           errorElement.textContent = 'Ingresa correo y contraseña.'; 
+           return; 
+       }
+       
+        if (rememberMe) {
+            localStorage.setItem('rememberedEmail', email);
+        } else {
+            localStorage.removeItem('rememberedEmail');
+        }
+
+       btnLogin.disabled = true;
+       btnLogin.textContent = 'Verificando...';
+       
+       auth.signInWithEmailAndPassword(email, password)
+           .then(userCredential => { 
+               console.log('Usuario inició sesión:', userCredential.user.email); 
+           })
+           .catch(error => {
+               console.error("Error al iniciar sesión:", error);
+               if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') { 
+                   errorElement.textContent = 'Correo o contraseña incorrectos.'; 
+               }
+               else { errorElement.textContent = `Error: ${error.message}`; }
+               
+               btnLogin.disabled = false;
+               btnLogin.textContent = 'Ingresar';
+           });
+    }
+
+    function enviarResetPassword() {
+       if (typeof auth === 'undefined') { showToast("Error de servicio", "error"); return; }
+       const emailInput = document.getElementById('loginEmail');
+       const errorElement = document.getElementById('loginError');
+       if (!emailInput || !errorElement) return;
+       const email = emailInput.value;
+
+       if (!email) {
+           errorElement.textContent = 'Por favor, ingresa tu correo para restablecer la contraseña.';
+           emailInput.focus();
+           return;
+       }
+
+       errorElement.textContent = 'Enviando correo...';
+       
+       auth.sendPasswordResetEmail(email)
+           .then(() => {
+               errorElement.textContent = ''; 
+               showToast(`✅ Correo de reenvío enviado a ${email}`, 'success', 5000);
+           })
+           .catch((error) => {
+               console.error("Error al enviar correo de reseteo:", error);
+               if (error.code === 'auth/user-not-found') {
+                   errorElement.textContent = 'No se encontró un usuario con ese correo.';
+               } else {
+                   errorElement.textContent = `Error: ${error.message}`;
+               }
+           });
+    }
+
+    function cerrarSesion() {
+       if (typeof auth === 'undefined') { console.error("Firebase no inicializado"); return; }
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        const rememberMeCheckbox = document.getElementById('rememberMe');
+        
+        if (rememberMeCheckbox && !rememberMeCheckbox.checked) {
+             if (emailInput) emailInput.value = '';
+        }
+        if (passwordInput) passwordInput.value = '';
+
+       auth.signOut().catch(error => { 
+           console.error('Error al cerrar sesión:', error); 
+           showToast('Error al cerrar sesión', 'error'); 
+       });
+    }
+
+    // --- GESTIÓN DEL ESTADO DE AUTENTICACIÓN Y SUSCRIPCIÓN ---
+    if (typeof auth !== 'undefined' && typeof db !== 'undefined') {
+        auth.onAuthStateChanged(user => {
+            const authSection = document.getElementById('auth-section');
+            const appContent = document.getElementById('app-content');
+            const loginError = document.getElementById('loginError');
+            const headerButtons = document.getElementById('main-header-buttons');
+            const userInfoDisplay = document.getElementById('userInfoDisplay'); 
+            const createAccountWrapper = document.getElementById('create-account-form-wrapper');
+            const adminDashboard = document.getElementById('admin-dashboard-card');
+            
+            if (!authSection || !appContent || !loginError || !headerButtons || !userInfoDisplay || !createAccountWrapper || !adminDashboard) { 
+                console.error("Elementos UI Auth cruciales no encontrados."); 
+                if (document.body) document.body.innerHTML = "Error crítico de UI.";
+                return; 
+            }
+
+            if (user) {
+                loginError.textContent = 'Verificando suscripción...';
+                headerButtons.style.display = 'none';
+                
+                const userDocRef = db.collection('usuarios').doc(user.uid);
+                
+                userDocRef.get().then(doc => {
+                    const datosUsuario = doc.exists ? doc.data() : null;
+                    let esAdmin = datosUsuario && datosUsuario.rol === 'admin';
                     
-                    const userDocRef = db.collection('usuarios').doc(user.uid);
-                    
-                    userDocRef.get().then(doc => {
-                        const datosUsuario = doc.exists ? doc.data() : null;
-                        let esAdmin = datosUsuario && datosUsuario.rol === 'admin';
+                    if (esAdmin) {
+                        createAccountWrapper.style.display = 'block';
+                        adminDashboard.style.display = 'block';
+                        cargarDashboardAdmin(); 
+                        setupAdminSearch(); 
+                    } else {
+                        createAccountWrapper.style.display = 'none';
+                        adminDashboard.style.display = 'none';
+                    }
+                   
+                    const hoy = new Date();
+                    hoy.setHours(0,0,0,0);
+                    let suscripcionValida = false;
+                    if (datosUsuario && datosUsuario.suscripcionActiva === true && datosUsuario.fechaExpiracionSuscripcion) {
+                        const fechaExp = datosUsuario.fechaExpiracionSuscripcion.toDate();
+                        fechaExp.setHours(0,0,0,0);
                         
-                        if (esAdmin) {
-                            createAccountWrapper.style.display = 'block';
-                            adminDashboard.style.display = 'block';
-                            cargarDashboardAdmin(); 
-                            setupAdminSearch(); 
+                        const diffTime = fechaExp.getTime() - hoy.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                        
+                        if (diffDays >= 0) {
+                            suscripcionValida = true;
                         } else {
-                            createAccountWrapper.style.display = 'none';
-                            adminDashboard.style.display = 'none';
+                            console.log("Suscripción expirada.");
+                            loginError.textContent = 'Tu suscripción ha expirado. Contacta al administrador para renovarla.';
                         }
-                       
-                        const hoy = new Date();
-                        hoy.setHours(0,0,0,0);
-                        let suscripcionValida = false;
-                        if (datosUsuario && datosUsuario.suscripcionActiva === true && datosUsuario.fechaExpiracionSuscripcion) {
+                    } else if (!datosUsuario) {
+                         console.log("Documento de usuario no existe en Firestore.");
+                         loginError.textContent = 'Error de configuración de cuenta (No Doc). Contacta al admin.';
+                    } else if (datosUsuario.suscripcionActiva !== true) {
+                         console.log("Suscripción NO activa.");
+                         loginError.textContent = 'Necesitas una suscripción activa.';
+                    } else if (!datosUsuario.fechaExpiracionSuscripcion) {
+                         console.log("Falta fecha de expiración en Firestore.");
+                         loginError.textContent = 'Error de configuración de cuenta (No Date). Contacta al admin.';
+                    }
+
+                    if (suscripcionValida) {
+                        console.log("Suscripción activa y vigente. Mostrando app.");
+                        authSection.style.display = 'none';
+                        appContent.style.display = 'block';
+                        headerButtons.style.display = 'flex';
+                        loginError.textContent = '';
+
+                        const userInfoEmail = document.getElementById('userInfoEmail');
+                        const userInfoExpiry = document.getElementById('userInfoExpiry');
+                        if (userInfoEmail && userInfoExpiry && datosUsuario.fechaExpiracionSuscripcion) {
+                            userInfoEmail.textContent = user.email;
                             const fechaExp = datosUsuario.fechaExpiracionSuscripcion.toDate();
-                            fechaExp.setHours(0,0,0,0);
-                            
-                            const diffTime = fechaExp.getTime() - hoy.getTime();
+                            const hoyMedianoche = new Date();
+                            hoyMedianoche.setHours(0, 0, 0, 0);
+                            const diffTime = fechaExp.getTime() - hoyMedianoche.getTime();
                             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
                             
-                            if (diffDays >= 0) {
-                                suscripcionValida = true;
+                            if (diffDays < 0) {
+                                 userInfoExpiry.textContent = `Vencida`;
+                                 userInfoExpiry.style.color = '#dc2626';
+                            } else if (diffDays === 0) {
+                                userInfoExpiry.textContent = `Vence Hoy`;
+                                userInfoExpiry.style.color = '#dc2626';
+                            } else if (diffDays === 1) {
+                                userInfoExpiry.textContent = `1 día restante`;
+                                 userInfoExpiry.style.color = '#f59e0b';
                             } else {
-                                console.log("Suscripción expirada.");
-                                loginError.textContent = 'Tu suscripción ha expirado. Contacta al administrador para renovarla.';
-                            }
-                        } else if (!datosUsuario) {
-                             console.log("Documento de usuario no existe en Firestore.");
-                             loginError.textContent = 'Error de configuración de cuenta (No Doc). Contacta al admin.';
-                        } else if (datosUsuario.suscripcionActiva !== true) {
-                             console.log("Suscripción NO activa.");
-                             loginError.textContent = 'Necesitas una suscripción activa.';
-                        } else if (!datosUsuario.fechaExpiracionSuscripcion) {
-                             console.log("Falta fecha de expiración en Firestore.");
-                             loginError.textContent = 'Error de configuración de cuenta (No Date). Contacta al admin.';
-                        }
-
-                        if (suscripcionValida) {
-                            console.log("Suscripción activa y vigente. Mostrando app.");
-                            authSection.style.display = 'none';
-                            appContent.style.display = 'block';
-                            headerButtons.style.display = 'flex';
-                            loginError.textContent = '';
-
-                            const userInfoEmail = document.getElementById('userInfoEmail');
-                            const userInfoExpiry = document.getElementById('userInfoExpiry');
-                            if (userInfoEmail && userInfoExpiry && datosUsuario.fechaExpiracionSuscripcion) {
-                                userInfoEmail.textContent = user.email;
-                                const fechaExp = datosUsuario.fechaExpiracionSuscripcion.toDate();
-                                const hoyMedianoche = new Date();
-                                hoyMedianoche.setHours(0, 0, 0, 0);
-                                const diffTime = fechaExp.getTime() - hoyMedianoche.getTime();
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                                
-                                if (diffDays < 0) {
-                                     userInfoExpiry.textContent = `Vencida`;
-                                     userInfoExpiry.style.color = '#dc2626';
-                                } else if (diffDays === 0) {
-                                    userInfoExpiry.textContent = `Vence Hoy`;
-                                    userInfoExpiry.style.color = '#dc2626';
-                                } else if (diffDays === 1) {
-                                    userInfoExpiry.textContent = `1 día restante`;
-                                     userInfoExpiry.style.color = '#f59e0b';
+                                userInfoExpiry.textContent = `${diffDays} días restantes`;
+                                 if (diffDays <= 7) {
+                                    userInfoExpiry.style.color = '#f59e0b';
                                 } else {
-                                    userInfoExpiry.textContent = `${diffDays} días restantes`;
-                                     if (diffDays <= 7) {
-                                        userInfoExpiry.style.color = '#f59e0b';
-                                    } else {
-                                        userInfoExpiry.style.color = '#15803d';
-                                    }
+                                    userInfoExpiry.style.color = '#15803d';
                                 }
-                                userInfoDisplay.style.display = 'block';
-                            } else {
-                                userInfoDisplay.style.display = 'none';
                             }
-
+                            userInfoDisplay.style.display = 'block';
                         } else {
-                            authSection.style.display = 'block'; 
-                            appContent.style.display = 'none';
-                            headerButtons.style.display = 'none';
                             userInfoDisplay.style.display = 'none';
                         }
-                    }).catch(error => {
-                        console.error("Error al verificar Firestore:", error);
-                        authSection.style.display = 'block';
+
+                    } else {
+                        authSection.style.display = 'block'; 
                         appContent.style.display = 'none';
                         headerButtons.style.display = 'none';
                         userInfoDisplay.style.display = 'none';
-                        loginError.textContent = 'Error verificando suscripción.';
-                    });
-                } else {
-                    console.log('Estado: Deslogueado');
+                    }
+                }).catch(error => {
+                    console.error("Error al verificar Firestore:", error);
                     authSection.style.display = 'block';
                     appContent.style.display = 'none';
                     headerButtons.style.display = 'none';
-                    loginError.textContent = '';
-                    userInfoDisplay.style.display = 'none'; 
-                    createAccountWrapper.style.display = 'none';
-                    adminDashboard.style.display = 'none';
-                    
-                    const btnLogin = document.getElementById('btnLogin');
-                    if (btnLogin) {
-                        btnLogin.disabled = false;
-                        btnLogin.textContent = 'Ingresar';
-                    }
+                    userInfoDisplay.style.display = 'none';
+                    loginError.textContent = 'Error verificando suscripción.';
+                });
+            } else {
+                console.log('Estado: Deslogueado');
+                authSection.style.display = 'block';
+                appContent.style.display = 'none';
+                headerButtons.style.display = 'none';
+                loginError.textContent = '';
+                userInfoDisplay.style.display = 'none'; 
+                createAccountWrapper.style.display = 'none';
+                adminDashboard.style.display = 'none';
+                
+                const btnLogin = document.getElementById('btnLogin');
+                if (btnLogin) {
+                    btnLogin.disabled = false;
+                    btnLogin.textContent = 'Ingresar';
                 }
-            });
+            }
+        });
+    } else {
+        console.error("Firebase Auth o Firestore no definidos globalmente.");
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginError = document.getElementById('loginError');
+            if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
+            else if (document.body) document.body.innerHTML = "Error crítico de Firebase.";
+        });
+    }
+
+    // --- FUNCIONES DE FORMATO ---
+    function formatUSD(num) { return '$' + Math.round(num).toLocaleString("en-US"); }
+    function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR"); }
+
+    // --- FUNCIÓN DEL TOAST ---
+    function showToast(message, type = 'info', duration = 3000) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        clearTimeout(toastTimeout);
+        toast.textContent = message;
+        toast.className = 'toast'; 
+        toast.classList.add(type); 
+        toast.classList.add('show'); 
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+    
+    // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
+    function validarInicioAno() {
+        const anoInput = document.getElementById('ano');
+        const ayudaAno = document.getElementById('ayudaAno');
+        if (!anoInput || !ayudaAno) return;
+        const valor = anoInput.value;
+        if (valor.length > 0 && valor[0] !== '1' && valor[0] !== '2') {
+            ayudaAno.innerHTML = '<span style="color: #dc2626;">El año debe comenzar con 1 o 2</span>';
         } else {
-            console.error("Firebase Auth o Firestore no definidos globalmente.");
-            document.addEventListener('DOMContentLoaded', () => {
-                const loginError = document.getElementById('loginError');
-                if(loginError) loginError.textContent = 'Error crítico al cargar servicios.';
-                else if (document.body) document.body.innerHTML = "Error crítico de Firebase.";
-            });
+            if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) {
+                ayudaAno.innerHTML = '';
+            }
+        }
+    }
+
+    function validarAno() {
+        const anoInput = document.getElementById('ano');
+        const ayudaAno = document.getElementById('ayudaAno');
+        if (!anoInput || !ayudaAno) return;
+        const ano = parseInt(anoInput.value);
+        if (!ano || ano < 1980 || ano > anoActual + 1) {
+            ayudaAno.innerHTML = '<span style="color: #dc2626;">Año inválido (1980 - ' + (anoActual + 1) + ')</span>';
+        } else {
+            const antiguedad = anoActual - ano;
+            const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
+            ayudaAno.textContent = `${antiguedad} años | Impuesto: ${porcentaje}`;
+        }
+    }
+
+    function calcular() {
+        const anoInput = document.getElementById('ano');
+        const valorInput = document.getElementById('valor');
+        const fleteInput = document.getElementById('flete');
+        const tcInput = document.getElementById('tipoCambio');
+        const resultadoTotalEl = document.getElementById('resultadoTotal');
+        const resultadoDiv = document.getElementById('resultado');
+        const tcFooterEl = document.getElementById('tcFooter');
+
+        if (!anoInput || !valorInput || !fleteInput || !tcInput || !resultadoTotalEl || !resultadoDiv || !tcFooterEl) {
+            showToast('Error interno: Elementos del formulario no encontrados.', 'error');
+            return;
         }
 
-        // --- FUNCIONES DE FORMATO ---
-        function formatUSD(num) { return '$' + Math.round(num).toLocaleString("en-US"); }
-        function formatCRC(num) { return '₡' + Math.round(num).toLocaleString("es-CR"); }
-
-        // --- FUNCIÓN DEL TOAST ---
-        function showToast(message, type = 'info', duration = 3000) {
-            const toast = document.getElementById('toast');
-            if (!toast) return;
-            clearTimeout(toastTimeout);
-            toast.textContent = message;
-            toast.className = 'toast'; 
-            toast.classList.add(type); 
-            toast.classList.add('show'); 
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
+        const ano = parseInt(anoInput.value);
+        const valor = parseFloat(valorInput.value) || 0;
+        const flete = parseFloat(fleteInput.value) || 0;
+        const tc = parseFloat(tcInput.value) || 0;
+        
+         if (!ano || ano < 1980 || ano > anoActual + 1) {
+             showToast('Por favor, ingrese un año válido', 'error');
+             anoInput.focus();
+             return;
+         }
+        if (valor <= 0 || flete <= 0 || tc <= 0) { 
+            showToast('Faltan campos obligatorios (Año, Valor > 0, Flete > 0, TC > 0)', 'error'); 
+            return; 
         }
         
-        // --- LÓGICA DE CÁLCULO Y VALIDACIÓN ---
-        function validarInicioAno() {
-            const anoInput = document.getElementById('ano');
-            const ayudaAno = document.getElementById('ayudaAno');
-            if (!anoInput || !ayudaAno) return;
-            const valor = anoInput.value;
-            if (valor.length > 0 && valor[0] !== '1' && valor[0] !== '2') {
-                ayudaAno.innerHTML = '<span style="color: #dc2626;">El año debe comenzar con 1 o 2</span>';
-            } else {
-                if (ayudaAno.innerHTML.includes('comenzar con 1 o 2')) {
-                    ayudaAno.innerHTML = '';
-                }
-            }
+        const antiguedad = anoActual - ano;
+        const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
+        const valorPlusFlete = valor + flete;
+        const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
+        const baseImpuestos = valorPlusFlete + totalSeguros; 
+        const impuestosUSD = baseImpuestos * porcentajeImpuesto;
+        const subtotalVehiculoCRC = valorPlusFlete * tc; 
+        const impuestosCRC = impuestosUSD * tc;
+        const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
+        const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
+        const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
+
+        calculoActual = { 
+            ano, valor, flete, antiguedad, 
+            totalSeguros, baseImpuestos, impuestosUSD, 
+            papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
+            declaracion: COSTOS_FIJOS.DECLARACION_CR, 
+            dekra: COSTOS_FIJOS.DEKRA, 
+            almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
+            tc, totalColones, 
+            fecha: new Date().toLocaleString('es-CR'),
+            vinInfo: { ...currentVinInfo } 
+        };
+        
+        resultadoTotalEl.textContent = formatCRC(totalColones);
+        resultadoDiv.classList.remove('hidden');
+        tcFooterEl.textContent = tc.toFixed(2);
+        const detalleDiv = document.getElementById('detalle');
+        if(detalleDiv) detalleDiv.classList.add('hidden');
+    }
+
+    function mostrarDetalle() {
+        const detalleContentEl = document.getElementById('detalleContent');
+        const detalleDiv = document.getElementById('detalle');
+        if (!calculoActual || !detalleContentEl || !detalleDiv) return;
+        
+        const d = calculoActual;
+        const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
+        let html = `
+            <div class="section-header">VALORES EN DÓLARES</div>
+            <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
+            <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
+            <div class="detail-row subtotal" style="border-bottom: none;"><span class="detail-label">Subtotal USD</span><span class="detail-value">${formatUSD(d.valor + d.flete)}</span></div>
+            <div class="section-header" style="margin-top: 20px;">VALORES EN COLONES</div>
+            <div class="detail-row"><span class="detail-label">Vehículo+Flete</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
+            <div class="detail-row"><span class="detail-label">Impuestos (${d.antiguedad <= 6 ? '48.37%' : '68.37%'})</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
+            <div class="detail-row" style="border-bottom: none;"><span class="detail-label">Gastos Admin.</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
+            <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
+        detalleContentEl.innerHTML = html;
+        detalleDiv.classList.remove('hidden');
+    }
+
+    // --- FUNCIONES (HERRAMIENTAS) ---
+    function convertirMillaje(event) {
+        const millajeInput = document.getElementById('millaje');
+        const anoInput = document.getElementById('ano');
+        const resultadoCard = document.getElementById('millajeInfoCard');
+        const resultadoLabel = document.getElementById('millajeResultadoLabel');
+        const resultadoValor = document.getElementById('millajeResultadoValor');
+        const promedioLabel = document.getElementById('millajePromedioLabel');
+        const promedioValor = document.getElementById('millajePromedioValor');
+        const promedioStatus = document.getElementById('millajePromedioStatus');
+        const btnMillas = document.getElementById('btnMillasAKm');
+        const btnKms = document.getElementById('btnKmsAMillas');
+
+        if (!millajeInput || !anoInput || !resultadoCard || !resultadoLabel || !resultadoValor || !promedioLabel || !promedioValor || !promedioStatus || !btnMillas || !btnKms) return;
+
+        if (btnMillas) btnMillas.classList.remove('active');
+        if (btnKms) btnKms.classList.remove('active');
+        if (event && event.target) event.target.classList.add('active');
+        
+        const valorInput = parseFloat(millajeInput.value);
+        const ano = parseInt(anoInput.value);
+
+        if (isNaN(valorInput) || valorInput < 0) { 
+            showToast('Ingrese un valor de millaje válido', 'error'); 
+            if (event && event.target) event.target.classList.remove('active');
+            resultadoCard.classList.add('hidden');
+            return; 
         }
-
-        function validarAno() {
-            const anoInput = document.getElementById('ano');
-            const ayudaAno = document.getElementById('ayudaAno');
-            if (!anoInput || !ayudaAno) return;
-            const ano = parseInt(anoInput.value);
-            if (!ano || ano < 1980 || ano > anoActual + 1) {
-                ayudaAno.innerHTML = '<span style="color: #dc2626;">Año inválido (1980 - ' + (anoActual + 1) + ')</span>';
-            } else {
-                const antiguedad = anoActual - ano;
-                const porcentaje = antiguedad <= 6 ? '48.37%' : '68.37%';
-                ayudaAno.textContent = `${antiguedad} años | Impuesto: ${porcentaje}`;
-            }
+        if (isNaN(ano) || ano < 1980 || ano > anoActual + 1) { 
+            showToast('Ingrese un año de vehículo válido', 'error'); 
+            if (event && event.target) event.target.classList.remove('active');
+            resultadoCard.classList.add('hidden');
+            return; 
         }
+        const antiguedad = Math.max(1, anoActual - ano + 1);
+        let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
+        let esMillasAKm = event.target.id === 'btnMillasAKm';
 
-        function calcular() {
-            const anoInput = document.getElementById('ano');
-            const valorInput = document.getElementById('valor');
-            const fleteInput = document.getElementById('flete');
-            const tcInput = document.getElementById('tipoCambio');
-            const resultadoTotalEl = document.getElementById('resultadoTotal');
-            const resultadoDiv = document.getElementById('resultado');
-            const tcFooterEl = document.getElementById('tcFooter');
-
-            if (!anoInput || !valorInput || !fleteInput || !tcInput || !resultadoTotalEl || !resultadoDiv || !tcFooterEl) {
-                showToast('Error interno: Elementos del formulario no encontrados.', 'error');
-                return;
-            }
-
-            const ano = parseInt(anoInput.value);
-            const valor = parseFloat(valorInput.value) || 0;
-            const flete = parseFloat(fleteInput.value) || 0;
-            const tc = parseFloat(tcInput.value) || 0;
-            
-             if (!ano || ano < 1980 || ano > anoActual + 1) {
-                 showToast('Por favor, ingrese un año válido', 'error');
-                 anoInput.focus();
-                 return;
-             }
-            if (valor <= 0 || flete <= 0 || tc <= 0) { 
-                showToast('Faltan campos obligatorios (Año, Valor > 0, Flete > 0, TC > 0)', 'error'); 
-                return; 
-            }
-            
-            const antiguedad = anoActual - ano;
-            const porcentajeImpuesto = antiguedad <= 6 ? 0.4837 : 0.6837;
-            const valorPlusFlete = valor + flete;
-            const totalSeguros = valorPlusFlete * (COSTOS_FIJOS.SEGURO_1 + COSTOS_FIJOS.SEGURO_2);
-            const baseImpuestos = valorPlusFlete + totalSeguros; 
-            const impuestosUSD = baseImpuestos * porcentajeImpuesto;
-            const subtotalVehiculoCRC = valorPlusFlete * tc; 
-            const impuestosCRC = impuestosUSD * tc;
-            const papeleoUSACRC = COSTOS_FIJOS.PAPELEO_USA * tc;
-            const gastosFijosCRC = COSTOS_FIJOS.DECLARACION_CR + COSTOS_FIJOS.DEKRA + COSTOS_FIJOS.ALMACENAMIENTO;
-            const totalColones = subtotalVehiculoCRC + impuestosCRC + papeleoUSACRC + gastosFijosCRC;
-
-            calculoActual = { 
-                ano, valor, flete, antiguedad, 
-                totalSeguros, baseImpuestos, impuestosUSD, 
-                papeleoUSA: COSTOS_FIJOS.PAPELEO_USA, 
-                declaracion: COSTOS_FIJOS.DECLARACION_CR, 
-                dekra: COSTOS_FIJOS.DEKRA, 
-                almacenamiento: COSTOS_FIJOS.ALMACENAMIENTO, 
-                tc, totalColones, 
-                fecha: new Date().toLocaleString('es-CR'),
-                vinInfo: { ...currentVinInfo } 
-            };
-            
-            resultadoTotalEl.textContent = formatCRC(totalColones);
-            resultadoDiv.classList.remove('hidden');
-            tcFooterEl.textContent = tc.toFixed(2);
-            const detalleDiv = document.getElementById('detalle');
-            if(detalleDiv) detalleDiv.classList.add('hidden');
+        if (esMillasAKm) {
+            resultadoNum = valorInput * KM_POR_MILLA;
+            promedio = PROMEDIO_MILLAS_ANO * antiguedad;
+            esSobrePromedio = valorInput > promedio;
+            promedioPorAno = valorInput / antiguedad;
+            resultadoLabel.textContent = "Total KMs";
+            resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
+            promedioLabel.textContent = `Promedio (${Math.round(PROMEDIO_MILLAS_ANO/1000)}k Millas/Año)`;
+            promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
+        } else {
+            resultadoNum = valorInput * MILLAS_POR_KM;
+            promedio = PROMEDIO_KMS_ANO * antiguedad;
+            esSobrePromedio = valorInput > promedio;
+            promedioPorAno = valorInput / antiguedad;
+            resultadoLabel.textContent = "Total Millas";
+            resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
+            promedioLabel.textContent = `Promedio (${Math.round(PROMEDIO_KMS_ANO/1000)}k KMs/Año)`;
+            promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
         }
+        promedioStatus.textContent = esSobrePromedio ? 'Sobre el promedio' : 'Debajo del promedio';
+        promedioStatus.style.color = esSobrePromedio ? '#dc2626' : '#15803d';
+        resultadoCard.classList.remove('hidden');
+    }
 
-        function mostrarDetalle() {
-            const detalleContentEl = document.getElementById('detalleContent');
-            const detalleDiv = document.getElementById('detalle');
-            if (!calculoActual || !detalleContentEl || !detalleDiv) return;
-            
-            const d = calculoActual;
-            const gastosAdminColones = (d.papeleoUSA * d.tc) + d.declaracion + d.dekra + d.almacenamiento;
-            let html = `
-                <div class="section-header">VALORES EN DÓLARES</div>
-                <div class="detail-row"><span class="detail-label">Valor vehículo</span><span class="detail-value">${formatUSD(d.valor)}</span></div>
-                <div class="detail-row"><span class="detail-label">Flete</span><span class="detail-value">${formatUSD(d.flete)}</span></div>
-                <div class="detail-row subtotal" style="border-bottom: none;"><span class="detail-label">Subtotal USD</span><span class="detail-value">${formatUSD(d.valor + d.flete)}</span></div>
-                <div class="section-header" style="margin-top: 20px;">VALORES EN COLONES</div>
-                <div class="detail-row"><span class="detail-label">Vehículo+Flete</span><span class="detail-value">${formatCRC((d.valor + d.flete) * d.tc)}</span></div>
-                <div class="detail-row"><span class="detail-label">Impuestos (${d.antiguedad <= 6 ? '48.37%' : '68.37%'})</span><span class="detail-value">${formatCRC(d.impuestosUSD * d.tc)}</span></div>
-                <div class="detail-row" style="border-bottom: none;"><span class="detail-label">Gastos Admin.</span><span class="detail-value">${formatCRC(gastosAdminColones)}</span></div>
-                <div class="total-row"><span>GRAN TOTAL</span><span>${formatCRC(d.totalColones)}</span></div>`;
-            detalleContentEl.innerHTML = html;
-            detalleDiv.classList.remove('hidden');
+    function calcularTraspaso() {
+        const valorFiscalInput = document.getElementById('valorFiscal');
+        const resultadoEl = document.getElementById('resultadoTraspaso');
+        if (!valorFiscalInput || !resultadoEl) return;
+
+        const valorFiscal = parseFloat(valorFiscalInput.value);
+        if (isNaN(valorFiscal) || valorFiscal <= 0) {
+            showToast('Ingrese un valor fiscal válido', 'error'); 
+            resultadoEl.innerHTML = '<p style="color:#dc2626; font-size:12px;">Ingrese un valor fiscal válido</p>'; 
+            return;
         }
+        const timbres = valorFiscal * PORCENTAJE_TIMBRES;
+        const total = timbres + HONORARIOS_TRASPASO;
+        resultadoEl.style.color = '#1f2937';
+        resultadoEl.innerHTML = `
+            <div class="detail-row"><span class="detail-label">Timbres (${(PORCENTAJE_TIMBRES * 100).toFixed(1)}%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
+            <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios Aprox.</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
+            <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
+    }
 
-        // --- FUNCIONES (HERRAMIENTAS) ---
-        function convertirMillaje(event) {
-            const millajeInput = document.getElementById('millaje');
-            const anoInput = document.getElementById('ano');
-            const resultadoCard = document.getElementById('millajeInfoCard');
-            const resultadoLabel = document.getElementById('millajeResultadoLabel');
-            const resultadoValor = document.getElementById('millajeResultadoValor');
-            const promedioLabel = document.getElementById('millajePromedioLabel');
-            const promedioValor = document.getElementById('millajePromedioValor');
-            const promedioStatus = document.getElementById('millajePromedioStatus');
-            const btnMillas = document.getElementById('btnMillasAKm');
-            const btnKms = document.getElementById('btnKmsAMillas');
-
-            if (!millajeInput || !anoInput || !resultadoCard || !resultadoLabel || !resultadoValor || !promedioLabel || !promedioValor || !promedioStatus || !btnMillas || !btnKms) return;
-
-            if (btnMillas) btnMillas.classList.remove('active');
-            if (btnKms) btnKms.classList.remove('active');
-            if (event && event.target) event.target.classList.add('active');
-            
-            const valorInput = parseFloat(millajeInput.value);
-            const ano = parseInt(anoInput.value);
-
-            if (isNaN(valorInput) || valorInput < 0) { 
-                showToast('Ingrese un valor de millaje válido', 'error'); 
-                if (event && event.target) event.target.classList.remove('active');
-                resultadoCard.classList.add('hidden');
-                return; 
-            }
-            if (isNaN(ano) || ano < 1980 || ano > anoActual + 1) { 
-                showToast('Ingrese un año de vehículo válido', 'error'); 
-                if (event && event.target) event.target.classList.remove('active');
-                resultadoCard.classList.add('hidden');
-                return; 
-            }
-            const antiguedad = Math.max(1, anoActual - ano + 1);
-            let resultadoNum, promedio, esSobrePromedio, promedioPorAno;
-            let esMillasAKm = event.target.id === 'btnMillasAKm';
-
-            if (esMillasAKm) {
-                resultadoNum = valorInput * KM_POR_MILLA;
-                promedio = PROMEDIO_MILLAS_ANO * antiguedad;
-                esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad;
-                resultadoLabel.textContent = "Total KMs";
-                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('es-CR');
-                promedioLabel.textContent = `Promedio (${Math.round(PROMEDIO_MILLAS_ANO/1000)}k Millas/Año)`;
-                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('en-US');
-            } else {
-                resultadoNum = valorInput * MILLAS_POR_KM;
-                promedio = PROMEDIO_KMS_ANO * antiguedad;
-                esSobrePromedio = valorInput > promedio;
-                promedioPorAno = valorInput / antiguedad;
-                resultadoLabel.textContent = "Total Millas";
-                resultadoValor.textContent = Math.round(resultadoNum).toLocaleString('en-US');
-                promedioLabel.textContent = `Promedio (${Math.round(PROMEDIO_KMS_ANO/1000)}k KMs/Año)`;
-                promedioValor.textContent = Math.round(promedioPorAno).toLocaleString('es-CR');
-            }
-            promedioStatus.textContent = esSobrePromedio ? 'Sobre el promedio' : 'Debajo del promedio';
-            promedioStatus.style.color = esSobrePromedio ? '#dc2626' : '#15803d';
-            resultadoCard.classList.remove('hidden');
-        }
-
-        function calcularTraspaso() {
-            const valorFiscalInput = document.getElementById('valorFiscal');
-            const resultadoEl = document.getElementById('resultadoTraspaso');
-            if (!valorFiscalInput || !resultadoEl) return;
-
-            const valorFiscal = parseFloat(valorFiscalInput.value);
-            if (isNaN(valorFiscal) || valorFiscal <= 0) {
-                showToast('Ingrese un valor fiscal válido', 'error'); 
-                resultadoEl.innerHTML = '<p style="color:#dc2626; font-size:12px;">Ingrese un valor fiscal válido</p>'; 
-                return;
-            }
-            const timbres = valorFiscal * PORCENTAJE_TIMBRES;
-            const total = timbres + HONORARIOS_TRASPASO;
-            resultadoEl.style.color = '#1f2937';
-            resultadoEl.innerHTML = `
-                <div class="detail-row"><span class="detail-label">Timbres (${(PORCENTAJE_TIMBRES * 100).toFixed(1)}%)</span><span class="detail-value">${formatCRC(timbres)}</span></div>
-                <div class="detail-row" style="border:none;"><span class="detail-label">Honorarios Aprox.</span><span class="detail-value">${formatCRC(HONORARIOS_TRASPASO)}</span></div>
-                <div class="total-row" style="margin-top: 8px;"><span>TOTAL APROX.</span><span>${formatCRC(total)}</span></div>`;
-        }
-
-        // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
-        function guardarHistorial() { 
-            const anoInput = document.getElementById('ano');
-            const vinMakeEl = document.getElementById('vinMake');
-            const vinModelEl = document.getElementById('vinModel');
-            
-            if (!calculoActual || !anoInput || !vinMakeEl || !vinModelEl) {
-                showToast('Primero debes calcular un vehículo', 'error');
-                return;
-            } 
-            
-            let infoAno = anoInput.value || 'N/D';
-            calculoActual.vinInfo = { 
-                make: vinMakeEl.textContent || 'N/D',
-                model: vinModelEl.textContent || 'N/D',
-                year: infoAno
-            };
-            
-            historial.unshift({id: Date.now(), ...calculoActual }); 
-            
-            try {
-                localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
-                showToast('✅ Cálculo guardado con éxito', 'success'); 
-                actualizarHistorialUI(); 
-            } catch (e) {
-                console.error("Error guardando historial en localStorage:", e);
-                showToast('Error al guardar historial', 'error');
-            }
-        }
-
-        function actualizarHistorialUI() { 
-            const card = document.getElementById('historialCard'); 
-            const content = document.getElementById('historialContent'); 
-            if (!card || !content) return;
-
-            if (historial.length === 0) { 
-                content.innerHTML = '<p style="text-align:center; color:#6b7280; font-size:13px;">No hay cálculos guardados.</p>';
-                return; 
-            } 
-            
-            let html = ''; 
-            historial.forEach(item => { 
-                const isSelected = vehiculosSeleccionados.has(item.id); 
-                const cardClass = `comparison-card ${isSelected ? 'selected' : ''}`; 
-                let vehicleInfoText = '';
-                if (item.vinInfo && item.vinInfo.make && item.vinInfo.make !== 'N/D' && item.vinInfo.model && item.vinInfo.model !== 'N/D') {
-                    vehicleInfoText = `${item.vinInfo.year || ''} ${item.vinInfo.make} ${item.vinInfo.model}`;
-                } else if (item.ano) { 
-                    vehicleInfoText = `Año: ${item.ano}`;
-                } else {
-                    vehicleInfoText = "Vehículo (sin info)";
-                }
-                html += `
-                    <div class="${cardClass}" data-id="${item.id}" onclick="seleccionarComparacion(${item.id})">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="historial-vehicle-info">${vehicleInfoText.trim()}</div>
-                            <div style="font-weight: bold; color: #2563eb;">${formatCRC(item.totalColones)}</div>
-                        </div>
-                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Valor: ${formatUSD(item.valor || 0)} + Flete: ${formatUSD(item.flete || 0)}</div>
-                        <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">${item.fecha || ''}</div>
-                        ${isSelected ? '<div style="font-size: 11px; color: #1e40af; margin-top: 4px; font-weight: 500;">✓ Comparando</div>' : ''}
-                    </div>`; 
-            }); 
-            content.innerHTML = html; 
-        }
-
-        function seleccionarComparacion(id) { 
-            if (!modoComparacion) return;
-            if (vehiculosSeleccionados.has(id)) { 
-                vehiculosSeleccionados.delete(id); 
-            } else if (vehiculosSeleccionados.size < 2) { 
-                vehiculosSeleccionados.add(id); 
-            } else {
-                showToast('Puedes comparar máximo 2 vehículos', 'info');
-            }
+    // --- LÓGICA DE HISTORIAL Y COMPARACIÓN ---
+    function guardarHistorial() { 
+        const anoInput = document.getElementById('ano');
+        const vinMakeEl = document.getElementById('vinMake');
+        const vinModelEl = document.getElementById('vinModel');
+        
+        if (!calculoActual || !anoInput || !vinMakeEl || !vinModelEl) {
+            showToast('Primero debes calcular un vehículo', 'error');
+            return;
+        } 
+        
+        let infoAno = anoInput.value || 'N/D';
+        calculoActual.vinInfo = { 
+            make: vinMakeEl.textContent || 'N/D',
+            model: vinModelEl.textContent || 'N/D',
+            year: infoAno
+        };
+        
+        historial.unshift({id: Date.now(), ...calculoActual }); 
+        
+        try {
+            localStorage.setItem('impuestosHistorial', JSON.stringify(historial)); 
+            showToast('✅ Cálculo guardado con éxito', 'success'); 
             actualizarHistorialUI(); 
-            mostrarComparacion(); 
+        } catch (e) {
+            console.error("Error guardando historial en localStorage:", e);
+            showToast('Error al guardar historial', 'error');
         }
+    }
 
-        function mostrarComparacion() { 
-            const compDiv = document.getElementById('comparador'); 
-            const compContent = document.getElementById('comparacionContent');
-            if (!compDiv || !compContent) return;
+    function actualizarHistorialUI() { 
+        const card = document.getElementById('historialCard'); 
+        const content = document.getElementById('historialContent'); 
+        if (!card || !content) return;
 
-            if (vehiculosSeleccionados.size < 2) { 
-                compDiv.classList.add('hidden'); 
-                return; 
-            } 
-            
-            const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); 
-            if (sel.length < 2) {
-                 compDiv.classList.add('hidden'); 
-                 return;
-            }
-
-            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">'; 
-            sel.forEach((v, idx) => { 
-                let vehicleInfoText = 'Vehículo';
-                if (v.vinInfo && v.vinInfo.make && v.vinInfo.make !== 'N/D' && v.vinInfo.model && v.vinInfo.model !== 'N/D') {
-                    vehicleInfoText = `${v.vinInfo.year || ''} ${v.vinInfo.make} ${v.vinInfo.model}`;
-                } else if (v.ano) {
-                    vehicleInfoText = `Año: ${v.ano}`;
-                }
-                html += `<div style="border: 1px solid #dbeafe; border-radius: 8px; padding: 10px;">
-                            <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 8px; min-height: 2.5em;">${vehicleInfoText.trim()}</div>
-                            <div style="font-size: 11px; padding: 8px; background: #f3f4f6; border-radius: 6px;">
-                                Valor: ${formatUSD(v.valor || 0)}<br>
-                                Flete: ${formatUSD(v.flete || 0)}<br><br>
-                                <strong style="font-size: 13px;">${formatCRC(v.totalColones || 0)}</strong>
-                            </div>
-                         </div>`; 
-            }); 
-            html += '</div>';
-
-            const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
-            html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af; margin-top: 12px;">Diferencia: ${formatCRC(diff)}</div>`; 
-            
-            compContent.innerHTML = html; 
-            compDiv.classList.remove('hidden');
-        }
-
-        function toggleComparacion() { 
-            const btnComparar = document.getElementById('btnComparar');
-            const compDiv = document.getElementById('comparador'); 
-            if (!btnComparar || !compDiv) return;
-
-            modoComparacion = !modoComparacion; 
-            btnComparar.classList.toggle('active', modoComparacion); 
-            vehiculosSeleccionados.clear();
-            if (!modoComparacion) {
-                 compDiv.classList.add('hidden');
+        if (historial.length === 0) { 
+            content.innerHTML = '<p style="text-align:center; color:#6b7280; font-size:13px;">No hay cálculos guardados.</p>';
+            return; 
+        } 
+        
+        let html = ''; 
+        historial.forEach(item => { 
+            const isSelected = vehiculosSeleccionados.has(item.id); 
+            const cardClass = `comparison-card ${isSelected ? 'selected' : ''}`; 
+            let vehicleInfoText = '';
+            if (item.vinInfo && item.vinInfo.make && item.vinInfo.make !== 'N/D' && item.vinInfo.model && item.vinInfo.model !== 'N/D') {
+                vehicleInfoText = `${item.vinInfo.year || ''} ${item.vinInfo.make} ${item.vinInfo.model}`;
+            } else if (item.ano) { 
+                vehicleInfoText = `Año: ${item.ano}`;
             } else {
-                 showToast('Modo Comparación Activado: Selecciona 2 cálculos del historial', 'info', 4000);
+                vehicleInfoText = "Vehículo (sin info)";
             }
-            actualizarHistorialUI();
+            html += `
+                <div class="${cardClass}" data-id="${item.id}" onclick="seleccionarComparacion(${item.id})">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="historial-vehicle-info">${vehicleInfoText.trim()}</div>
+                        <div style="font-weight: bold; color: #2563eb;">${formatCRC(item.totalColones)}</div>
+                    </div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">Valor: ${formatUSD(item.valor || 0)} + Flete: ${formatUSD(item.flete || 0)}</div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">${item.fecha || ''}</div>
+                    ${isSelected ? '<div style="font-size: 11px; color: #1e40af; margin-top: 4px; font-weight: 500;">✓ Comparando</div>' : ''}
+                </div>`; 
+        }); 
+        content.innerHTML = html; 
+    }
+
+    function seleccionarComparacion(id) { 
+        if (!modoComparacion) return;
+        if (vehiculosSeleccionados.has(id)) { 
+            vehiculosSeleccionados.delete(id); 
+        } else if (vehiculosSeleccionados.size < 2) { 
+            vehiculosSeleccionados.add(id); 
+        } else {
+            showToast('Puedes comparar máximo 2 vehículos', 'info');
+        }
+        actualizarHistorialUI(); 
+        mostrarComparacion(); 
+    }
+
+    function mostrarComparacion() { 
+        const compDiv = document.getElementById('comparador'); 
+        const compContent = document.getElementById('comparacionContent');
+        if (!compDiv || !compContent) return;
+
+        if (vehiculosSeleccionados.size < 2) { 
+            compDiv.classList.add('hidden'); 
+            return; 
+        } 
+        
+        const sel = historial.filter(v => vehiculosSeleccionados.has(v.id)); 
+        if (sel.length < 2) {
+             compDiv.classList.add('hidden'); 
+             return;
         }
 
-        function toggleHistorial() { 
-             const card = document.getElementById('historialCard'); 
-             if (card) card.classList.toggle('hidden'); 
-        }
+        let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">'; 
+        sel.forEach((v, idx) => { 
+            let vehicleInfoText = 'Vehículo';
+            if (v.vinInfo && v.vinInfo.make && v.vinInfo.make !== 'N/D' && v.vinInfo.model && v.vinInfo.model !== 'N/D') {
+                vehicleInfoText = `${v.vinInfo.year || ''} ${v.vinInfo.make} ${v.vinInfo.model}`;
+            } else if (v.ano) {
+                vehicleInfoText = `Año: ${v.ano}`;
+            }
+            html += `<div style="border: 1px solid #dbeafe; border-radius: 8px; padding: 10px;">
+                        <div style="font-weight: bold; color: #1e40af; font-size: 13px; margin-bottom: 8px; min-height: 2.5em;">${vehicleInfoText.trim()}</div>
+                        <div style="font-size: 11px; padding: 8px; background: #f3f4f6; border-radius: 6px;">
+                            Valor: ${formatUSD(v.valor || 0)}<br>
+                            Flete: ${formatUSD(v.flete || 0)}<br><br>
+                            <strong style="font-size: 13px;">${formatCRC(v.totalColones || 0)}</strong>
+                        </div>
+                     </div>`; 
+        }); 
+        html += '</div>';
 
-        function limpiarHistorial() { 
-            if (confirm('¿Estás seguro de que deseas borrar todo el historial? Esta acción no se puede deshacer.')) { 
-                historial = []; 
-                vehiculosSeleccionados.clear(); 
-                try {
-                    localStorage.removeItem('impuestosHistorial'); 
-                    actualizarHistorialUI(); 
-                    const compDiv = document.getElementById('comparador');
-                    if (compDiv) compDiv.classList.add('hidden'); 
-                    showToast('Historial limpiado', 'info');
-                } catch (e) {
-                     console.error("Error limpiando historial:", e);
-                     showToast('Error al limpiar historial', 'error');
-                }
-            } 
-        }
+        const diff = Math.abs(sel[0].totalColones - sel[1].totalColones); 
+        html += `<div style="background: #eff6ff; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; color: #1e40af; margin-top: 12px;">Diferencia: ${formatCRC(diff)}</div>`; 
+        
+        compContent.innerHTML = html; 
+        compDiv.classList.remove('hidden');
+    }
 
-        // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
+    function toggleComparacion() { 
+        const btnComparar = document.getElementById('btnComparar');
+        const compDiv = document.getElementById('comparador'); 
+        if (!btnComparar || !compDiv) return;
+
+        modoComparacion = !modoComparacion; 
+        btnComparar.classList.toggle('active', modoComparacion); 
+        vehiculosSeleccionados.clear();
+        if (!modoComparacion) {
+             compDiv.classList.add('hidden');
+        } else {
+             showToast('Modo Comparación Activado: Selecciona 2 cálculos del historial', 'info', 4000);
+        }
+        actualizarHistorialUI();
+    }
+
+    function toggleHistorial() { 
+         const card = document.getElementById('historialCard'); 
+         if (card) card.classList.toggle('hidden'); 
+    }
+
+    function limpiarHistorial() { 
+        if (confirm('¿Estás seguro de que deseas borrar todo el historial? Esta acción no se puede deshacer.')) { 
+            historial = []; 
+            vehiculosSeleccionados.clear(); 
+            try {
+                localStorage.removeItem('impuestosHistorial'); 
+                actualizarHistorialUI(); 
+                const compDiv = document.getElementById('comparador');
+                if (compDiv) compDiv.classList.add('hidden'); 
+                showToast('Historial limpiado', 'info');
+            } catch (e) {
+                 console.error("Error limpiando historial:", e);
+                 showToast('Error al limpiar historial', 'error');
+            }
+        } 
+    }
+
+    // --- LÓGICA DE API (VIN Y TIPO DE CAMBIO) ---
         function handleVinInput() {
             clearTimeout(vinDecodeTimeout);
             const vinInput = document.getElementById('vin');
@@ -2084,7 +2091,7 @@ async function llamarConsultaPlacaRNP() {
     `;
 
     try {
-        // CORRECCIÓN CRÍTICA: Cambiar la llamada a la función correcta (solicitarConsultaRNP)
+        // CORRECCIÓN CRÍTICA: Llamada a la función 'solicitarConsultaRNP'
         const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
         const result = await solicitarConsultaRNP({ placa: placa });
         
@@ -2180,8 +2187,9 @@ async function llamarConsultaPlacaRNP() {
                 }
             }, (error) => {
                 console.error("Error en listener:", error);
+                // Este es el error ERR_QUIC_PROTOCOL_ERROR
                 if (progressInterval) clearInterval(progressInterval);
-                placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Error de conexión</span>`;
+                placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Error de conexión (Listener)</span>`;
                 btn.disabled = false;
                 btn.textContent = 'Buscar';
             });
@@ -2190,7 +2198,6 @@ async function llamarConsultaPlacaRNP() {
         console.error("Error:", error);
         if (progressInterval) clearInterval(progressInterval);
         
-        // CORRECCIÓN: Mostrar mensaje más amigable para errores HTTPS
         let displayError = error.message;
         if (error.code === 'not-found') {
             displayError = 'No se encontraron credenciales RNP.';
