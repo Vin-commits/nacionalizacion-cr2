@@ -2048,8 +2048,6 @@ async function llamarConsultaPlacaRNP() {
         
         if (!credSnap.exists) {
             showToast("⚠️ Debes guardar tus credenciales RNP primero", "error", 4000);
-            // Aquí podrías abrir automáticamente el modal de credenciales:
-            // mostrarFormularioCredencialesRNP();
             placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Configura tus credenciales RNP primero</span>`;
             return;
         }
@@ -2086,6 +2084,7 @@ async function llamarConsultaPlacaRNP() {
     `;
 
     try {
+        // CORRECCIÓN CRÍTICA: Cambiar la llamada a la función correcta (solicitarConsultaRNP)
         const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
         const result = await solicitarConsultaRNP({ placa: placa });
         
@@ -2097,8 +2096,8 @@ async function llamarConsultaPlacaRNP() {
         const consultaId = data.consultaId;
         
         placaStatus.innerHTML = `
-            <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
-            <span style="vertical-align: middle; color: #2563eb;">
+            <div class="spinner"></div>
+            <span style="color: #2563eb;">
                 🔄 Consultando RNP en tiempo real... (2-3 min aprox)
             </span>
         `;
@@ -2191,13 +2190,26 @@ async function llamarConsultaPlacaRNP() {
         console.error("Error:", error);
         if (progressInterval) clearInterval(progressInterval);
         
-        placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${error.message}</span>`;
-        showToast(`❌ ${error.message}`, 'error', 5000);
+        // CORRECCIÓN: Mostrar mensaje más amigable para errores HTTPS
+        let displayError = error.message;
+        if (error.code === 'not-found') {
+            displayError = 'No se encontraron credenciales RNP.';
+        } else if (error.code === 'unauthenticated') {
+            displayError = 'Debes iniciar sesión para hacer la consulta.';
+        } else if (error.code === 'failed-precondition') {
+            displayError = 'Credenciales RNP incompletas.';
+        } else if (error.code === 'invalid-argument') {
+            displayError = 'Ingrese una placa válida.';
+        }
+        
+        placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${displayError}</span>`;
+        showToast(`❌ ${displayError}`, 'error', 5000);
         
         btn.disabled = false;
         btn.textContent = 'Buscar';
     }
 }
+// ... (resto del código)
 
 // Limpiar al cerrar
 window.addEventListener('beforeunload', () => {
