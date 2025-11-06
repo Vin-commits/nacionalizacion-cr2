@@ -2018,6 +2018,38 @@ Cálculo por: Calculadora CR
         }
 
     // --- FUNCIÓN CONSULTA RNP MEJORADA (REEMPLAZAR LA TUYA) ---
+        // --- v56: Helper para reintentos (Añade esto antes de tu función principal) ---
+/**
+ * @param {firebase.functions.HttpsCallable} callable La función a llamar.
+ * @param {object} data Los datos a enviar.
+ * @param {number} [retries=2] Número de reintentos.
+ * @returns {Promise<firebase.functions.HttpsCallableResult>}
+ */
+async function callableWithRetry(callable, data, retries = 2) {
+    try {
+        return await callable(data);
+    } catch (error) {
+        // Solo reintentar en "Internal Server Error" (cold start)
+        if (error.code === 'internal' && retries > 0) {
+            console.warn('Cold start detectado (internal error). Reintentando en 2 segundos...');
+
+            // Actualizar la UI para el reintento (opcional)
+            const placaStatus = document.getElementById('placaRNPStatus');
+            if (placaStatus) {
+                placaStatus.innerHTML = `
+                    <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
+                    <span style="color: #f59e0b;">Servidor iniciando (cold start). Reintentando...</span>
+                `;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2 seg
+            return callableWithRetry(callable, data, retries - 1);
+        }
+        // Si no es un error "internal" o se acabaron los reintentos, lanzar el error
+        throw error;
+    }
+}
+// --- v56: Reemplaza tu función "llamarConsultaPlacaRNP" con esta ---
 async function llamarConsultaPlacaRNP() {
     const placaInput = document.getElementById('placaRNP');
     const placaStatus = document.getElementById('placaRNPStatus');
@@ -2042,76 +2074,43 @@ async function llamarConsultaPlacaRNP() {
         return;
     }
 
-    // Verificar credenciales ANTES de continuar
-    try {
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            showToast("Debes iniciar sesión", "error");
-            return;
-        }
-        
-        const credRef = firebase.firestore().doc(`usuarios/${user.uid}/credentials/rnp`);
-        const credSnap = await credRef.get();
-        
-        if (!credSnap.exists) {
-            showToast("⚠️ Debes guardar tus credenciales RNP primero", "error", 4000);
-            placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Configura tus credenciales RNP primero</span>`;
-            return;
-        }
-        
-        const credData = credSnap.data();
-        if (!credData.username || !credData.password) {
-            showToast("❌ Credenciales RNP incompletas", "error");
-            placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Credenciales RNP incompletas</span>`;
-            return;
-        }
-    } catch (error) {
-        console.error("Error verificando credenciales:", error);
-        showToast("Error al verificar credenciales", "error");
-        return;
-    }
-
     // Limpiar listeners anteriores
     if (consultaRNPListener) {
         consultaRNPListener();
         consultaRNPListener = null;
     }
-    if (progressInterval) {
-        clearInterval(progressInterval);
-        progressInterval = null;
-    }
 
     // UI: Deshabilitar y mostrar cargando
     btn.disabled = true;
     btn.textContent = '⏳ Consultando...';
-    
+
     placaStatus.innerHTML = `
         <div class="spinner" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></div>
         <span style="vertical-align: middle;">Creando solicitud...</span>
     `;
 
     try {
-        // CORRECCIÓN CRÍTICA: Llamada a la función 'solicitarConsultaRNP'
+        // v56: Usar la función "callableWithRetry"
         const solicitarConsultaRNP = functions.httpsCallable('solicitarConsultaRNP');
-        const result = await solicitarConsultaRNP({ placa: placa });
-        
+        const result = await callableWithRetry(solicitarConsultaRNP, { placa: placa });
+
         const data = result.data;
         if (!data || !data.ok || !data.consultaId) {
             throw new Error(data?.message || "Error al crear solicitud");
         }
 
         const consultaId = data.consultaId;
-        
+
         placaStatus.innerHTML = `
             <div class="spinner"></div>
             <span style="color: #2563eb;">
-                🔄 Consultando RNP en tiempo real... (2-3 min aprox)
+                🔄 Procesando consulta RNP... (Esto puede tardar 1-2 min)
             </span>
         `;
 
         showToast('📋 Consulta iniciada. Espera el resultado...', 'info', 3000);
 
-        // LISTENER EN TIEMPO REAL
+        // LISTENER EN TIEMPO REAL (sin cambios)
         consultaRNPListener = db.collection('consultas_rnp_queue')
             .doc(consultaId)
             .onSnapshot((docSnapshot) => {
@@ -2140,44 +2139,38 @@ async function llamarConsultaPlacaRNP() {
                         break;
 
                     case 'completado':
-                        // Limpiar intervalos
-                        if (progressInterval) clearInterval(progressInterval);
-                        
                         const valorContrato = consultaData.valorContratoNumerico || consultaData.valorContrato;
                         const duracion = consultaData.duracionSegundos || '?';
-                        
+
                         valorFiscalInput.value = Math.round(valorContrato);
-                        
+
                         placaStatus.innerHTML = `
                             <span style="color: #059669; font-weight: bold;">
                                 ✅ Valor fiscal: ₡${Math.round(valorContrato).toLocaleString('es-CR')} (${duracion}s)
                             </span>
                         `;
-                        
+
                         showToast(`✅ Valor Fiscal: ₡${Math.round(valorContrato).toLocaleString('es-CR')}`, 'success', 4000);
-                        
-                        // Limpiar listener
+
                         if (consultaRNPListener) {
                             consultaRNPListener();
                             consultaRNPListener = null;
                         }
-                        
+
                         btn.disabled = false;
                         btn.textContent = 'Buscar';
                         break;
 
                     case 'error':
-                        if (progressInterval) clearInterval(progressInterval);
-                        
                         const errorMsg = consultaData.error || 'Error desconocido';
                         placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${errorMsg}</span>`;
                         showToast(`❌ ${errorMsg}`, 'error', 5000);
-                        
+
                         if (consultaRNPListener) {
                             consultaRNPListener();
                             consultaRNPListener = null;
                         }
-                        
+
                         btn.disabled = false;
                         btn.textContent = 'Buscar';
                         break;
@@ -2187,8 +2180,6 @@ async function llamarConsultaPlacaRNP() {
                 }
             }, (error) => {
                 console.error("Error en listener:", error);
-                // Este es el error ERR_QUIC_PROTOCOL_ERROR
-                if (progressInterval) clearInterval(progressInterval);
                 placaStatus.innerHTML = `<span style="color: #dc2626;">❌ Error de conexión (Listener)</span>`;
                 btn.disabled = false;
                 btn.textContent = 'Buscar';
@@ -2196,8 +2187,7 @@ async function llamarConsultaPlacaRNP() {
 
     } catch (error) {
         console.error("Error:", error);
-        if (progressInterval) clearInterval(progressInterval);
-        
+
         let displayError = error.message;
         if (error.code === 'not-found') {
             displayError = 'No se encontraron credenciales RNP.';
@@ -2208,10 +2198,10 @@ async function llamarConsultaPlacaRNP() {
         } else if (error.code === 'invalid-argument') {
             displayError = 'Ingrese una placa válida.';
         }
-        
+
         placaStatus.innerHTML = `<span style="color: #dc2626;">❌ ${displayError}</span>`;
         showToast(`❌ ${displayError}`, 'error', 5000);
-        
+
         btn.disabled = false;
         btn.textContent = 'Buscar';
     }
