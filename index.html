@@ -1860,81 +1860,104 @@ Cálculo por: Calculadora CR
             }
         }
 
-        // --- CÓDIGO DEL SCANNER ---
         async function iniciarScanner() {
+            console.log("Iniciando scanner...");
             const videoElement = document.getElementById('videoElement');
             const scannerContainer = document.getElementById('scanner-container');
-            if (!videoElement || !scannerContainer) return;
 
-            detenerScanner(); 
+            detenerScanner(); // Limpia instancias anteriores
+
             try {
+                // Bloquear Orientación
                 if (typeof screen.orientation?.lock === 'function') {
-                    try { await screen.orientation.lock('landscape'); } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
+                    try {
+                        await screen.orientation.lock('landscape');
+                        console.log("Orientación bloqueada a horizontal.");
+                    } catch (err) { console.warn("No se pudo bloquear la orientación:", err); }
                 }
-                if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser || !ZXingBrowser.BrowserMultiFormatReader) {
-                    throw new Error('Librería ZXingBrowser no cargada o incompleta.');
+
+                // 1. Validar librería
+                if (typeof ZXingBrowser === 'undefined' || !ZXingBrowser) {
+                    throw new Error('Librería ZXingBrowser no cargada.');
                 }
+
+                // 2. Configurar hints
                 const hints = new Map();
                 const formats = [
-                    ZXingBrowser.BarcodeFormat.CODE_39, ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.CODE_39,
+                    ZXingBrowser.BarcodeFormat.CODE_128,
+                    ZXingBrowser.BarcodeFormat.QR_CODE,
                     ZXingBrowser.BarcodeFormat.DATA_MATRIX,
+                    ZXingBrowser.BarcodeFormat.EAN_13,
+                    ZXingBrowser.BarcodeFormat.UPC_A,
+                    ZXingBrowser.BarcodeFormat.ITF,
+                    ZXingBrowser.BarcodeFormat.PDF_417
                 ];
-                const hintType = ZXingBrowser.DecodeHintType ? ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS : 1; 
-                hints.set(hintType, formats);
-                const tryHarderHint = ZXingBrowser.DecodeHintType ? ZXingBrowser.DecodeHintType.TRY_HARDER : 3; 
-                hints.set(tryHarderHint, true);
+                
+                if (ZXingBrowser.DecodeHintType) {
+                    hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
+                    hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
+                    console.log("Hints configurados con POSSIBLE_FORMATS y TRY_HARDER.");
+                } else {
+                    hints.set(1, formats); 
+                    console.warn("ZXingBrowser.DecodeHintType no está definido, usando fallback numérico para hints.");
+                }
 
+                // 3. Configurar constraints
                 const constraints = {
-                    video: { 
+                    video: {
                         facingMode: 'environment',
-                        width: { ideal: 1280 }, 
-                        height: { ideal: 720 } 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
                 };
-                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints, 500);
-                
+                console.log("Constraints de video simplificadas:", constraints);
+
+                // 4. Inicializar codeReader
+                codeReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
+                console.log("CodeReader inicializado.");
+
+                // Mostrar UI
                 scannerContainer.classList.remove('hidden');
-                
+                console.log("Contenedor del scanner visible.");
+
+                // 5. Iniciar escaneo usando decodeFromConstraints
+                console.log("Iniciando decodeFromConstraints...");
                 codeReader.decodeFromConstraints(constraints, videoElement, (result, err) => {
                     if (result) {
-                        console.log("VIN Scanned:", result.text);
+                        console.log("Código detectado:", result.text);
                         if (navigator.vibrate) { navigator.vibrate(100); }
+                        
                         const vinInput = document.getElementById('vin');
-                        if (vinInput) {
-                             const potentialVin = result.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                             if (potentialVin.length >= 11 && potentialVin.length <= 17) {
-                                vinInput.value = potentialVin.substring(0, 17);
-                                handleVinInput.call(vinInput);
-                                showToast('VIN Escaneado', 'success', 1500);
-                                setTimeout(detenerScanner, 150);
-                             } else {
-                                 console.warn("Código escaneado no parece un VIN:", result.text);
-                             }
-                        }
+                        vinInput.value = result.text; // Establecer el valor
+                        
+                        // *** CORRECCIÓN CLAVE ***
+                        // Disparamos el evento 'input' para que el listener lo capture
+                        // y ejecute handleVinInput con el 'this' correcto.
+                        vinInput.dispatchEvent(new Event('input'));
+                        
+                        // Retrasamos detenerScanner para asegurar que el evento se procese
+                        setTimeout(detenerScanner, 100); // Espera 100ms
                     }
-                    if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+                    
+                    if (err && err.name !== 'NotFoundException') {
                          console.error("Error durante escaneo continuo:", err); 
                     }
                 }).catch(err => {
+                    // Errores al *iniciar* el stream (ej. permisos denegados)
                     console.error("Error al INICIAR decodeFromConstraints:", err);
                     handleScannerError(err);
-                    detenerScanner(); 
+                    detenerScanner(); // Detener inmediatamente si hay error al iniciar
                 });
 
-                videoElement.addEventListener('loadedmetadata', async () => {
+                // 6. Manejo de Linterna
+                videoElement.addEventListener('loadedmetadata', () => {
                     if (videoElement.srcObject) {
-                        const stream = videoElement.srcObject;
-                        const track = stream.getVideoTracks()[0];
-                        if (track && 'applyConstraints' in track) {
-                             try {
-                                const capabilities = track.getCapabilities();
-                                if (capabilities.torch) {
-                                     await track.applyConstraints({ advanced: [{ torch: true }] });
-                                     console.log("Linterna encendida.");
-                                }
-                             } catch (torchErr) {
-                                 console.warn("No se pudo encender la linterna:", torchErr);
-                             }
+                        const track = videoElement.srcObject.getVideoTracks()[0];
+                        if (track && 'torch' in track.getCapabilities()) {
+                            track.applyConstraints({ advanced: [{ torch: true }] })
+                                .then(() => console.log("Linterna encendida."))
+                                .catch(e => console.warn("No se pudo encender la linterna:", e));
                         }
                     }
                 });
@@ -1942,80 +1965,76 @@ Cálculo por: Calculadora CR
             } catch (error) {
                 console.error("Error general en iniciarScanner:", error);
                 handleScannerError(error);
-                detenerScanner(); 
+                detenerScanner(); // Asegurarse de detener si hay error general
             }
         }
 
         function handleScannerError(error) {
-            let errorMsg = `Error con el scanner: ${error.message || 'Desconocido'}`;
-            const errorName = error.name || '';
-
-            if (errorName === 'NotAllowedError' || errorName === 'SecurityError') {
-                errorMsg = "Permiso de cámara denegado. Habilítalo en los ajustes del navegador.";
-            } else if (errorName === 'NotFoundError' || errorName === 'DevicesNotFoundError') {
+            let errorMsg = `Error con el scanner: ${error.message}`;
+            if (error.name === 'NotAllowedError') {
+                errorMsg = "Permiso de cámara denegado. Habilítalo en la configuración.";
+            } else if (error.name === 'NotFoundError') {
                 errorMsg = "No se encontró una cámara compatible.";
-            } else if (errorName === 'NotReadableError' || errorName === 'TrackStartError') {
-                errorMsg = "La cámara está en uso por otra app o hubo un error al iniciarla.";
-            } else if (errorName === 'OverconstrainedError' || errorName === 'ConstraintNotSatisfiedError') {
-                 errorMsg = "La cámara no soporta la resolución solicitada.";
-            } else if (errorName === 'AbortError') {
-                 errorMsg = "Inicio de cámara cancelado.";
-            } else if (error.message.includes("ZXingBrowser")) {
-                 errorMsg = "Error al cargar librería de escaneo.";
+            } else if (error.name === 'NotReadableError') {
+                errorMsg = "La cámara está en uso o bloqueada.";
+            } else if (error.message.includes("ZXingBrowser no cargada")) {
+                errorMsg = "Error al cargar librería de escaneo.";
             }
-            
-            showToast(`❌ ${errorMsg}`, 'error', 6000); 
-            detenerScanner(); 
+            const scannerContainer = document.getElementById('scanner-container');
+            if (scannerContainer && !scannerContainer.classList.contains('hidden')) {
+                scannerContainer.classList.add('hidden');
+            }
+            alert(errorMsg);
         }
 
         function detenerScanner() {
-            const scannerContainer = document.getElementById('scanner-container');
-            const videoElement = document.getElementById('videoElement');
-
-             if (videoElement && videoElement.srcObject) {
-                 const stream = videoElement.srcObject;
-                 const track = stream.getVideoTracks()[0];
-                 if (track && 'applyConstraints' in track) {
-                     const capabilities = track.getCapabilities();
-                     if (capabilities.torch) {
-                         track.applyConstraints({ advanced: [{ torch: false }] })
-                             .then(() => console.log("Linterna apagada."))
-                             .catch(e => console.warn("No se pudo apagar la linterna:", e));
-                     }
-                 }
-             }
-
+            console.log("Intentando detener scanner...");
             if (codeReader) {
-                try { 
-                    codeReader.reset(); 
-                    console.log("CodeReader reset.");
-                } catch (resetError) { 
-                    console.error("Error al resetear CodeReader:", resetError); 
-                }
+                try {
+                    codeReader.reset();
+                    console.log("CodeReader reseteado.");
+                } catch (resetError) { console.error("Error al resetear CodeReader:", resetError); }
                 codeReader = null;
             }
-            
+
+            const videoElement = document.getElementById('videoElement');
             if (videoElement && videoElement.srcObject) {
                 try {
-                    videoElement.srcObject.getTracks().forEach(track => track.stop());
-                    console.log("Video tracks stopped.");
-                } catch (e) { 
-                    console.warn("Error menor al detener tracks:", e); 
+                    const tracks = videoElement.srcObject.getVideoTracks();
+                    tracks.forEach(track => {
+                        // Intentar apagar la linterna si estaba encendida
+                        if (track && 'torch' in track.getCapabilities()) {
+                           const capabilities = track.getCapabilities();
+                           const settings = track.getSettings();
+                           if(capabilities.torch && settings.torch){ // Check if supported AND currently on
+                                track.applyConstraints({ advanced: [{ torch: false }] })
+                                    .then(() => console.log("Linterna apagada."))
+                                    .catch(e => console.warn("No se pudo apagar la linterna:", e));
+                           }
+                        }
+                        track.stop();
+                    });
+                    console.log("Tracks detenidos.");
                 }
+                catch (e) { console.warn("Error menor al detener tracks:", e); }
                 videoElement.srcObject = null;
             }
             if (videoElement) {
-                videoElement.pause();
-                videoElement.removeAttribute('src'); 
+                videoElement.pause(); // Añadir pausa explícita
+                videoElement.removeAttribute('src'); // Quitar fuente
+                videoElement.load(); // Forzar recarga
             }
-            
+
+
+            const scannerContainer = document.getElementById('scanner-container');
             if (scannerContainer) scannerContainer.classList.add('hidden');
-            
+
             if (typeof screen.orientation?.unlock === 'function') {
-                try { screen.orientation.unlock(); }
+                try { screen.orientation.unlock(); console.log("Orientación desbloqueada."); }
                 catch (err) { console.warn("No se pudo desbloquear orientación:", err); }
             }
         }
+        // --- *** FIN: CÓDIGO DEL SCANNER *** ---
 
     // --- FUNCIÓN CONSULTA RNP MEJORADA (REEMPLAZAR LA TUYA) ---
         // --- v56: Helper para reintentos (Añade esto antes de tu función principal) ---
