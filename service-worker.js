@@ -1,5 +1,5 @@
 // Nombre de la caché (Incrementa la versión si haces cambios)
-const CACHE_NAME = 'nacionalizacion-cr-cache-v61';
+const CACHE_NAME = 'nacionalizacion-cr-cache-v62';
 
 // Archivos CRÍTICOS del App Shell (solo cachear si existen)
 const CACHE_FILES = [
